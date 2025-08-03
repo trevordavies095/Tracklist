@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Tracklist - Music Album Rating System{% endblock %}</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'rating-skip': '#ef4444',      // Red - Skip (0.0)
+                        'rating-filler': '#f59e0b',    // Orange/Yellow - Filler (0.33)
+                        'rating-good': '#22c55e',      // Light Green - Good (0.67)
+                        'rating-standout': '#15803d',  // Dark Green - Standout (1.0)
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- HTMX -->
+    <script src="https://unpkg.com/htmx.org@2.0.3"></script>
+    
+    <!-- Alpine.js -->
+    <script defer src="https://unpkg.com/alpinejs@3.14.1/dist/cdn.min.js"></script>
+    
+    <!-- Custom JavaScript Components -->
+    <script src="/static/js/components.js"></script>
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/css/styles.css">
+    
+    {% block head %}{% endblock %}
+</head>
+<body class="h-full flex flex-col bg-gray-50">
+    <!-- Navigation Header -->
+    <header class="bg-white shadow-sm border-b border-gray-200">
+        <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo / Brand -->
+                <div class="flex-shrink-0">
+                    <a href="/" class="flex items-center space-x-2">
+                        <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                            <span class="text-white font-bold text-sm">T</span>
+                        </div>
+                        <span class="text-xl font-semibold text-gray-900">Tracklist</span>
+                    </a>
+                </div>
+                
+                <!-- Navigation Links -->
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="/" class="{% block nav_home %}text-gray-500 hover:text-gray-900{% endblock %} px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                            Dashboard
+                        </a>
+                        <a href="/search" class="{% block nav_search %}text-gray-500 hover:text-gray-900{% endblock %} px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                            Search Albums
+                        </a>
+                        <a href="/albums" class="{% block nav_albums %}text-gray-500 hover:text-gray-900{% endblock %} px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                            My Albums
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Mobile menu button -->
+                <div class="md:hidden" x-data="{ open: false }">
+                    <button @click="open = !open" class="text-gray-500 hover:text-gray-900 focus:outline-none focus:text-gray-900">
+                        <svg class="h-6 w-6 fill-current" viewBox="0 0 24 24">
+                            <path x-show="!open" d="M4 6h16M4 12h16M4 18h16"></path>
+                            <path x-show="open" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                    
+                    <!-- Mobile Menu -->
+                    <div x-show="open" @click.away="open = false" 
+                         x-transition:enter="transition ease-out duration-100"
+                         x-transition:enter-start="transform opacity-0 scale-95"
+                         x-transition:enter-end="transform opacity-100 scale-100"
+                         x-transition:leave="transition ease-in duration-75"
+                         x-transition:leave-start="transform opacity-100 scale-100"
+                         x-transition:leave-end="transform opacity-0 scale-95"
+                         class="absolute top-16 right-4 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+                        <a href="/" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Dashboard</a>
+                        <a href="/search" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Search Albums</a>
+                        <a href="/albums" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">My Albums</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+    
+    <!-- Main Content Area -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Flash Messages (HTMX-based notifications) -->
+        <div id="flash-messages" class="mb-6 hidden">
+            <!-- Messages will be inserted here via HTMX/Alpine.js -->
+        </div>
+        
+        <!-- Page Content -->
+        {% block content %}{% endblock %}
+    </main>
+    
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-200 py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center">
+                <div class="text-sm text-gray-500">
+                    © 2023 Tracklist - Self-hostable Album Rating System
+                </div>
+                <div class="flex space-x-4">
+                    <a href="/api/v1/docs" class="text-sm text-gray-500 hover:text-gray-900">API Docs</a>
+                    <a href="/health" class="text-sm text-gray-500 hover:text-gray-900">Health Check</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Loading Indicator -->
+    <div id="loading-indicator" class="htmx-indicator fixed top-4 right-4 z-50">
+        <div class="bg-blue-500 text-white px-4 py-2 rounded-md shadow-lg flex items-center space-x-2">
+            <svg class="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span class="text-sm">Loading...</span>
+        </div>
+    </div>
+    
+    {% block scripts %}{% endblock %}
+</body>
+</html>

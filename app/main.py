@@ -1,13 +1,13 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
+from fastapi.staticfiles import StaticFiles
 import logging
 import os
 from .database import create_tables, init_db
 from .exceptions import TracklistException, NotFoundError, ValidationError, ConflictError
 from .logging_config import setup_logging
-from .routers import search
-from .routers import albums
+from .routers import search, albums, templates
 
 # Setup logging
 log_level = os.getenv("LOG_LEVEL", "INFO")
@@ -25,9 +25,13 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
+# Mount static files
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
 # Include routers
-app.include_router(search.router)
-app.include_router(albums.router)
+app.include_router(templates.router)  # Template routes (no prefix)
+app.include_router(search.router)     # API routes
+app.include_router(albums.router)     # API routes
 
 
 @app.on_event("startup")
@@ -49,10 +53,7 @@ async def health_check():
     return {"status": "healthy", "service": "tracklist"}
 
 
-@app.get("/")
-async def root():
-    """Root endpoint"""
-    return {"message": "Welcome to Tracklist - Music Album Rating System"}
+# Root endpoint is handled by templates.router
 
 
 @app.exception_handler(TracklistException)

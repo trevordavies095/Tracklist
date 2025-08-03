@@ -1,0 +1,114 @@
+<!-- Color-coded Rating Buttons Component -->
+<!-- Usage: Set track_id and current_rating variables before including this template -->
+
+<div class="rating-buttons flex flex-wrap gap-2" x-data="ratingButtons({{ track_id }}, {{ current_rating or 'null' }})">
+    <!-- Skip (0.0) - Red -->
+    <div class="tooltip-trigger relative">
+        <button 
+            @click="setRating(0.0)"
+            :class="{ 'selected': currentRating === 0.0 }"
+            class="rating-button rating-button-skip px-3 py-2 rounded-md text-sm font-medium min-w-[80px]"
+            :disabled="saving"
+            hx-put="/api/v1/tracks/{{ track_id }}/rating"
+            hx-vals='{"rating": 0.0}'
+            hx-target="#track-{{ track_id }}-feedback"
+            hx-indicator="#loading-indicator"
+            hx-swap="innerHTML">
+            <span x-show="!saving || targetRating !== 0.0">Skip</span>
+            <span x-show="saving && targetRating === 0.0" class="flex items-center">
+                <svg class="animate-spin h-4 w-4 mr-1" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span class="text-xs">...</span>
+            </span>
+        </button>
+        <div class="tooltip" style="bottom: 100%; left: 50%; transform: translateX(-50%); margin-bottom: 0.5rem;">
+            Skip always - worst songs you'd never want to hear
+        </div>
+    </div>
+    
+    <!-- Filler (0.33) - Orange/Yellow -->
+    <div class="tooltip-trigger relative">
+        <button 
+            @click="setRating(0.33)"
+            :class="{ 'selected': currentRating === 0.33 }"
+            class="rating-button rating-button-filler px-3 py-2 rounded-md text-sm font-medium min-w-[80px]"
+            :disabled="saving"
+            hx-put="/api/v1/tracks/{{ track_id }}/rating"
+            hx-vals='{"rating": 0.33}'
+            hx-target="#track-{{ track_id }}-feedback"
+            hx-indicator="#loading-indicator"
+            hx-swap="innerHTML">
+            <span x-show="!saving || targetRating !== 0.33">Filler</span>
+            <span x-show="saving && targetRating === 0.33" class="flex items-center">
+                <svg class="animate-spin h-4 w-4 mr-1" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span class="text-xs">...</span>
+            </span>
+        </button>
+        <div class="tooltip" style="bottom: 100%; left: 50%; transform: translateX(-50%); margin-bottom: 0.5rem;">
+            Filler/tolerable - don't enjoy but won't skip
+        </div>
+    </div>
+    
+    <!-- Good (0.67) - Light Green -->
+    <div class="tooltip-trigger relative">
+        <button 
+            @click="setRating(0.67)"
+            :class="{ 'selected': currentRating === 0.67 }"
+            class="rating-button rating-button-good px-3 py-2 rounded-md text-sm font-medium min-w-[80px]"
+            :disabled="saving"
+            hx-put="/api/v1/tracks/{{ track_id }}/rating"
+            hx-vals='{"rating": 0.67}'
+            hx-target="#track-{{ track_id }}-feedback"
+            hx-indicator="#loading-indicator"
+            hx-swap="innerHTML">
+            <span x-show="!saving || targetRating !== 0.67">Good</span>
+            <span x-show="saving && targetRating === 0.67" class="flex items-center">
+                <svg class="animate-spin h-4 w-4 mr-1" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span class="text-xs">...</span>
+            </span>
+        </button>
+        <div class="tooltip" style="bottom: 100%; left: 50%; transform: translateX(-50%); margin-bottom: 0.5rem;">
+            Good/playlist-worthy - like the track
+        </div>
+    </div>
+    
+    <!-- Standout (1.0) - Dark Green -->
+    <div class="tooltip-trigger relative">
+        <button 
+            @click="setRating(1.0)"
+            :class="{ 'selected': currentRating === 1.0 }"
+            class="rating-button rating-button-standout px-3 py-2 rounded-md text-sm font-medium min-w-[80px]"
+            :disabled="saving"
+            hx-put="/api/v1/tracks/{{ track_id }}/rating"
+            hx-vals='{"rating": 1.0}'
+            hx-target="#track-{{ track_id }}-feedback"
+            hx-indicator="#loading-indicator"
+            hx-swap="innerHTML">
+            <span x-show="!saving || targetRating !== 1.0">Standout</span>
+            <span x-show="saving && targetRating === 1.0" class="flex items-center">
+                <svg class="animate-spin h-4 w-4 mr-1" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span class="text-xs">...</span>
+            </span>
+        </button>
+        <div class="tooltip" style="bottom: 100%; left: 50%; transform: translateX(-50%); margin-bottom: 0.5rem;">
+            Standout/love it - album highlights
+        </div>
+    </div>
+    
+    <!-- Auto-save Feedback -->
+    <div id="track-{{ track_id }}-feedback" class="ml-4 flex items-center text-sm">
+        <!-- HTMX will populate this with response feedback -->
+    </div>
+</div>
+

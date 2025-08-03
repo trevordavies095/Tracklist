@@ -1,0 +1,236 @@
+{% extends "base.html" %}
+
+{% block title %}{{ album.title }} - Completed - Tracklist{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <!-- Success Banner -->
+    <div class="bg-green-50 border border-green-200 rounded-lg p-6 mb-8">
+        <div class="flex items-center">
+            <div class="flex-shrink-0">
+                <svg class="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+            <div class="ml-3">
+                <h2 class="text-lg font-semibold text-green-800">Album Rating Completed! 🎉</h2>
+                <p class="text-green-700">You've successfully rated all tracks for this album.</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Album Header with Score -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-8">
+        <div class="p-8">
+            <div class="flex flex-col lg:flex-row lg:items-start space-y-6 lg:space-y-0 lg:space-x-8">
+                <!-- Album Artwork -->
+                <div class="flex-shrink-0">
+                    <div class="w-48 h-48 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg flex items-center justify-center">
+                        <svg class="w-24 h-24 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+                        </svg>
+                    </div>
+                </div>
+                
+                <!-- Album Info & Score -->
+                <div class="flex-1">
+                    <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ album.title }}</h1>
+                    <p class="text-xl text-gray-600 mb-6">by {{ album.artist.name }}</p>
+                    
+                    <!-- Final Score Display -->
+                    <div class="bg-gradient-to-r from-blue-50 to-green-50 rounded-lg p-6 mb-6">
+                        <div class="text-center">
+                            <div class="text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-green-600 mb-2">
+                                {{ album.rating_score }}
+                            </div>
+                            <div class="text-lg text-gray-600 mb-2">out of 100</div>
+                            <div class="text-sm text-gray-500">
+                                {% if album.rating_score >= 80 %}
+                                Excellent album! 🌟
+                                {% elif album.rating_score >= 60 %}
+                                Great album! 👍
+                                {% elif album.rating_score >= 40 %}
+                                Good album 👌
+                                {% elif album.rating_score >= 20 %}
+                                Decent album ✋
+                                {% else %}
+                                Could be better 😐
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Album Details -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                        {% if album.year %}
+                        <div>
+                            <span class="font-medium text-gray-700">Year:</span>
+                            <span class="text-gray-600">{{ album.year }}</span>
+                        </div>
+                        {% endif %}
+                        
+                        <div>
+                            <span class="font-medium text-gray-700">Tracks:</span>
+                            <span class="text-gray-600">{{ album.total_tracks }}</span>
+                        </div>
+                        
+                        <div>
+                            <span class="font-medium text-gray-700">Rated:</span>
+                            <span class="text-gray-600">{{ album.rated_at[:10] if album.rated_at else 'Today' }}</span>
+                        </div>
+                        
+                        <div>
+                            <span class="font-medium text-gray-700">Bonus:</span>
+                            <span class="text-gray-600">+{{ album.album_bonus }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Track Ratings Summary -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-8">
+        <div class="p-6">
+            <h3 class="text-xl font-semibold text-gray-900 mb-6">Track Ratings</h3>
+            
+            <!-- Rating Distribution -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                {% set rating_counts = {'standout': 0, 'good': 0, 'filler': 0, 'skip': 0} %}
+                {% for track in tracks %}
+                    {% if track.rating == 1.0 %}{% set _ = rating_counts.update({'standout': rating_counts.standout + 1}) %}
+                    {% elif track.rating == 0.67 %}{% set _ = rating_counts.update({'good': rating_counts.good + 1}) %}
+                    {% elif track.rating == 0.33 %}{% set _ = rating_counts.update({'filler': rating_counts.filler + 1}) %}
+                    {% elif track.rating == 0.0 %}{% set _ = rating_counts.update({'skip': rating_counts.skip + 1}) %}
+                    {% endif %}
+                {% endfor %}
+                
+                <div class="text-center p-4 bg-green-100 rounded-lg">
+                    <div class="text-2xl font-bold text-green-800">{{ rating_counts.standout }}</div>
+                    <div class="text-sm text-green-600">Standout Tracks</div>
+                </div>
+                
+                <div class="text-center p-4 bg-green-50 rounded-lg">
+                    <div class="text-2xl font-bold text-green-700">{{ rating_counts.good }}</div>
+                    <div class="text-sm text-green-600">Good Tracks</div>
+                </div>
+                
+                <div class="text-center p-4 bg-amber-50 rounded-lg">
+                    <div class="text-2xl font-bold text-amber-700">{{ rating_counts.filler }}</div>
+                    <div class="text-sm text-amber-600">Filler Tracks</div>
+                </div>
+                
+                <div class="text-center p-4 bg-red-50 rounded-lg">
+                    <div class="text-2xl font-bold text-red-700">{{ rating_counts.skip }}</div>
+                    <div class="text-sm text-red-600">Skip Tracks</div>
+                </div>
+            </div>
+            
+            <!-- Individual Track List -->
+            <div class="space-y-3">
+                {% for track in tracks %}
+                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <div class="flex items-center space-x-4">
+                        <span class="flex-shrink-0 w-8 h-8 bg-white rounded-full flex items-center justify-center text-sm font-medium text-gray-600 shadow-sm">
+                            {{ track.track_number }}
+                        </span>
+                        <div>
+                            <h4 class="font-medium text-gray-900">{{ track.title }}</h4>
+                            {% if track.duration_ms %}
+                            <p class="text-sm text-gray-500">{{ track.duration_ms | format_duration }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center space-x-3">
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
+                            {% if track.rating == 1.0 %}bg-green-800 text-white
+                            {% elif track.rating == 0.67 %}bg-green-600 text-white
+                            {% elif track.rating == 0.33 %}bg-amber-600 text-white
+                            {% elif track.rating == 0.0 %}bg-red-600 text-white
+                            {% else %}bg-gray-600 text-white{% endif %}">
+                            {{ track.rating | format_rating_label }}
+                        </span>
+                        <span class="text-lg font-semibold {{ track.rating | rating_color_class }}">
+                            {{ track.rating }}
+                        </span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Actions -->
+    <div class="flex flex-col sm:flex-row justify-center space-y-3 sm:space-y-0 sm:space-x-4 mb-8">
+        <a href="/albums" 
+           class="inline-flex items-center justify-center px-6 py-3 border border-gray-300 rounded-md text-base font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+            </svg>
+            Back to My Albums
+        </a>
+        
+        <a href="/search" 
+           class="inline-flex items-center justify-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-base font-medium text-white rounded-md transition-colors">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+            Rate Another Album
+        </a>
+    </div>
+    
+    <!-- Share & Export Options -->
+    <div class="bg-gray-50 rounded-lg p-6 text-center">
+        <h4 class="font-medium text-gray-900 mb-4">Share Your Rating</h4>
+        <div class="flex flex-col sm:flex-row justify-center space-y-2 sm:space-y-0 sm:space-x-4">
+            <button onclick="copyRatingToClipboard()" 
+                    class="inline-flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                </svg>
+                Copy Rating Summary
+            </button>
+            
+            <a href="https://musicbrainz.org/release/{{ album.musicbrainz_id }}" 
+               target="_blank"
+               class="inline-flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                </svg>
+                View on MusicBrainz
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+function copyRatingToClipboard() {
+    const albumTitle = "{{ album.title }}";
+    const artistName = "{{ album.artist.name }}";
+    const score = {{ album.rating_score }};
+    
+    const text = `Just rated "${albumTitle}" by ${artistName}: ${score}/100 on Tracklist! 🎵`;
+    
+    navigator.clipboard.writeText(text).then(() => {
+        // Show success feedback
+        const button = event.target.closest('button');
+        const originalText = button.innerHTML;
+        button.innerHTML = `
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            Copied!
+        `;
+        button.classList.add('bg-green-50', 'border-green-300', 'text-green-700');
+        
+        setTimeout(() => {
+            button.innerHTML = originalText;
+            button.classList.remove('bg-green-50', 'border-green-300', 'text-green-700');
+        }, 2000);
+    }).catch(() => {
+        alert('Failed to copy to clipboard');
+    });
+}
+</script>
+{% endblock %}

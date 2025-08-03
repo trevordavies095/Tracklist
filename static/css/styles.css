@@ -1,0 +1,245 @@
+/* Custom styles for Tracklist application */
+
+/* HTMX Loading States */
+.htmx-indicator {
+    display: none;
+}
+
+.htmx-request .htmx-indicator {
+    display: flex;
+}
+
+.htmx-request.htmx-indicator {
+    display: flex;
+}
+
+/* Rating Button Styles */
+.rating-button {
+    transition: all 0.2s;
+    transform: scale(1);
+    outline: none;
+    cursor: pointer;
+}
+
+.rating-button:hover {
+    transform: scale(1.05);
+}
+
+.rating-button:active {
+    transform: scale(0.95);
+}
+
+.rating-button:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px white, 0 0 0 4px currentColor;
+}
+
+.rating-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.rating-button.selected {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 3px white, 0 0 0 5px currentColor;
+    font-weight: 700;
+    position: relative;
+    z-index: 10;
+}
+
+.rating-button-skip {
+    background-color: #ef4444; /* Red - Skip */
+    color: white;
+}
+
+.rating-button-skip:hover {
+    background-color: #dc2626;
+}
+
+.rating-button-skip:focus {
+    --tw-ring-color: #ef4444;
+}
+
+.rating-button-skip.selected {
+    background-color: #dc2626;
+    box-shadow: 0 0 0 3px white, 0 0 0 5px #dc2626;
+}
+
+.rating-button-filler {
+    background-color: #f59e0b; /* Orange/Yellow - Filler */
+    color: white;
+}
+
+.rating-button-filler:hover {
+    background-color: #d97706;
+}
+
+.rating-button-filler:focus {
+    --tw-ring-color: #f59e0b;
+}
+
+.rating-button-filler.selected {
+    background-color: #d97706;
+    box-shadow: 0 0 0 3px white, 0 0 0 5px #d97706;
+}
+
+.rating-button-good {
+    background-color: #22c55e; /* Light Green - Good */
+    color: white;
+}
+
+.rating-button-good:hover {
+    background-color: #16a34a;
+}
+
+.rating-button-good:focus {
+    --tw-ring-color: #22c55e;
+}
+
+.rating-button-good.selected {
+    background-color: #16a34a;
+    box-shadow: 0 0 0 3px white, 0 0 0 5px #16a34a;
+}
+
+.rating-button-standout {
+    background-color: #15803d; /* Dark Green - Standout */
+    color: white;
+}
+
+.rating-button-standout:hover {
+    background-color: #166534;
+}
+
+.rating-button-standout:focus {
+    --tw-ring-color: #15803d;
+}
+
+.rating-button-standout.selected {
+    background-color: #166534;
+    box-shadow: 0 0 0 3px white, 0 0 0 5px #166534;
+}
+
+/* Progress Bar Animation */
+.progress-bar {
+    transition: width 0.3s ease-in-out;
+}
+
+/* Score Animation */
+.score-change {
+    animation: scoreUpdate 0.5s ease-in-out;
+}
+
+@keyframes scoreUpdate {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+/* Album Card Hover Effects */
+.album-card {
+    @apply transition-all duration-200 hover:shadow-lg hover:-translate-y-1;
+}
+
+/* Search Input Focus */
+.search-input:focus {
+    @apply ring-2 ring-blue-500 border-blue-500;
+}
+
+/* Track Row Hover */
+.track-row {
+    @apply transition-colors duration-150 hover:bg-gray-50;
+}
+
+.track-row.rated {
+    @apply bg-green-50 border-l-4 border-green-400;
+}
+
+/* Mobile Responsive Adjustments */
+@media (max-width: 640px) {
+    .rating-button {
+        @apply text-xs px-2 py-1;
+    }
+    
+    .album-card {
+        @apply hover:transform-none hover:shadow-md;
+    }
+}
+
+/* Auto-save Feedback */
+.auto-save-success {
+    @apply animate-pulse text-green-600;
+}
+
+.auto-save-error {
+    @apply animate-pulse text-red-600;
+}
+
+/* Submission Success Animation */
+.submission-success {
+    animation: celebration 0.6s ease-in-out;
+}
+
+@keyframes celebration {
+    0%, 100% { transform: scale(1); }
+    25% { transform: scale(1.02) rotate(1deg); }
+    75% { transform: scale(1.02) rotate(-1deg); }
+}
+
+/* Tooltip Styles */
+.tooltip {
+    position: absolute;
+    z-index: 10;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: white;
+    background-color: #1f2937;
+    border-radius: 0.375rem;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s;
+    pointer-events: none;
+    white-space: nowrap;
+}
+
+.tooltip-trigger:hover .tooltip {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Loading Skeleton */
+.loading-skeleton {
+    @apply animate-pulse bg-gray-200 rounded;
+}
+
+/* Error States */
+.error-message {
+    @apply text-red-600 text-sm mt-1;
+}
+
+.error-input {
+    @apply border-red-300 focus:border-red-500 focus:ring-red-500;
+}
+
+/* Success States */
+.success-message {
+    @apply text-green-600 text-sm mt-1;
+}
+
+/* Focus Trap for Accessibility */
+.focus-trap:focus {
+    @apply outline-none ring-2 ring-blue-500 ring-offset-2;
+}
+
+/* Print Styles */
+@media print {
+    .no-print {
+        display: none;
+    }
+    
+    .print-break {
+        page-break-after: always;
+    }
+}

@@ -33,7 +33,7 @@ class Album(Base):
     total_tracks = Column(Integer)
     total_duration_ms = Column(Integer)
     rating_score = Column(Integer)
-    album_bonus = Column(REAL, default=0.25)
+    album_bonus = Column(REAL, default=0.33)
     is_rated = Column(Boolean, default=False)
     created_at = Column(DateTime, default=func.current_timestamp())
     updated_at = Column(DateTime, default=func.current_timestamp(), onupdate=func.current_timestamp())
@@ -66,7 +66,7 @@ class UserSettings(Base):
     
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer, default=1)
-    album_bonus = Column(REAL, default=0.25)
+    album_bonus = Column(REAL, default=0.33)
     theme = Column(Text, default='light')
     created_at = Column(DateTime, default=func.current_timestamp())
     updated_at = Column(DateTime, default=func.current_timestamp(), onupdate=func.current_timestamp())

@@ -3,7 +3,9 @@ Search API endpoints for MusicBrainz integration
 """
 
 from typing import Dict, Any, Optional
-from fastapi import APIRouter, Query, HTTPException, Depends
+from fastapi import APIRouter, Query, HTTPException, Depends, Request
+from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse
 import logging
 
 from ..musicbrainz_service import get_musicbrainz_service, MusicBrainzService
@@ -12,15 +14,17 @@ from ..exceptions import TracklistException
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/v1", tags=["search"])
+templates = Jinja2Templates(directory="templates")
 
 
 @router.get("/search/albums")
 async def search_albums(
+    request: Request,
     q: str = Query(..., description="Search query for albums", min_length=1, max_length=200),
     limit: int = Query(25, description="Maximum number of results", ge=1, le=100),
     offset: int = Query(0, description="Offset for pagination", ge=0),
     service: MusicBrainzService = Depends(get_musicbrainz_service)
-) -> Dict[str, Any]:
+):
     """
     Search for albums using MusicBrainz
     
@@ -49,6 +53,25 @@ async def search_albums(
         }
         
         logger.info(f"Search completed: {len(results.get('releases', []))} results returned")
+        
+        # Check if this is an HTMX request
+        hx_request = request.headers.get("HX-Request")
+        if hx_request:
+            # Return HTML template for HTMX
+            return templates.TemplateResponse(
+                "components/search_results.html",
+                {
+                    "request": request,
+                    "albums": results.get("releases", []),
+                    "total": results.get("count", 0),
+                    "offset": offset,
+                    "limit": limit,
+                    "has_more": (offset + limit) < results.get("count", 0),
+                    "query": q
+                }
+            )
+        
+        # Return JSON for API calls
         return results
         
     except TracklistException as e:

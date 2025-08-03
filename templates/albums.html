@@ -1,0 +1,487 @@
+{% extends "base.html" %}
+
+{% block title %}My Albums - Tracklist{% endblock %}
+
+{% block nav_albums %}text-blue-600 border-b-2 border-blue-600{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <!-- Page Header -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">My Albums</h1>
+            <p class="text-gray-600">Manage your album ratings and track your music journey</p>
+        </div>
+        <div class="mt-4 sm:mt-0">
+            <a href="/search" 
+               class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition-colors">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                </svg>
+                Add New Album
+            </a>
+        </div>
+    </div>
+    
+    <!-- Filters and Search -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+            <!-- Filter Tabs -->
+            <div class="flex space-x-1" x-data="{ activeFilter: 'all' }">
+                <button @click="activeFilter = 'all'; loadAlbums('all')"
+                        :class="activeFilter === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                        class="px-4 py-2 rounded-md text-sm font-medium transition-colors">
+                    All Albums
+                </button>
+                <button @click="activeFilter = 'completed'; loadAlbums('completed')"
+                        :class="activeFilter === 'completed' ? 'bg-green-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                        class="px-4 py-2 rounded-md text-sm font-medium transition-colors">
+                    Completed
+                </button>
+                <button @click="activeFilter = 'drafts'; loadAlbums('drafts')"
+                        :class="activeFilter === 'drafts' ? 'bg-amber-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                        class="px-4 py-2 rounded-md text-sm font-medium transition-colors">
+                    In Progress
+                </button>
+            </div>
+            
+            <!-- View Toggle -->
+            <div class="flex items-center space-x-2" x-data="{ viewMode: 'grid' }">
+                <span class="text-sm text-gray-700">View:</span>
+                <div class="flex border border-gray-300 rounded-md">
+                    <button @click="viewMode = 'grid'"
+                            :class="viewMode === 'grid' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'"
+                            class="px-3 py-1 text-sm rounded-l-md transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
+                        </svg>
+                    </button>
+                    <button @click="viewMode = 'list'"
+                            :class="viewMode === 'list' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'"
+                            class="px-3 py-1 text-sm rounded-r-md transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Albums Grid/List -->
+    <div id="albums-container" 
+         hx-get="/api/v1/albums?limit=20" 
+         hx-trigger="load"
+         hx-target="this"
+         hx-indicator="#albums-loading">
+        
+        <!-- Loading State -->
+        <div id="albums-loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for i in range(6) %}
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div class="loading-skeleton h-16 w-16 rounded-lg mb-4"></div>
+                <div class="loading-skeleton h-5 w-full mb-2"></div>
+                <div class="loading-skeleton h-4 w-3/4 mb-4"></div>
+                <div class="space-y-2">
+                    <div class="loading-skeleton h-3 w-full"></div>
+                    <div class="loading-skeleton h-8 w-24"></div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <!-- Empty State -->
+    <div id="empty-state" class="hidden text-center py-12">
+        <div class="max-w-sm mx-auto">
+            <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+            </svg>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">No albums yet</h3>
+            <p class="text-gray-600 mb-6">Start building your music library by searching for albums to rate</p>
+            <a href="/search" 
+               class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition-colors">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+                Search Albums
+            </a>
+        </div>
+    </div>
+    
+    <!-- Pagination -->
+    <div id="pagination-container" class="mt-8">
+        <!-- Pagination will be loaded via HTMX -->
+    </div>
+</div>
+
+<!-- Album Details Modal -->
+<div id="album-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden" onclick="closeModal(event)">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full" onclick="event.stopPropagation()">
+            <div class="p-6">
+                <div class="flex justify-between items-start mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900" id="modal-title">Album Details</h3>
+                    <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div id="modal-content">
+                    <!-- Album details will be loaded here -->
+                </div>
+                
+                <div class="mt-6 flex flex-col sm:flex-row gap-3">
+                    <button id="modal-rate-btn" 
+                            class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md text-sm font-medium transition-colors">
+                        Continue Rating
+                    </button>
+                    <button id="modal-view-btn" 
+                            class="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md text-sm font-medium transition-colors hidden">
+                        View Results
+                    </button>
+                    <button id="modal-delete-btn" 
+                            onclick="confirmDeleteAlbum()" 
+                            class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md text-sm font-medium transition-colors">
+                        Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="delete-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden" onclick="closeDeleteModal(event)">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full" onclick="event.stopPropagation()">
+            <div class="p-6">
+                <div class="flex items-center mb-4">
+                    <div class="flex-shrink-0">
+                        <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L5.082 15.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-lg font-medium text-gray-900">Delete Album</h3>
+                        <p class="text-sm text-gray-500">This action cannot be undone.</p>
+                    </div>
+                </div>
+                
+                <div id="delete-content" class="mb-6">
+                    <p class="text-gray-700">Are you sure you want to permanently delete <strong id="delete-album-name"></strong>?</p>
+                    <p class="text-sm text-gray-500 mt-2">This will remove the album, all track ratings, and scores from your library.</p>
+                </div>
+                
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <button onclick="closeDeleteModal()" 
+                            class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 px-4 rounded-md text-sm font-medium transition-colors">
+                        Cancel
+                    </button>
+                    <button id="confirm-delete-btn" 
+                            onclick="executeDelete()" 
+                            class="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-md text-sm font-medium transition-colors">
+                        Delete Permanently
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Load albums with filtering
+function loadAlbums(filter) {
+    let url = '/api/v1/albums?limit=20';
+    
+    if (filter === 'completed') {
+        url += '&rated=true';
+    } else if (filter === 'drafts') {
+        url += '&rated=false';
+    }
+    // 'all' uses default (no filter)
+    
+    htmx.ajax('GET', url, {
+        target: '#albums-container',
+        swap: 'innerHTML'
+    });
+}
+
+// Handle HTMX responses for album list
+document.body.addEventListener('htmx:afterRequest', function(evt) {
+    if (evt.detail.target.id === 'albums-container') {
+        const response = JSON.parse(evt.detail.xhr.responseText);
+        
+        if (response.albums && response.albums.length === 0) {
+            document.getElementById('empty-state').classList.remove('hidden');
+            document.getElementById('albums-container').innerHTML = '';
+        } else {
+            document.getElementById('empty-state').classList.add('hidden');
+            renderAlbums(response);
+        }
+    }
+});
+
+function renderAlbums(data) {
+    const container = document.getElementById('albums-container');
+    const albums = data.albums || [];
+    
+    const albumCards = albums.map(album => `
+        <div class="album-card bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200">
+            <div class="p-6">
+                <!-- Album Art Placeholder -->
+                <div class="w-16 h-16 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg mb-4 flex items-center justify-center">
+                    <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+                    </svg>
+                </div>
+                
+                <!-- Album Info -->
+                <h3 class="font-semibold text-gray-900 mb-1 truncate" title="${album.title}">${album.title}</h3>
+                <p class="text-sm text-gray-600 mb-4 truncate" title="${album.artist}">${album.artist}</p>
+                
+                <!-- Status and Score -->
+                <div class="mb-4">
+                    ${album.is_rated ? `
+                        <div class="flex items-center justify-between">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                ✓ Completed
+                            </span>
+                            <span class="text-lg font-bold text-green-600">${album.rating_score}/100</span>
+                        </div>
+                    ` : `
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                            ⏳ In Progress
+                        </span>
+                    `}
+                </div>
+                
+                <!-- Actions -->
+                <div class="flex space-x-2">
+                    ${album.is_rated ? `
+                        <a href="/albums/${album.id}/completed" 
+                           class="flex-1 bg-green-600 hover:bg-green-700 text-white text-center py-2 px-3 rounded-md text-sm font-medium transition-colors">
+                            View Results
+                        </a>
+                    ` : `
+                        <a href="/albums/${album.id}/rate" 
+                           class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-center py-2 px-3 rounded-md text-sm font-medium transition-colors">
+                            Continue Rating
+                        </a>
+                    `}
+                    <button onclick="showAlbumDetails(${album.id})" 
+                            class="px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                        ⋯
+                    </button>
+                </div>
+            </div>
+        </div>
+    `).join('');
+    
+    container.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">${albumCards}</div>`;
+    
+    // Handle pagination if needed
+    if (data.has_more) {
+        const paginationContainer = document.getElementById('pagination-container');
+        paginationContainer.innerHTML = `
+            <div class="flex justify-center">
+                <button onclick="loadMoreAlbums(${data.offset + data.limit})" 
+                        class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md text-sm font-medium transition-colors">
+                    Load More Albums
+                </button>
+            </div>
+        `;
+    }
+}
+
+function loadMoreAlbums(offset) {
+    // Implementation for loading more albums
+    console.log('Load more albums from offset:', offset);
+}
+
+// Global variable to store current album data
+let currentAlbum = null;
+
+async function showAlbumDetails(albumId) {
+    console.log('Showing details for album ID:', albumId);
+    
+    try {
+        // Fetch album details using standard fetch API
+        const response = await fetch(`/api/v1/albums/${albumId}`);
+        console.log('Response status:', response.status);
+        
+        if (response.ok) {
+            const album = await response.json();
+            console.log('Parsed album:', album);
+            currentAlbum = album;
+            
+            // Update modal content
+            document.getElementById('modal-title').textContent = album.title;
+            document.getElementById('modal-content').innerHTML = `
+                <div class="space-y-3">
+                    <div class="flex justify-between">
+                        <span class="font-medium text-gray-700">Artist:</span>
+                        <span class="text-gray-900">${album.artist.name}</span>
+                    </div>
+                    ${album.year ? `
+                    <div class="flex justify-between">
+                        <span class="font-medium text-gray-700">Year:</span>
+                        <span class="text-gray-900">${album.year}</span>
+                    </div>
+                    ` : ''}
+                    <div class="flex justify-between">
+                        <span class="font-medium text-gray-700">Tracks:</span>
+                        <span class="text-gray-900">${album.total_tracks}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="font-medium text-gray-700">Status:</span>
+                        <span class="${album.is_rated ? 'text-green-600' : 'text-amber-600'} font-medium">
+                            ${album.is_rated ? 'Completed' : 'In Progress'}
+                        </span>
+                    </div>
+                    ${album.is_rated && album.rating_score ? `
+                    <div class="flex justify-between">
+                        <span class="font-medium text-gray-700">Score:</span>
+                        <span class="text-green-600 font-bold text-lg">${album.rating_score}/100</span>
+                    </div>
+                    ` : ''}
+                </div>
+            `;
+            
+            // Update action buttons
+            const rateBtn = document.getElementById('modal-rate-btn');
+            const viewBtn = document.getElementById('modal-view-btn');
+            
+            if (album.is_rated) {
+                rateBtn.classList.add('hidden');
+                viewBtn.classList.remove('hidden');
+                viewBtn.onclick = () => window.location.href = `/albums/${album.id}/completed`;
+            } else {
+                rateBtn.classList.remove('hidden');
+                viewBtn.classList.add('hidden');
+                rateBtn.onclick = () => window.location.href = `/albums/${album.id}/rate`;
+            }
+            
+            // Show modal
+            openModal();
+        } else {
+            console.error('Request failed with status:', response.status);
+            const errorText = await response.text();
+            console.error('Error response:', errorText);
+            alert(`Failed to load album details: ${response.status}`);
+        }
+    } catch (error) {
+        console.error('Network error:', error);
+        alert('Network error loading album details');
+    }
+}
+
+function openModal() {
+    const modal = document.getElementById('album-modal');
+    modal.classList.remove('hidden');
+}
+
+function closeModal(event) {
+    // Only close if clicking the backdrop or close button
+    if (event && event.target !== event.currentTarget && event.type === 'click') {
+        return;
+    }
+    
+    const modal = document.getElementById('album-modal');
+    modal.classList.add('hidden');
+    currentAlbum = null;
+}
+
+function confirmDeleteAlbum() {
+    if (!currentAlbum) return;
+    
+    // Update delete modal content
+    document.getElementById('delete-album-name').textContent = `"${currentAlbum.title}" by ${currentAlbum.artist.name}`;
+    
+    // Show delete confirmation modal
+    const deleteModal = document.getElementById('delete-modal');
+    deleteModal.classList.remove('hidden');
+}
+
+function closeDeleteModal(event) {
+    // Only close if clicking the backdrop or close button
+    if (event && event.target !== event.currentTarget && event.type === 'click') {
+        return;
+    }
+    
+    const deleteModal = document.getElementById('delete-modal');
+    deleteModal.classList.add('hidden');
+}
+
+async function executeDelete() {
+    if (!currentAlbum) return;
+    
+    const deleteBtn = document.getElementById('confirm-delete-btn');
+    const originalText = deleteBtn.innerHTML;
+    
+    // Show loading state
+    deleteBtn.innerHTML = `
+        <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        Deleting...
+    `;
+    deleteBtn.disabled = true;
+    
+    try {
+        // Execute delete using fetch API
+        const response = await fetch(`/api/v1/albums/${currentAlbum.id}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        deleteBtn.innerHTML = originalText;
+        deleteBtn.disabled = false;
+        
+        if (response.ok) {
+            const result = await response.json();
+            
+            // Close modals
+            closeDeleteModal();
+            closeModal();
+            
+            // Show success message
+            const toast = document.createElement('div');
+            toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+            toast.innerHTML = `
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    ${result.message}
+                </div>
+            `;
+            document.body.appendChild(toast);
+            
+            // Remove toast after 3 seconds
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+            
+            // Reload albums list
+            loadAlbums('all');
+            
+        } else {
+            const error = await response.json();
+            alert(`Failed to delete album: ${error.message || 'Unknown error'}`);
+        }
+        
+    } catch (error) {
+        deleteBtn.innerHTML = originalText;
+        deleteBtn.disabled = false;
+        console.error('Delete error:', error);
+        alert('Network error deleting album');
+    }
+}
+</script>
+{% endblock %}

@@ -57,7 +57,7 @@ def init_db():
         if not existing_settings:
             default_settings = UserSettings(
                 user_id=1,
-                album_bonus=0.25,
+                album_bonus=0.33,
                 theme='light'
             )
             db.add(default_settings)

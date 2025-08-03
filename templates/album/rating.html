@@ -1,0 +1,224 @@
+{% extends "base.html" %}
+
+{% block title %}Rating: {{ album.title }} by {{ album.artist.name }} - Tracklist{% endblock %}
+
+{% block nav_search %}text-blue-600 border-b-2 border-blue-600{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <!-- Album Header -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
+        <div class="p-6">
+            <div class="flex flex-col md:flex-row md:items-start space-y-4 md:space-y-0 md:space-x-6">
+                <!-- Album Artwork Placeholder -->
+                <div class="flex-shrink-0">
+                    <div class="w-32 h-32 md:w-48 md:h-48 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg flex items-center justify-center">
+                        <svg class="w-16 h-16 md:w-24 md:h-24 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+                        </svg>
+                    </div>
+                </div>
+                
+                <!-- Album Info -->
+                <div class="flex-1 min-w-0">
+                    <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ album.title }}</h1>
+                    <p class="text-xl text-gray-600 mb-4">by {{ album.artist.name }}</p>
+                    
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                        {% if album.year %}
+                        <div>
+                            <span class="font-medium text-gray-700">Year:</span>
+                            <span class="text-gray-600">{{ album.year }}</span>
+                        </div>
+                        {% endif %}
+                        
+                        <div>
+                            <span class="font-medium text-gray-700">Tracks:</span>
+                            <span class="text-gray-600">{{ album.total_tracks }}</span>
+                        </div>
+                        
+                        {% if album.total_duration_ms %}
+                        <div>
+                            <span class="font-medium text-gray-700">Duration:</span>
+                            <span class="text-gray-600">{{ (album.total_duration_ms / 60000) | round(0) | int }} min</span>
+                        </div>
+                        {% endif %}
+                        
+                        {% if album.genre %}
+                        <div>
+                            <span class="font-medium text-gray-700">Origin:</span>
+                            <span class="text-gray-600">{{ album.genre }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- MusicBrainz Link -->
+                    <div class="mt-4">
+                        <a href="https://musicbrainz.org/release/{{ album.musicbrainz_id }}" 
+                           target="_blank" 
+                           class="inline-flex items-center text-sm text-blue-600 hover:text-blue-800">
+                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                            </svg>
+                            View on MusicBrainz
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Progress Tracker -->
+    {% set album_id = album.id %}
+    {% include 'components/progress_bar.html' %}
+    
+    <!-- Rating Instructions -->
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+        <div class="flex items-start">
+            <svg class="w-5 h-5 text-blue-400 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <div>
+                <h3 class="text-sm font-semibold text-blue-800 mb-1">How to Rate Tracks</h3>
+                <div class="text-sm text-blue-700 space-y-1">
+                    <p><span class="font-medium text-red-600">Skip (0.0)</span> - Worst songs you'd never want to hear</p>
+                    <p><span class="font-medium text-amber-600">Filler (0.33)</span> - Tolerable but not enjoyable, won't skip</p>
+                    <p><span class="font-medium text-green-600">Good (0.67)</span> - Like the track, playlist-worthy</p>
+                    <p><span class="font-medium text-green-800">Standout (1.0)</span> - Love it, album highlights</p>
+                </div>
+                <p class="text-xs text-blue-600 mt-2">💾 Ratings are automatically saved as you click!</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Track List -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div class="p-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-6">Rate Each Track</h2>
+            
+            <div class="space-y-4">
+                {% for track in tracks %}
+                <div class="track-row{% if track.rating is not none %} rated{% endif %} p-4 rounded-lg border border-gray-100" 
+                     id="track-{{ track.id }}-row">
+                    
+                    <!-- Track Info -->
+                    <div class="flex flex-col lg:flex-row lg:items-center justify-between space-y-3 lg:space-y-0 lg:space-x-4">
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center space-x-3">
+                                <span class="flex-shrink-0 w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-sm font-medium text-gray-600">
+                                    {{ track.track_number }}
+                                </span>
+                                <div class="min-w-0 flex-1">
+                                    <h3 class="text-base font-medium text-gray-900 truncate">{{ track.title }}</h3>
+                                    {% if track.duration_ms %}
+                                    <p class="text-sm text-gray-500">{{ track.duration_ms | format_duration }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Rating Buttons -->
+                        <div class="flex-shrink-0">
+                            {% set track_id = track.id %}
+                            {% set current_rating = track.rating %}
+                            {% include 'components/rating_buttons.html' %}
+                        </div>
+                    </div>
+                    
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Keyboard Shortcuts Help -->
+    <div class="mt-8 bg-gray-50 rounded-lg p-4">
+        <details class="cursor-pointer">
+            <summary class="text-sm font-medium text-gray-700 hover:text-gray-900">
+                ⌨️ Keyboard Shortcuts
+            </summary>
+            <div class="mt-3 text-sm text-gray-600 space-y-1">
+                <p><kbd class="px-2 py-1 bg-gray-200 rounded text-xs">1</kbd> - Skip (0.0)</p>
+                <p><kbd class="px-2 py-1 bg-gray-200 rounded text-xs">2</kbd> - Filler (0.33)</p>
+                <p><kbd class="px-2 py-1 bg-gray-200 rounded text-xs">3</kbd> - Good (0.67)</p>
+                <p><kbd class="px-2 py-1 bg-gray-200 rounded text-xs">4</kbd> - Standout (1.0)</p>
+                <p><kbd class="px-2 py-1 bg-gray-200 rounded text-xs">Enter</kbd> - Submit (when 100% complete)</p>
+            </div>
+        </details>
+    </div>
+</div>
+
+<!-- Keyboard Navigation Script -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let currentTrackIndex = 0;
+    const trackRows = document.querySelectorAll('.track-row');
+    
+    document.addEventListener('keydown', function(e) {
+        // Only handle if we're not in an input field
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+        
+        const currentTrack = trackRows[currentTrackIndex];
+        if (!currentTrack) return;
+        
+        const buttons = currentTrack.querySelectorAll('.rating-button');
+        
+        switch(e.key) {
+            case '1':
+                e.preventDefault();
+                buttons[0]?.click(); // Skip
+                break;
+            case '2':
+                e.preventDefault();
+                buttons[1]?.click(); // Filler
+                break;
+            case '3':
+                e.preventDefault();
+                buttons[2]?.click(); // Good
+                break;
+            case '4':
+                e.preventDefault();
+                buttons[3]?.click(); // Standout
+                break;
+            case 'ArrowDown':
+                e.preventDefault();
+                currentTrackIndex = Math.min(currentTrackIndex + 1, trackRows.length - 1);
+                trackRows[currentTrackIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                break;
+            case 'ArrowUp':
+                e.preventDefault();
+                currentTrackIndex = Math.max(currentTrackIndex - 1, 0);
+                trackRows[currentTrackIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                break;
+            case 'Enter':
+                e.preventDefault();
+                const submitButton = document.querySelector('.submit-button');
+                if (submitButton && !submitButton.disabled) {
+                    submitButton.click();
+                }
+                break;
+        }
+    });
+    
+    // Highlight current track
+    function updateTrackHighlight() {
+        trackRows.forEach((row, index) => {
+            if (index === currentTrackIndex) {
+                row.classList.add('ring-2', 'ring-blue-500', 'ring-opacity-50');
+            } else {
+                row.classList.remove('ring-2', 'ring-blue-500', 'ring-opacity-50');
+            }
+        });
+    }
+    
+    updateTrackHighlight();
+    
+    // Update highlight when track index changes
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+            setTimeout(updateTrackHighlight, 100);
+        }
+    });
+});
+</script>
+{% endblock %}

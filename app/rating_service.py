@@ -21,7 +21,7 @@ class RatingCalculator:
     """Handles album score calculation with configurable bonus"""
     
     @staticmethod
-    def calculate_album_score(track_ratings: List[float], album_bonus: float = 0.25) -> int:
+    def calculate_album_score(track_ratings: List[float], album_bonus: float = 0.33) -> int:
         """
         Calculate album score using the PRD formula:
         Floor((Sum of track ratings / Total tracks × 10) + Album Bonus) × 10
@@ -31,7 +31,7 @@ class RatingCalculator:
             album_bonus: Album bonus factor (0.1 to 0.4)
             
         Returns:
-            Integer album score (0-140 scale)
+            Integer album score (0-100 scale)
         """
         if not track_ratings:
             return 0
@@ -42,25 +42,24 @@ class RatingCalculator:
         # Calculate average rating
         avg_rating = sum(track_ratings) / len(track_ratings)
         
-        # Apply formula: Floor((avg_rating × 10) + album_bonus) × 10
-        raw_score = (avg_rating * 10) + album_bonus
-        floored_score = int(raw_score)  # Floor operation
-        final_score = floored_score * 10
+        # Apply formula: Floor(((avg_rating × 10) + album_bonus) × 10)
+        raw_score = ((avg_rating * 10) + album_bonus) * 10
+        final_score = int(raw_score)  # Floor operation
         
-        # Ensure score is within bounds
-        return max(0, min(140, final_score))
+        # Ensure score is within bounds (0-100)
+        return max(0, min(100, final_score))
     
     @staticmethod
     def get_completion_percentage(total_tracks: int, rated_tracks: int) -> float:
         """Calculate rating completion percentage"""
         if total_tracks == 0:
             return 100.0
-        return (rated_tracks / total_tracks) * 100.0
+        return round((rated_tracks / total_tracks) * 100.0, 2)
     
     @staticmethod
     def get_projected_score(
         track_ratings: List[Optional[float]], 
-        album_bonus: float = 0.25
+        album_bonus: float = 0.33
     ) -> Optional[int]:
         """
         Calculate projected album score based on current ratings
@@ -123,7 +122,7 @@ class RatingService:
             
             # Get user settings for album bonus
             settings = db.query(UserSettings).filter(UserSettings.user_id == 1).first()
-            album_bonus = settings.album_bonus if settings else 0.25
+            album_bonus = settings.album_bonus if settings else 0.33
             
             # Create album
             album = Album(
@@ -413,6 +412,63 @@ class RatingService:
             "rating_score": album.rating_score,
             "rated_at": album.rated_at.isoformat() if album.rated_at else None
         }
+    
+    def delete_album(self, album_id: int, db: Session) -> Dict[str, Any]:
+        """
+        Delete album and all associated data (hard delete)
+        
+        Args:
+            album_id: Album ID to delete
+            db: Database session
+            
+        Returns:
+            Dict with deletion confirmation
+            
+        Raises:
+            NotFoundError: If album not found
+        """
+        logger.info(f"Deleting album {album_id}")
+        
+        # Get album first to verify it exists and get details for response
+        album = db.query(Album).filter(Album.id == album_id).first()
+        if not album:
+            raise ServiceNotFoundError("Album", album_id)
+        
+        # Store album details for response
+        album_info = {
+            "id": album.id,
+            "title": album.name,
+            "artist": album.artist.name,
+            "is_rated": album.is_rated,
+            "rating_score": album.rating_score
+        }
+        
+        try:
+            # Get track count for logging
+            track_count = db.query(Track).filter(Track.album_id == album_id).count()
+            
+            # Delete all tracks (ratings will be cascade deleted due to foreign key constraints)
+            db.query(Track).filter(Track.album_id == album_id).delete()
+            
+            # Delete the album itself
+            db.query(Album).filter(Album.id == album_id).delete()
+            
+            # Commit the transaction
+            db.commit()
+            
+            logger.info(f"Successfully deleted album '{album_info['title']}' and {track_count} tracks")
+            
+            return {
+                "success": True,
+                "message": f"Album '{album_info['title']}' has been permanently deleted",
+                "deleted_album": album_info,
+                "deleted_tracks": track_count
+            }
+            
+        except Exception as e:
+            db.rollback()
+            logger.error(f"Failed to delete album {album_id}: {e}")
+            raise
 
 
 def get_rating_service() -> RatingService:

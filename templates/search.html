@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+
+{% block title %}Search Albums - Tracklist{% endblock %}
+
+{% block nav_search %}text-blue-600 border-b-2 border-blue-600{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <!-- Page Header -->
+    <div class="text-center mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-4">Find Albums to Rate</h1>
+        <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+            Search for albums from the MusicBrainz database and start rating them track by track.
+        </p>
+    </div>
+    
+    <!-- Search Form -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+        <form hx-get="/api/v1/search/albums" 
+              hx-target="#search-results" 
+              hx-indicator="#search-loading"
+              hx-trigger="submit, keyup delay:500ms from:input[name='q']"
+              class="space-y-4"
+              x-data="searchForm()">
+            
+            <!-- Search Input -->
+            <div class="relative">
+                <label for="search-query" class="block text-sm font-medium text-gray-700 mb-2">
+                    Album or Artist Name
+                </label>
+                <div class="relative">
+                    <input type="text" 
+                           id="search-query"
+                           name="q" 
+                           x-model="query"
+                           class="search-input block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                           placeholder='Try "OK Computer" or "Radiohead"'
+                           autocomplete="off">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+                <p class="mt-2 text-sm text-gray-500">
+                    Search is powered by MusicBrainz - the open music encyclopedia
+                </p>
+            </div>
+            
+            <!-- Advanced Options -->
+            <details class="cursor-pointer" x-data="{ open: false }" x-model="open">
+                <summary class="text-sm font-medium text-gray-700 hover:text-gray-900 py-2">
+                    🔧 Advanced Search Options
+                </summary>
+                <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
+                    <div>
+                        <label for="limit" class="block text-sm font-medium text-gray-700 mb-1">Results per page</label>
+                        <select name="limit" id="limit" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                            <option value="10">10 results</option>
+                            <option value="25" selected>25 results</option>
+                            <option value="50">50 results</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="offset" class="block text-sm font-medium text-gray-700 mb-1">Start from result</label>
+                        <input type="number" name="offset" id="offset" value="0" min="0" step="10"
+                               class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                    </div>
+                </div>
+            </details>
+            
+            <!-- Search Button -->
+            <div class="flex justify-center">
+                <button type="submit" 
+                        :disabled="!query.trim()"
+                        class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                    Search Albums
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Search Loading -->
+    <div id="search-loading" class="htmx-indicator">
+        <div class="text-center py-8">
+            <div class="inline-flex items-center px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg text-blue-800">
+                <svg class="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Searching MusicBrainz...
+            </div>
+        </div>
+    </div>
+    
+    <!-- Search Results -->
+    <div id="search-results">
+        <!-- Results will be loaded here via HTMX -->
+        <div class="text-center py-12 text-gray-500">
+            <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+            <p class="text-lg">Start typing to search for albums...</p>
+            <p class="text-sm mt-2">We'll search the MusicBrainz database for you</p>
+        </div>
+    </div>
+    
+    <!-- Search Tips -->
+    <div class="mt-12 bg-gray-50 rounded-lg p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">💡 Search Tips</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <h4 class="font-medium text-gray-800 mb-2">What you can search for:</h4>
+                <ul class="text-sm text-gray-600 space-y-1">
+                    <li>• Album titles: "OK Computer", "Abbey Road"</li>
+                    <li>• Artist names: "Radiohead", "The Beatles"</li>
+                    <li>• Combined: "Radiohead OK Computer"</li>
+                    <li>• Partial matches work too!</li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="font-medium text-gray-800 mb-2">Getting better results:</h4>
+                <ul class="text-sm text-gray-600 space-y-1">
+                    <li>• Use specific album names when possible</li>
+                    <li>• Try different variations if not found</li>
+                    <li>• Check spelling and try shorter terms</li>
+                    <li>• Use the MusicBrainz link to verify</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Alpine.js component for search form
+function searchForm() {
+    return {
+        query: '',
+        
+        init() {
+            // Focus on search input when page loads
+            this.$nextTick(() => {
+                document.getElementById('search-query').focus();
+            });
+        }
+    }
+}
+
+// Handle search result interactions
+document.body.addEventListener('htmx:afterRequest', function(evt) {
+    if (evt.detail.target.id === 'search-results') {
+        // Scroll to results after search
+        document.getElementById('search-results').scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'start' 
+        });
+    }
+});
+</script>
+{% endblock %}
