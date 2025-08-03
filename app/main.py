@@ -6,6 +6,7 @@ import os
 from .database import create_tables, init_db
 from .exceptions import TracklistException, NotFoundError, ValidationError, ConflictError
 from .logging_config import setup_logging
+from .routers import search
 
 # Setup logging
 log_level = os.getenv("LOG_LEVEL", "INFO")
@@ -22,6 +23,9 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc"
 )
+
+# Include routers
+app.include_router(search.router)
 
 
 @app.on_event("startup")
