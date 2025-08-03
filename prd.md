@@ -50,11 +50,11 @@ Floor((Sum of track ratings / Total tracks × 10) + Album Bonus) × 10
 #### Rating Page
 - **Album Header**: Artist, album name, release year, genre, cover art
 - **Track List**: All tracks with duration and rating interface
-- **Rating Interface**: Color-coded buttons with hover descriptions
+- **Rating Interface**: Color-coded buttons with hover descriptions (no decimal values shown to user)
   - Red (0): "Skip always"
   - Orange/Yellow (0.33): "Filler/tolerable"  
   - Light Green (0.67): "Good/playlist-worthy"
-  - Dark Green/Gold (1): "Standout/love it"
+  - Dark Green (1): "Standout/love it"
 - **Auto-save**: Individual track ratings saved immediately
 - **Live Preview**: Running album score calculation display
 - **Submit Action**: Final album score generation and save
@@ -83,16 +83,18 @@ Floor((Sum of track ratings / Total tracks × 10) + Album Bonus) × 10
 ### Performance
 - **Responsive Design**: Mobile and desktop optimized
 - **Fast Loading**: Minimal dependencies, efficient queries
+- **API Rate Limiting**: Respect MusicBrainz API limit of 1 call per second
 - **API Caching**: Cache MusicBrainz responses to minimize external calls
 
 ### Architecture Considerations
 - **Database Design**: Structure to support future multi-user expansion
 - **API Layer**: Clean separation between frontend and data layer
-- **Docker**: Single container with embedded database for easy deployment
+- **Docker**: Single container with embedded SQLite database for easy deployment
 - **Recommended Stack**: FastAPI + SQLite + Tailwind CSS + Alpine.js/HTMX
   - Mobile-first responsive framework
   - Minimal JavaScript complexity
   - Fast development and deployment
+  - Use both Alpine.js and HTMX where appropriate for frontend interactivity
 
 ## Database Schema
 
