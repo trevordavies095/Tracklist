@@ -7,6 +7,7 @@ from .database import create_tables, init_db
 from .exceptions import TracklistException, NotFoundError, ValidationError, ConflictError
 from .logging_config import setup_logging
 from .routers import search
+from .routers import albums
 
 # Setup logging
 log_level = os.getenv("LOG_LEVEL", "INFO")
@@ -26,6 +27,7 @@ app = FastAPI(
 
 # Include routers
 app.include_router(search.router)
+app.include_router(albums.router)
 
 
 @app.on_event("startup")

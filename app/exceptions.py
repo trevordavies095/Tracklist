@@ -20,6 +20,21 @@ class ValidationException(TracklistException):
     pass
 
 
+class ServiceValidationError(TracklistException):
+    """Service layer validation error"""
+    def __init__(self, message: str):
+        super().__init__(message)
+
+
+class ServiceNotFoundError(TracklistException):
+    """Service layer not found error"""
+    def __init__(self, resource: str, identifier: Any):
+        message = f"{resource} with identifier '{identifier}' not found"
+        super().__init__(message)
+        self.resource = resource
+        self.identifier = identifier
+
+
 class NotFoundError(HTTPException):
     """Resource not found exception"""
     def __init__(self, resource: str, identifier: Any):
