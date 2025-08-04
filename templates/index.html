@@ -103,9 +103,11 @@
     </div>
     
     <!-- Getting Started Guide -->
-    <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200 p-8 mb-12" 
+    <div id="getting-started-guide"
+         class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200 p-8 mb-12" 
          x-data="{ dismissed: localStorage.getItem('guide-dismissed') === 'true' }" 
-         x-show="!dismissed">
+         x-show="!dismissed"
+         style="display: none;">
         
         <div class="flex justify-between items-start mb-6">
             <div>
@@ -227,6 +229,17 @@ document.body.addEventListener('htmx:afterRequest', function(evt) {
     if (evt.detail.target.id === 'recent-albums') {
         const response = JSON.parse(evt.detail.xhr.responseText);
         renderRecentAlbums(response);
+        
+        // Show/hide Getting Started based on album count
+        const albumCount = (response.albums || []).length;
+        const gettingStartedGuide = document.getElementById('getting-started-guide');
+        if (gettingStartedGuide) {
+            if (albumCount < 6 && localStorage.getItem('guide-dismissed') !== 'true') {
+                gettingStartedGuide.style.display = 'block';
+            } else {
+                gettingStartedGuide.style.display = 'none';
+            }
+        }
     }
 });
 
