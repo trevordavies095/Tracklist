@@ -398,6 +398,7 @@ async def get_user_albums(
     rated: Optional[bool] = Query(None, description="Filter by rated status (true=rated, false=draft, null=all)"),
     sort: str = Query("created_desc", description="Sort order (created_desc, created_asc, artist_asc, artist_desc, album_asc, album_desc, rating_desc, rating_asc, year_desc, year_asc, rated_desc)"),
     search: Optional[str] = Query(None, description="Search query for album title or artist name"),
+    artist_id: Optional[int] = Query(None, description="Filter by artist ID"),
     service: RatingService = Depends(get_rating_service),
     db: Session = Depends(get_db)
 ) -> Dict[str, Any]:
@@ -419,9 +420,9 @@ async def get_user_albums(
     - rated_desc: By recently rated (completed albums first)
     """
     try:
-        logger.info(f"Getting user albums: limit={limit}, offset={offset}, rated={rated}, sort={sort}, search={search}")
+        logger.info(f"Getting user albums: limit={limit}, offset={offset}, rated={rated}, sort={sort}, search={search}, artist_id={artist_id}")
         
-        result = service.get_user_albums(db, limit, offset, rated, sort, search)
+        result = service.get_user_albums(db, limit, offset, rated, sort, search, artist_id)
         
         logger.debug(f"Retrieved {len(result['albums'])} albums (total: {result['total']})")
         return result

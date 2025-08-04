@@ -42,6 +42,26 @@ async def albums_page(request: Request):
     })
 
 
+@router.get("/artists/{artist_id}/albums", response_class=HTMLResponse)
+async def artist_albums_page(
+    request: Request,
+    artist_id: int = Path(..., description="Artist ID", gt=0),
+    db: Session = Depends(get_db)
+):
+    """Artist's albums page"""
+    from ..models import Artist
+    
+    # Get artist details
+    artist = db.query(Artist).filter(Artist.id == artist_id).first()
+    if not artist:
+        raise HTTPException(status_code=404, detail="Artist not found")
+    
+    return templates.TemplateResponse("artist_albums.html", {
+        "request": request,
+        "artist": artist
+    })
+
+
 @router.get("/albums/{album_id}/rate", response_class=HTMLResponse)
 async def rating_page(
     request: Request,

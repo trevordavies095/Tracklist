@@ -1,0 +1,280 @@
+{% extends "base.html" %}
+
+{% block title %}{{ artist.name }} - Albums - Tracklist{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <!-- Page Header -->
+    <div class="mb-8">
+        <div class="flex items-center mb-4">
+            <a href="/albums" class="text-gray-500 hover:text-gray-700 mr-3">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+            </a>
+            <h1 class="text-3xl font-bold text-gray-900">{{ artist.name }}</h1>
+        </div>
+        <p class="text-gray-600">All albums by this artist in your library</p>
+    </div>
+    
+    <!-- Albums Container -->
+    <div id="albums-container">
+        <!-- Loading State -->
+        <div id="albums-loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for i in range(6) %}
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div class="loading-skeleton h-16 w-16 rounded-lg mb-4"></div>
+                <div class="loading-skeleton h-5 w-full mb-2"></div>
+                <div class="loading-skeleton h-4 w-3/4 mb-4"></div>
+                <div class="space-y-2">
+                    <div class="loading-skeleton h-3 w-full"></div>
+                    <div class="loading-skeleton h-8 w-24"></div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <!-- Empty State -->
+    <div id="empty-state" class="hidden text-center py-12">
+        <div class="max-w-sm mx-auto">
+            <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+            </svg>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">No albums by {{ artist.name }}</h3>
+            <p class="text-gray-600 mb-6">You haven't rated any albums by this artist yet</p>
+            <a href="/search" 
+               class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition-colors">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+                Search Albums
+            </a>
+        </div>
+    </div>
+    
+    <!-- Pagination -->
+    <div id="pagination-container" class="mt-8">
+        <!-- Pagination will be loaded via JavaScript -->
+    </div>
+</div>
+
+<script>
+// Import necessary functions from albums page
+const artistId = {{ artist.id }};
+
+// Score color utility function
+function getScoreColorClass(score) {
+    if (score === null || score === undefined) {
+        return '';
+    }
+    
+    const numScore = Number(score);
+    
+    if (numScore === 100) {
+        return 'score-dark-green';
+    } else if (numScore >= 67) {
+        return 'score-light-green';
+    } else if (numScore >= 33) {
+        return 'score-orange';
+    } else {
+        return 'score-red';
+    }
+}
+
+// Global variables
+let currentViewMode = 'grid';
+
+// Load albums for this artist
+async function loadArtistAlbums(offset = 0) {
+    const url = `/api/v1/albums?limit=20&offset=${offset}&artist_id=${artistId}&sort=year_desc`;
+    
+    try {
+        const response = await fetch(url);
+        if (response.ok) {
+            const data = await response.json();
+            
+            if (data.albums && data.albums.length === 0 && offset === 0) {
+                document.getElementById('empty-state').classList.remove('hidden');
+                document.getElementById('albums-container').innerHTML = '';
+                document.getElementById('pagination-container').innerHTML = '';
+            } else {
+                document.getElementById('empty-state').classList.add('hidden');
+                if (offset === 0) {
+                    renderAlbums(data);
+                } else {
+                    appendAlbumsToGrid(data);
+                }
+                updatePaginationButton(data);
+            }
+        } else {
+            console.error('Failed to load albums:', response.status);
+            alert('Failed to load albums');
+        }
+    } catch (error) {
+        console.error('Error loading albums:', error);
+        alert('Error loading albums');
+    }
+}
+
+function renderAlbums(data) {
+    const container = document.getElementById('albums-container');
+    const albums = data.albums || [];
+    
+    // Hide loading state
+    const loadingElement = document.getElementById('albums-loading');
+    if (loadingElement) {
+        loadingElement.style.display = 'none';
+    }
+    
+    // Grid view
+    const albumCards = albums.map(album => `
+        <div class="album-card bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200">
+            <div class="p-6">
+                <!-- Album Art -->
+                ${album.cover_art_url ? `
+                    <div class="w-16 h-16 rounded-lg mb-4 overflow-hidden relative">
+                        <img src="${album.cover_art_url}" 
+                             alt="${album.title} cover" 
+                             class="w-full h-full object-cover"
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <div class="w-16 h-16 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg flex items-center justify-center absolute inset-0" style="display:none;">
+                            <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+                            </svg>
+                        </div>
+                    </div>
+                ` : `
+                    <div class="w-16 h-16 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg mb-4 flex items-center justify-center">
+                        <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+                        </svg>
+                    </div>
+                `}
+                
+                <!-- Album Info -->
+                <h3 class="font-semibold text-gray-900 mb-1 truncate" title="${album.title}">${album.title}</h3>
+                ${album.year ? `<p class="text-sm text-gray-500 mb-4">${album.year}</p>` : '<div class="mb-4"></div>'}
+                
+                <!-- Status and Score -->
+                <div class="mb-4">
+                    ${album.is_rated ? `
+                        <div class="flex items-center justify-between">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                ✓ Completed
+                            </span>
+                            <span class="text-lg font-bold ${getScoreColorClass(album.rating_score)}">${album.rating_score}/100</span>
+                        </div>
+                    ` : `
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                            ⏳ In Progress
+                        </span>
+                    `}
+                </div>
+                
+                <!-- Actions -->
+                <div class="flex space-x-2">
+                    ${album.is_rated ? `
+                        <a href="/albums/${album.id}/completed" 
+                           class="flex-1 bg-green-600 hover:bg-green-700 text-white text-center py-2 px-3 rounded-md text-sm font-medium transition-colors">
+                            View Results
+                        </a>
+                    ` : `
+                        <a href="/albums/${album.id}/rate" 
+                           class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-center py-2 px-3 rounded-md text-sm font-medium transition-colors">
+                            Continue Rating
+                        </a>
+                    `}
+                </div>
+            </div>
+        </div>
+    `).join('');
+    
+    container.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">${albumCards}</div>`;
+}
+
+function appendAlbumsToGrid(data) {
+    const container = document.getElementById('albums-container');
+    const existingContainer = container.querySelector('.grid');
+    
+    if (!existingContainer) {
+        renderAlbums(data);
+        return;
+    }
+    
+    const albums = data.albums || [];
+    
+    // Grid view - append new cards
+    const newAlbumCards = albums.map(album => `
+        <div class="album-card bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200">
+            <div class="p-6">
+                ${album.cover_art_url ? `
+                    <div class="w-16 h-16 rounded-lg mb-4 overflow-hidden relative">
+                        <img src="${album.cover_art_url}" 
+                             alt="${album.title} cover" 
+                             class="w-full h-full object-cover"
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <div class="w-16 h-16 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg flex items-center justify-center absolute inset-0" style="display:none;">
+                            <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+                            </svg>
+                        </div>
+                    </div>
+                ` : `
+                    <div class="w-16 h-16 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg mb-4 flex items-center justify-center">
+                        <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+                        </svg>
+                    </div>
+                `}
+                <h3 class="font-semibold text-gray-900 mb-1 truncate" title="${album.title}">${album.title}</h3>
+                ${album.year ? `<p class="text-sm text-gray-500 mb-4">${album.year}</p>` : '<div class="mb-4"></div>'}
+                <div class="mb-4">
+                    ${album.is_rated ? `
+                        <div class="flex items-center justify-between">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">✓ Completed</span>
+                            <span class="text-lg font-bold ${getScoreColorClass(album.rating_score)}">${album.rating_score}/100</span>
+                        </div>
+                    ` : `
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">⏳ In Progress</span>
+                    `}
+                </div>
+                <div class="flex space-x-2">
+                    ${album.is_rated ? `
+                        <a href="/albums/${album.id}/completed" class="flex-1 bg-green-600 hover:bg-green-700 text-white text-center py-2 px-3 rounded-md text-sm font-medium transition-colors">View Results</a>
+                    ` : `
+                        <a href="/albums/${album.id}/rate" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-center py-2 px-3 rounded-md text-sm font-medium transition-colors">Continue Rating</a>
+                    `}
+                </div>
+            </div>
+        </div>
+    `).join('');
+    
+    existingContainer.innerHTML += newAlbumCards;
+}
+
+function updatePaginationButton(data) {
+    const paginationContainer = document.getElementById('pagination-container');
+    
+    if (data.has_more) {
+        const nextOffset = data.offset + data.limit;
+        paginationContainer.innerHTML = `
+            <div class="flex justify-center">
+                <button onclick="loadArtistAlbums(${nextOffset})" 
+                        class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md text-sm font-medium transition-colors">
+                    Load More Albums
+                </button>
+            </div>
+        `;
+    } else {
+        paginationContainer.innerHTML = '<p class="text-center text-gray-500">No more albums</p>';
+    }
+}
+
+// Initialize page
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('albums-loading').style.display = 'grid';
+    loadArtistAlbums();
+});
+</script>
+{% endblock %}

@@ -29,7 +29,7 @@
                 <!-- Album Info & Score -->
                 <div class="flex-1">
                     <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ album.title }}</h1>
-                    <p class="text-xl text-gray-600 mb-6">by {{ album.artist.name }}</p>
+                    <p class="text-xl text-gray-600 mb-6">by <a href="/artists/{{ album.artist.id }}/albums" class="hover:text-blue-600 hover:underline transition-colors">{{ album.artist.name }}</a></p>
                     
                     <!-- Final Score Display -->
                     <div class="bg-gradient-to-r from-blue-50 to-green-50 rounded-lg p-4 mb-6">
