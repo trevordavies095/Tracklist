@@ -25,63 +25,101 @@
     
     <!-- Filters and Search -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
-        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
-            <!-- Filter Tabs -->
-            <div class="flex space-x-1" x-data="{ activeFilter: 'all' }">
-                <button @click="activeFilter = 'all'; loadAlbums('all')"
-                        :class="activeFilter === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
-                        class="px-4 py-2 rounded-md text-sm font-medium transition-colors">
-                    All Albums
-                </button>
-                <button @click="activeFilter = 'completed'; loadAlbums('completed')"
-                        :class="activeFilter === 'completed' ? 'bg-green-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
-                        class="px-4 py-2 rounded-md text-sm font-medium transition-colors">
-                    Completed
-                </button>
-                <button @click="activeFilter = 'drafts'; loadAlbums('drafts')"
-                        :class="activeFilter === 'drafts' ? 'bg-amber-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
-                        class="px-4 py-2 rounded-md text-sm font-medium transition-colors">
-                    In Progress
+        <div class="flex flex-col space-y-4">
+            <!-- Search Bar -->
+            <div class="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+                <div class="flex-1 relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </div>
+                    <input type="text" 
+                           id="search-input" 
+                           placeholder="Search albums by title or artist..." 
+                           class="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                           oninput="handleSearchInput()"
+                           onkeypress="handleSearchKeypress(event)">
+                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                        <button id="clear-search" 
+                                onclick="clearSearch()" 
+                                class="h-4 w-4 text-gray-400 hover:text-gray-600 hidden">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                
+                <button id="search-button" 
+                        onclick="performSearch()" 
+                        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                    Search
                 </button>
             </div>
             
-            <!-- Sort and View Controls -->
-            <div class="flex items-center space-x-4">
-                <!-- Sort Dropdown -->
-                <div class="flex items-center space-x-2">
-                    <span class="text-sm text-gray-700">Sort:</span>
-                    <select id="sort-select" onchange="handleSortChange()" 
-                            class="border border-gray-300 rounded-md px-3 py-1 text-sm bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                        <option value="created_desc">Date Added (Newest)</option>
-                        <option value="created_asc">Date Added (Oldest)</option>
-                        <option value="artist_asc">Artist A→Z</option>
-                        <option value="artist_desc">Artist Z→A</option>
-                        <option value="album_asc">Album A→Z</option>
-                        <option value="album_desc">Album Z→A</option>
-                        <option value="rating_desc">Rating 100→0</option>
-                        <option value="rating_asc">Rating 0→100</option>
-                        <option value="year_desc">Year (Newest)</option>
-                        <option value="year_asc">Year (Oldest)</option>
-                        <option value="rated_desc">Recently Rated</option>
-                    </select>
+            <!-- Filter Tabs and Controls -->
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+                <!-- Filter Tabs -->
+                <div class="flex space-x-1" x-data="{ activeFilter: 'all' }">
+                    <button @click="activeFilter = 'all'; loadAlbums('all')"
+                            :class="activeFilter === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                            class="px-4 py-2 rounded-md text-sm font-medium transition-colors">
+                        All Albums
+                    </button>
+                    <button @click="activeFilter = 'completed'; loadAlbums('completed')"
+                            :class="activeFilter === 'completed' ? 'bg-green-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                            class="px-4 py-2 rounded-md text-sm font-medium transition-colors">
+                        Completed
+                    </button>
+                    <button @click="activeFilter = 'drafts'; loadAlbums('drafts')"
+                            :class="activeFilter === 'drafts' ? 'bg-amber-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                            class="px-4 py-2 rounded-md text-sm font-medium transition-colors">
+                        In Progress
+                    </button>
                 </div>
                 
-                <!-- View Toggle -->
-                <div class="flex items-center space-x-2" x-data="{ viewMode: 'grid' }">
-                    <span class="text-sm text-gray-700">View:</span>
-                    <div class="flex border border-gray-300 rounded-md">
-                        <button onclick="setViewMode('grid')"
-                                class="px-3 py-1 text-sm rounded-l-md transition-colors bg-blue-600 text-white">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
-                            </svg>
-                        </button>
-                        <button onclick="setViewMode('list')"
-                                class="px-3 py-1 text-sm rounded-r-md transition-colors bg-white text-gray-700 hover:bg-gray-50">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
-                            </svg>
-                        </button>
+                <!-- Sort and View Controls -->
+                <div class="flex items-center space-x-4">
+                    <!-- Sort Dropdown -->
+                    <div class="flex items-center space-x-2">
+                        <span class="text-sm text-gray-700">Sort:</span>
+                        <select id="sort-select" onchange="handleSortChange()" 
+                                class="border border-gray-300 rounded-md px-3 py-1 text-sm bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="created_desc">Date Added (Newest)</option>
+                            <option value="created_asc">Date Added (Oldest)</option>
+                            <option value="artist_asc">Artist A→Z</option>
+                            <option value="artist_desc">Artist Z→A</option>
+                            <option value="album_asc">Album A→Z</option>
+                            <option value="album_desc">Album Z→A</option>
+                            <option value="rating_desc">Rating 100→0</option>
+                            <option value="rating_asc">Rating 0→100</option>
+                            <option value="year_desc">Year (Newest)</option>
+                            <option value="year_asc">Year (Oldest)</option>
+                            <option value="rated_desc">Recently Rated</option>
+                        </select>
+                    </div>
+                    
+                    <!-- View Toggle -->
+                    <div class="flex items-center space-x-2" x-data="{ viewMode: 'grid' }">
+                        <span class="text-sm text-gray-700">View:</span>
+                        <div class="flex border border-gray-300 rounded-md">
+                            <button onclick="setViewMode('grid')"
+                                    class="px-3 py-1 text-sm rounded-l-md transition-colors bg-blue-600 text-white">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
+                                </svg>
+                            </button>
+                            <button onclick="setViewMode('list')"
+                                    class="px-3 py-1 text-sm rounded-r-md transition-colors bg-white text-gray-700 hover:bg-gray-50">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+                                </svg>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -249,6 +287,11 @@ async function loadAlbums(filter) {
     
     // Add sort parameter
     url += `&sort=${currentSort}`;
+    
+    // Add search parameter
+    if (currentSearch) {
+        url += `&search=${encodeURIComponent(currentSearch)}`;
+    }
     
     try {
         const response = await fetch(url);
@@ -426,6 +469,11 @@ async function loadMoreAlbums(offset) {
     // Add sort parameter
     url += `&sort=${currentSort}`;
     
+    // Add search parameter
+    if (currentSearch) {
+        url += `&search=${encodeURIComponent(currentSearch)}`;
+    }
+    
     try {
         const response = await fetch(url);
         if (response.ok) {
@@ -577,6 +625,63 @@ function updatePaginationButton(data) {
 let currentAlbum = null;
 let currentViewMode = 'grid'; // Default to grid view
 let currentSort = 'created_desc'; // Default sort
+let currentSearch = ''; // Current search query
+let searchTimeout = null; // Debounce search input
+
+// Search handling functions
+function handleSearchInput() {
+    const searchInput = document.getElementById('search-input');
+    const clearButton = document.getElementById('clear-search');
+    
+    // Show/hide clear button
+    if (searchInput.value.trim()) {
+        clearButton.classList.remove('hidden');
+    } else {
+        clearButton.classList.add('hidden');
+    }
+    
+    // Debounce search - wait 500ms after user stops typing
+    if (searchTimeout) {
+        clearTimeout(searchTimeout);
+    }
+    
+    searchTimeout = setTimeout(() => {
+        performSearch();
+    }, 500);
+}
+
+function handleSearchKeypress(event) {
+    // Trigger search on Enter key
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        if (searchTimeout) {
+            clearTimeout(searchTimeout);
+        }
+        performSearch();
+    }
+}
+
+function performSearch() {
+    const searchInput = document.getElementById('search-input');
+    currentSearch = searchInput.value.trim();
+    
+    // Reload albums with search query
+    const activeFilter = getCurrentFilter();
+    loadAlbums(activeFilter);
+}
+
+function clearSearch() {
+    const searchInput = document.getElementById('search-input');
+    const clearButton = document.getElementById('clear-search');
+    
+    searchInput.value = '';
+    clearButton.classList.add('hidden');
+    currentSearch = '';
+    
+    // Reload albums without search
+    const activeFilter = getCurrentFilter();
+    loadAlbums(activeFilter);
+}
 
 // Sort handling functions
 function handleSortChange() {
