@@ -337,6 +337,12 @@ function renderAlbums(data) {
     const container = document.getElementById('albums-container');
     const albums = data.albums || [];
     
+    // Debug: Log the first album to see its structure
+    if (albums.length > 0) {
+        console.log('First album data:', albums[0]);
+        console.log('Artist ID:', albums[0].artist_id);
+    }
+    
     // Hide loading state
     const loadingElement = document.getElementById('albums-loading');
     if (loadingElement) {
