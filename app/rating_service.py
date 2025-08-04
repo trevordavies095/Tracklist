@@ -316,13 +316,18 @@ class RatingService:
         offset: int = 0,
         filter_rated: Optional[bool] = None,
         sort: str = "created_desc",
-        search: Optional[str] = None
+        search: Optional[str] = None,
+        artist_id: Optional[int] = None
     ) -> Dict[str, Any]:
         """Get user's albums with optional filtering, sorting, and searching"""
         query = db.query(Album).join(Artist)
         
         if filter_rated is not None:
             query = query.filter(Album.is_rated == filter_rated)
+        
+        # Apply artist filter
+        if artist_id is not None:
+            query = query.filter(Album.artist_id == artist_id)
         
         # Apply search filter
         if search and search.strip():
