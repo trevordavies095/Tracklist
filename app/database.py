@@ -8,12 +8,50 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-# Database configuration
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./tracklist.db")
 
-# Create database directory if it doesn't exist
-db_path = Path("./tracklist.db")
-db_path.parent.mkdir(parents=True, exist_ok=True)
+def get_database_url():
+    """Get database URL with proper path handling"""
+    # Check for custom database path
+    db_path_env = os.getenv("TRACKLIST_DB_PATH")
+    database_url = os.getenv("DATABASE_URL")
+    
+    if db_path_env:
+        # User specified custom database path
+        db_path = Path(db_path_env).resolve()
+        
+        # Ensure directory exists
+        db_path.parent.mkdir(parents=True, exist_ok=True)
+        
+        # Convert to database URL format
+        database_url = f"sqlite:///{db_path}"
+        logger.info(f"Using custom database path: {db_path}")
+        
+    elif database_url:
+        # Use provided DATABASE_URL
+        if database_url.startswith("sqlite:///"):
+            # Extract path from SQLite URL and ensure directory exists
+            db_file_path = database_url.replace("sqlite:///", "")
+            if not db_file_path.startswith("/"):
+                # Relative path
+                db_path = Path(db_file_path).resolve()
+            else:
+                # Absolute path
+                db_path = Path(db_file_path)
+            
+            db_path.parent.mkdir(parents=True, exist_ok=True)
+            logger.info(f"Using database path from DATABASE_URL: {db_path}")
+    else:
+        # Default fallback
+        default_path = Path("./data/tracklist.db").resolve()
+        default_path.parent.mkdir(parents=True, exist_ok=True)
+        database_url = f"sqlite:///{default_path}"
+        logger.info(f"Using default database path: {default_path}")
+    
+    return database_url
+
+
+# Database configuration
+DATABASE_URL = get_database_url()
 
 # Create engine with proper SQLite configuration
 engine = create_engine(
@@ -50,6 +88,9 @@ def init_db():
     """Initialize database with default data"""
     from .models import UserSettings
     
+    # First create all tables
+    create_tables()
+    
     db = SessionLocal()
     try:
         # Create default user settings if they don't exist
@@ -65,9 +106,33 @@ def init_db():
             logger.info("Default user settings created")
         else:
             logger.info("Default user settings already exist")
+            
+        logger.info(f"Database initialized successfully at: {DATABASE_URL}")
     except Exception as e:
         logger.error(f"Error initializing database: {e}")
         db.rollback()
         raise
     finally:
         db.close()
+
+
+def get_db_info():
+    """Get information about the current database"""
+    if DATABASE_URL.startswith("sqlite:///"):
+        db_file_path = DATABASE_URL.replace("sqlite:///", "")
+        db_path = Path(db_file_path)
+        
+        return {
+            "type": "SQLite",
+            "path": str(db_path.resolve()),
+            "exists": db_path.exists(),
+            "size": db_path.stat().st_size if db_path.exists() else 0,
+            "readable": os.access(db_path.parent, os.R_OK) if db_path.parent.exists() else True,
+            "writable": os.access(db_path.parent, os.W_OK) if db_path.parent.exists() else True
+        }
+    else:
+        return {
+            "type": "Other",
+            "url": DATABASE_URL,
+            "path": None
+        }

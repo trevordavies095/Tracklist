@@ -11,7 +11,7 @@ from pydantic import BaseModel, Field
 import logging
 import json
 
-from ..database import get_db
+from ..database import get_db, get_db_info
 from ..rating_service import get_rating_service, RatingService
 from ..exceptions import TracklistException, NotFoundError, ValidationError, ServiceNotFoundError, ServiceValidationError
 
@@ -477,5 +477,45 @@ async def delete_album(
             detail={
                 "error": "Internal server error",
                 "message": "Failed to delete album"
+            }
+        )
+
+
+@router.get("/system/info")
+async def get_system_info() -> Dict[str, Any]:
+    """
+    Get system information including database details
+    
+    Returns information about:
+    - Database location and status
+    - Application configuration
+    - System health
+    """
+    import sys
+    import os
+    
+    try:
+        db_info = get_db_info()
+        
+        return {
+            "database": db_info,
+            "application": {
+                "name": "Tracklist",
+                "version": "1.0.0",
+                "environment": os.getenv("ENVIRONMENT", "development")
+            },
+            "system": {
+                "python_version": f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
+                "platform": os.name
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting system info: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "System info unavailable",
+                "message": "Unable to retrieve system information"
             }
         )
