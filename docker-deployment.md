@@ -118,7 +118,17 @@ volumes:
 
 ## Step 5: Build Docker Image
 
-### Option A: Build locally and push to registry
+### Option A: Build locally (No Registry Required)
+
+```bash
+# Build the image locally
+docker build -t tracklist:latest .
+
+# Verify the image was built
+docker images | grep tracklist
+```
+
+### Option B: Build locally and push to registry
 
 ```bash
 # Build the image
@@ -131,7 +141,7 @@ docker tag tracklist:latest your-registry/tracklist:latest
 docker push your-registry/tracklist:latest
 ```
 
-### Option B: Build directly in Portainer
+### Option C: Build directly in Portainer
 
 You can build directly in Portainer using the Git repository (see Step 6).
 
@@ -186,8 +196,36 @@ You can build directly in Portainer using the Git repository (see Step 6).
    - **Name**: `tracklist-stack`
    - **Build method**: Choose one:
 
-#### Option A: Web editor
-Paste the docker-compose.yml content:
+#### Option A: Web editor (Build from Git Repository)
+Perfect for users without a registry! Paste this docker-compose.yml content:
+
+```yaml
+version: '3.8'
+
+services:
+  tracklist:
+    # Build directly from Git repository
+    build:
+      context: https://github.com/your-username/tracklist.git
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - tracklist_data:/app/data
+      # Optional: Mount existing database directory
+      # - /host/path/to/database:/app/data
+    environment:
+      - TRACKLIST_DB_PATH=/app/data/tracklist.db
+      - ENVIRONMENT=production
+      - LOG_LEVEL=info
+    restart: unless-stopped
+
+volumes:
+  tracklist_data:
+```
+
+#### Option A2: Web editor (Use Pre-built Image)
+If you have access to a registry or built locally:
 
 ```yaml
 version: '3.8'
@@ -195,11 +233,13 @@ version: '3.8'
 services:
   tracklist:
     image: your-registry/tracklist:latest
+    # OR use locally built image:
+    # image: tracklist:latest
     ports:
       - "8000:8000"
     volumes:
       - tracklist_data:/app/data
-      # Optional: Mount existing database directory
+      # Optional: Mount existing database directory  
       # - /host/path/to/database:/app/data
     environment:
       - TRACKLIST_DB_PATH=/app/data/tracklist.db
@@ -217,6 +257,106 @@ volumes:
 - **Auto-update**: Enable if desired
 
 3. **Deploy Stack**: Click "Deploy the stack"
+
+## Stack Deployment Without Registry
+
+### Method 1: Build from Git Repository (Recommended)
+
+This is the easiest method if you don't have a registry:
+
+1. **Upload your code to Git** (GitHub, GitLab, etc.)
+2. **In Portainer Stack Creation**:
+   - Choose "Web editor"
+   - Use this docker-compose.yml:
+
+```yaml
+version: '3.8'
+
+services:
+  tracklist:
+    build:
+      context: https://github.com/your-username/tracklist.git
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - tracklist_data:/app/data
+    environment:
+      - TRACKLIST_DB_PATH=/app/data/tracklist.db
+      - ENVIRONMENT=production
+      - LOG_LEVEL=info
+    restart: unless-stopped
+
+volumes:
+  tracklist_data:
+```
+
+### Method 2: Build Locally Then Use in Stack
+
+1. **Build image locally** on the Portainer host:
+```bash
+# SSH into your Portainer host
+ssh user@your-portainer-host
+
+# Clone the repository
+git clone https://github.com/your-username/tracklist.git
+cd tracklist
+
+# Build the image
+docker build -t tracklist:latest .
+```
+
+2. **Create stack in Portainer** using local image:
+```yaml
+version: '3.8'
+
+services:
+  tracklist:
+    image: tracklist:latest
+    ports:
+      - "8000:8000"
+    volumes:
+      - tracklist_data:/app/data
+    environment:
+      - TRACKLIST_DB_PATH=/app/data/tracklist.db
+      - ENVIRONMENT=production
+      - LOG_LEVEL=info
+    restart: unless-stopped
+
+volumes:
+  tracklist_data:
+```
+
+### Method 3: Private Git Repository
+
+For private repositories, you'll need to set up authentication:
+
+1. **Create deploy key or access token** in your Git provider
+2. **Use Git repository option** in Portainer:
+   - **Repository URL**: `https://username:token@github.com/your-username/tracklist.git`
+   - **Compose path**: `docker-compose.yml`
+   - **Auto-update**: Optional
+
+Create this `docker-compose.yml` in your repository:
+```yaml
+version: '3.8'
+
+services:
+  tracklist:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - tracklist_data:/app/data
+    environment:
+      - TRACKLIST_DB_PATH=/app/data/tracklist.db
+      - ENVIRONMENT=production
+      - LOG_LEVEL=info
+    restart: unless-stopped
+
+volumes:
+  tracklist_data:
+```
 
 ## Step 7: Bringing Your Own Database
 
