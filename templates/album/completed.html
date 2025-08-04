@@ -39,16 +39,20 @@
                             </div>
                             <div class="text-base text-gray-600 mb-1">out of 100</div>
                             <div class="text-sm text-gray-500">
-                                {% if album.rating_score >= 80 %}
-                                Excellent album! 🌟
+                                {% if album.rating_score >= 90 %}
+                                Masterpiece
+                                {% elif album.rating_score >= 80 %}
+                                Excellent
+                                {% elif album.rating_score >= 70 %}
+                                Good
                                 {% elif album.rating_score >= 60 %}
-                                Great album! 👍
+                                Decent
+                                {% elif album.rating_score >= 50 %}
+                                Mediocre
                                 {% elif album.rating_score >= 40 %}
-                                Good album 👌
-                                {% elif album.rating_score >= 20 %}
-                                Decent album ✋
+                                Poor
                                 {% else %}
-                                Could be better 😐
+                                Terrible
                                 {% endif %}
                             </div>
                         </div>
