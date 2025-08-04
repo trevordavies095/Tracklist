@@ -314,19 +314,50 @@ class RatingService:
         db: Session, 
         limit: int = 50, 
         offset: int = 0,
-        filter_rated: Optional[bool] = None
+        filter_rated: Optional[bool] = None,
+        sort: str = "created_desc"
     ) -> Dict[str, Any]:
-        """Get user's albums with optional filtering"""
+        """Get user's albums with optional filtering and sorting"""
         query = db.query(Album).join(Artist)
         
         if filter_rated is not None:
             query = query.filter(Album.is_rated == filter_rated)
         
+        # Apply sorting
+        if sort == "created_desc":
+            query = query.order_by(Album.created_at.desc())
+        elif sort == "created_asc":
+            query = query.order_by(Album.created_at.asc())
+        elif sort == "artist_asc":
+            query = query.order_by(Artist.name.asc())
+        elif sort == "artist_desc":
+            query = query.order_by(Artist.name.desc())
+        elif sort == "album_asc":
+            query = query.order_by(Album.name.asc())
+        elif sort == "album_desc":
+            query = query.order_by(Album.name.desc())
+        elif sort == "rating_desc":
+            # Only rated albums have scores, put unrated last
+            query = query.order_by(Album.rating_score.desc().nulls_last())
+        elif sort == "rating_asc":
+            # Only rated albums have scores, put unrated last
+            query = query.order_by(Album.rating_score.asc().nulls_last())
+        elif sort == "year_desc":
+            query = query.order_by(Album.release_year.desc().nulls_last())
+        elif sort == "year_asc":
+            query = query.order_by(Album.release_year.asc().nulls_last())
+        elif sort == "rated_desc":
+            # Recently rated first (completed albums sorted by rated_at desc, then in-progress)
+            query = query.order_by(Album.rated_at.desc().nulls_last())
+        else:
+            # Default to created_desc for unknown sorts
+            query = query.order_by(Album.created_at.desc())
+        
         # Get total count
         total = query.count()
         
         # Get paginated results
-        albums = query.order_by(Album.created_at.desc()).offset(offset).limit(limit).all()
+        albums = query.offset(offset).limit(limit).all()
         
         return {
             "albums": [self._format_album_summary(album) for album in albums],

@@ -45,35 +45,51 @@
                 </button>
             </div>
             
-            <!-- View Toggle -->
-            <div class="flex items-center space-x-2" x-data="{ viewMode: 'grid' }">
-                <span class="text-sm text-gray-700">View:</span>
-                <div class="flex border border-gray-300 rounded-md">
-                    <button @click="viewMode = 'grid'"
-                            :class="viewMode === 'grid' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'"
-                            class="px-3 py-1 text-sm rounded-l-md transition-colors">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
-                        </svg>
-                    </button>
-                    <button @click="viewMode = 'list'"
-                            :class="viewMode === 'list' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'"
-                            class="px-3 py-1 text-sm rounded-r-md transition-colors">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
-                        </svg>
-                    </button>
+            <!-- Sort and View Controls -->
+            <div class="flex items-center space-x-4">
+                <!-- Sort Dropdown -->
+                <div class="flex items-center space-x-2">
+                    <span class="text-sm text-gray-700">Sort:</span>
+                    <select id="sort-select" onchange="handleSortChange()" 
+                            class="border border-gray-300 rounded-md px-3 py-1 text-sm bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="created_desc">Date Added (Newest)</option>
+                        <option value="created_asc">Date Added (Oldest)</option>
+                        <option value="artist_asc">Artist A→Z</option>
+                        <option value="artist_desc">Artist Z→A</option>
+                        <option value="album_asc">Album A→Z</option>
+                        <option value="album_desc">Album Z→A</option>
+                        <option value="rating_desc">Rating 100→0</option>
+                        <option value="rating_asc">Rating 0→100</option>
+                        <option value="year_desc">Year (Newest)</option>
+                        <option value="year_asc">Year (Oldest)</option>
+                        <option value="rated_desc">Recently Rated</option>
+                    </select>
+                </div>
+                
+                <!-- View Toggle -->
+                <div class="flex items-center space-x-2" x-data="{ viewMode: 'grid' }">
+                    <span class="text-sm text-gray-700">View:</span>
+                    <div class="flex border border-gray-300 rounded-md">
+                        <button onclick="setViewMode('grid')"
+                                class="px-3 py-1 text-sm rounded-l-md transition-colors bg-blue-600 text-white">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
+                            </svg>
+                        </button>
+                        <button onclick="setViewMode('list')"
+                                class="px-3 py-1 text-sm rounded-r-md transition-colors bg-white text-gray-700 hover:bg-gray-50">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
     
     <!-- Albums Grid/List -->
-    <div id="albums-container" 
-         hx-get="/api/v1/albums?limit=20" 
-         hx-trigger="load"
-         hx-target="this"
-         hx-indicator="#albums-loading">
+    <div id="albums-container">
         
         <!-- Loading State -->
         <div id="albums-loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -192,9 +208,37 @@
 </div>
 
 <script>
+// Score color utility function
+function getScoreColorClass(score) {
+    console.log('getScoreColorClass called with:', score, typeof score);
+    
+    if (score === null || score === undefined) {
+        console.log('Score is null/undefined, returning empty string');
+        return '';
+    }
+    
+    // Convert to number to ensure proper comparison
+    const numScore = Number(score);
+    console.log('Converted score to number:', numScore);
+    
+    if (numScore === 100) {
+        console.log('Returning dark green for score 100');
+        return 'score-dark-green'; // Perfect score
+    } else if (numScore >= 67) {
+        console.log('Returning light green for score >= 67');
+        return 'score-light-green'; // Good range
+    } else if (numScore >= 33) {
+        console.log('Returning orange for score >= 33');
+        return 'score-orange'; // Filler range
+    } else {
+        console.log('Returning red for score < 33');
+        return 'score-red'; // Skip range
+    }
+}
+
 // Load albums with filtering
-function loadAlbums(filter) {
-    let url = '/api/v1/albums?limit=20';
+async function loadAlbums(filter) {
+    let url = '/api/v1/albums?limit=20&offset=0';
     
     if (filter === 'completed') {
         url += '&rated=true';
@@ -203,106 +247,383 @@ function loadAlbums(filter) {
     }
     // 'all' uses default (no filter)
     
-    htmx.ajax('GET', url, {
-        target: '#albums-container',
-        swap: 'innerHTML'
-    });
+    // Add sort parameter
+    url += `&sort=${currentSort}`;
+    
+    try {
+        const response = await fetch(url);
+        if (response.ok) {
+            const data = await response.json();
+            
+            if (data.albums && data.albums.length === 0) {
+                document.getElementById('empty-state').classList.remove('hidden');
+                document.getElementById('albums-container').innerHTML = '';
+                document.getElementById('pagination-container').innerHTML = '';
+            } else {
+                document.getElementById('empty-state').classList.add('hidden');
+                renderAlbums(data);
+                updatePaginationButton(data);
+            }
+        } else {
+            console.error('Failed to load albums:', response.status);
+            alert('Failed to load albums');
+        }
+    } catch (error) {
+        console.error('Error loading albums:', error);
+        alert('Error loading albums');
+    }
 }
 
-// Handle HTMX responses for album list
-document.body.addEventListener('htmx:afterRequest', function(evt) {
-    if (evt.detail.target.id === 'albums-container') {
-        const response = JSON.parse(evt.detail.xhr.responseText);
-        
-        if (response.albums && response.albums.length === 0) {
-            document.getElementById('empty-state').classList.remove('hidden');
-            document.getElementById('albums-container').innerHTML = '';
-        } else {
-            document.getElementById('empty-state').classList.add('hidden');
-            renderAlbums(response);
-        }
-    }
+// Initialize page with default album loading
+document.addEventListener('DOMContentLoaded', function() {
+    // Show loading state initially
+    document.getElementById('albums-loading').style.display = 'grid';
+    // Load initial albums
+    loadAlbums('all');
 });
 
 function renderAlbums(data) {
     const container = document.getElementById('albums-container');
     const albums = data.albums || [];
     
-    const albumCards = albums.map(album => `
-        <div class="album-card bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200">
-            <div class="p-6">
-                <!-- Album Art Placeholder -->
-                <div class="w-16 h-16 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg mb-4 flex items-center justify-center">
-                    <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
-                    </svg>
-                </div>
-                
-                <!-- Album Info -->
-                <h3 class="font-semibold text-gray-900 mb-1 truncate" title="${album.title}">${album.title}</h3>
-                <p class="text-sm text-gray-600 mb-4 truncate" title="${album.artist}">${album.artist}</p>
-                
-                <!-- Status and Score -->
-                <div class="mb-4">
-                    ${album.is_rated ? `
+    // Hide loading state
+    const loadingElement = document.getElementById('albums-loading');
+    if (loadingElement) {
+        loadingElement.style.display = 'none';
+    }
+    
+    if (currentViewMode === 'list') {
+        // List view
+        const albumRows = albums.map(album => `
+            <div class="album-row bg-white border border-gray-200 hover:bg-gray-50 transition-all duration-200">
+                <div class="flex items-center p-4">
+                    <!-- Album Art Placeholder -->
+                    <div class="w-12 h-12 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg flex items-center justify-center flex-shrink-0 mr-4">
+                        <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+                        </svg>
+                    </div>
+                    
+                    <!-- Album Info -->
+                    <div class="flex-1 min-w-0">
                         <div class="flex items-center justify-between">
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                ✓ Completed
-                            </span>
-                            <span class="text-lg font-bold text-green-600">${album.rating_score}/100</span>
+                            <div class="min-w-0 flex-1">
+                                <h3 class="font-semibold text-gray-900 truncate" title="${album.title}">${album.title}</h3>
+                                <p class="text-sm text-gray-600 truncate" title="${album.artist}">${album.artist}</p>
+                                ${album.year ? `<p class="text-xs text-gray-500">${album.year}</p>` : ''}
+                            </div>
+                            
+                            <!-- Status and Score -->
+                            <div class="flex items-center space-x-4 ml-4">
+                                ${album.is_rated ? `
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        ✓ Completed
+                                    </span>
+                                    <span class="text-lg font-bold ${getScoreColorClass(album.rating_score)} min-w-0" data-score="${album.rating_score}" data-color-class="${getScoreColorClass(album.rating_score)}">${album.rating_score}/100</span>
+                                ` : `
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                                        ⏳ In Progress
+                                    </span>
+                                `}
+                                
+                                <!-- Actions -->
+                                <div class="flex space-x-2 flex-shrink-0">
+                                    ${album.is_rated ? `
+                                        <a href="/albums/${album.id}/completed" 
+                                           class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm font-medium transition-colors">
+                                            View
+                                        </a>
+                                    ` : `
+                                        <a href="/albums/${album.id}/rate" 
+                                           class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm font-medium transition-colors">
+                                            Rate
+                                        </a>
+                                    `}
+                                    <button onclick="showAlbumDetails(${album.id})" 
+                                            class="px-2 py-1 border border-gray-300 rounded text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                                        ⋯
+                                    </button>
+                                </div>
+                            </div>
                         </div>
-                    ` : `
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
-                            ⏳ In Progress
-                        </span>
-                    `}
-                </div>
-                
-                <!-- Actions -->
-                <div class="flex space-x-2">
-                    ${album.is_rated ? `
-                        <a href="/albums/${album.id}/completed" 
-                           class="flex-1 bg-green-600 hover:bg-green-700 text-white text-center py-2 px-3 rounded-md text-sm font-medium transition-colors">
-                            View Results
-                        </a>
-                    ` : `
-                        <a href="/albums/${album.id}/rate" 
-                           class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-center py-2 px-3 rounded-md text-sm font-medium transition-colors">
-                            Continue Rating
-                        </a>
-                    `}
-                    <button onclick="showAlbumDetails(${album.id})" 
-                            class="px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
-                        ⋯
-                    </button>
+                    </div>
                 </div>
             </div>
-        </div>
-    `).join('');
+        `).join('');
+        
+        container.innerHTML = `<div class="space-y-1">${albumRows}</div>`;
+    } else {
+        // Grid view (default)
+        const albumCards = albums.map(album => `
+            <div class="album-card bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200">
+                <div class="p-6">
+                    <!-- Album Art Placeholder -->
+                    <div class="w-16 h-16 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg mb-4 flex items-center justify-center">
+                        <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+                        </svg>
+                    </div>
+                    
+                    <!-- Album Info -->
+                    <h3 class="font-semibold text-gray-900 mb-1 truncate" title="${album.title}">${album.title}</h3>
+                    <p class="text-sm text-gray-600 mb-4 truncate" title="${album.artist}">${album.artist}</p>
+                    
+                    <!-- Status and Score -->
+                    <div class="mb-4">
+                        ${album.is_rated ? `
+                            <div class="flex items-center justify-between">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    ✓ Completed
+                                </span>
+                                <span class="text-lg font-bold ${getScoreColorClass(album.rating_score)}">${album.rating_score}/100</span>
+                            </div>
+                        ` : `
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                                ⏳ In Progress
+                            </span>
+                        `}
+                    </div>
+                    
+                    <!-- Actions -->
+                    <div class="flex space-x-2">
+                        ${album.is_rated ? `
+                            <a href="/albums/${album.id}/completed" 
+                               class="flex-1 bg-green-600 hover:bg-green-700 text-white text-center py-2 px-3 rounded-md text-sm font-medium transition-colors">
+                                View Results
+                            </a>
+                        ` : `
+                            <a href="/albums/${album.id}/rate" 
+                               class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-center py-2 px-3 rounded-md text-sm font-medium transition-colors">
+                                Continue Rating
+                            </a>
+                        `}
+                        <button onclick="showAlbumDetails(${album.id})" 
+                                class="px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                            ⋯
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+        
+        container.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">${albumCards}</div>`;
+    }
+}
+
+async function loadMoreAlbums(offset) {
+    console.log('Loading more albums from offset:', offset);
     
-    container.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">${albumCards}</div>`;
+    // Get current filter
+    const activeFilter = getCurrentFilter();
+    let url = `/api/v1/albums?limit=20&offset=${offset}`;
     
-    // Handle pagination if needed
+    if (activeFilter === 'completed') {
+        url += '&rated=true';
+    } else if (activeFilter === 'drafts') {
+        url += '&rated=false';
+    }
+    
+    // Add sort parameter
+    url += `&sort=${currentSort}`;
+    
+    try {
+        const response = await fetch(url);
+        if (response.ok) {
+            const data = await response.json();
+            
+            if (data.albums && data.albums.length > 0) {
+                // Append new albums to existing grid
+                appendAlbumsToGrid(data);
+                
+                // Update pagination button
+                updatePaginationButton(data);
+            } else {
+                // No more albums to load
+                const paginationContainer = document.getElementById('pagination-container');
+                paginationContainer.innerHTML = '<p class="text-center text-gray-500">No more albums</p>';
+            }
+        } else {
+            console.error('Failed to load more albums:', response.status);
+            alert('Failed to load more albums');
+        }
+    } catch (error) {
+        console.error('Error loading more albums:', error);
+        alert('Error loading more albums');
+    }
+}
+
+function getCurrentFilter() {
+    // Determine current active filter by checking which button is active
+    const buttons = document.querySelectorAll('[x-data] button');
+    for (const button of buttons) {
+        if (button.classList.contains('bg-blue-600') || button.classList.contains('bg-green-600') || button.classList.contains('bg-amber-600')) {
+            const text = button.textContent.trim();
+            if (text === 'Completed') return 'completed';
+            if (text === 'In Progress') return 'drafts';
+        }
+    }
+    return 'all'; // Default
+}
+
+function appendAlbumsToGrid(data) {
+    const container = document.getElementById('albums-container');
+    const existingContainer = container.querySelector('.grid, .space-y-1');
+    
+    if (!existingContainer) {
+        // No existing container, render normally
+        renderAlbums(data);
+        return;
+    }
+    
+    const albums = data.albums || [];
+    
+    if (currentViewMode === 'list') {
+        // List view - append new rows
+        const newAlbumRows = albums.map(album => `
+            <div class="album-row bg-white border border-gray-200 hover:bg-gray-50 transition-all duration-200">
+                <div class="flex items-center p-4">
+                    <div class="w-12 h-12 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg flex items-center justify-center flex-shrink-0 mr-4">
+                        <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+                        </svg>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between">
+                            <div class="min-w-0 flex-1">
+                                <h3 class="font-semibold text-gray-900 truncate" title="${album.title}">${album.title}</h3>
+                                <p class="text-sm text-gray-600 truncate" title="${album.artist}">${album.artist}</p>
+                                ${album.year ? `<p class="text-xs text-gray-500">${album.year}</p>` : ''}
+                            </div>
+                            <div class="flex items-center space-x-4 ml-4">
+                                ${album.is_rated ? `
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">✓ Completed</span>
+                                    <span class="text-lg font-bold ${getScoreColorClass(album.rating_score)} min-w-0">${album.rating_score}/100</span>
+                                ` : `
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">⏳ In Progress</span>
+                                `}
+                                <div class="flex space-x-2 flex-shrink-0">
+                                    ${album.is_rated ? `
+                                        <a href="/albums/${album.id}/completed" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm font-medium transition-colors">View</a>
+                                    ` : `
+                                        <a href="/albums/${album.id}/rate" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm font-medium transition-colors">Rate</a>
+                                    `}
+                                    <button onclick="showAlbumDetails(${album.id})" class="px-2 py-1 border border-gray-300 rounded text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">⋯</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+        
+        existingContainer.innerHTML += newAlbumRows;
+    } else {
+        // Grid view - append new cards
+        const newAlbumCards = albums.map(album => `
+            <div class="album-card bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200">
+                <div class="p-6">
+                    <div class="w-16 h-16 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg mb-4 flex items-center justify-center">
+                        <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+                        </svg>
+                    </div>
+                    <h3 class="font-semibold text-gray-900 mb-1 truncate" title="${album.title}">${album.title}</h3>
+                    <p class="text-sm text-gray-600 mb-4 truncate" title="${album.artist}">${album.artist}</p>
+                    <div class="mb-4">
+                        ${album.is_rated ? `
+                            <div class="flex items-center justify-between">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">✓ Completed</span>
+                                <span class="text-lg font-bold ${getScoreColorClass(album.rating_score)}">${album.rating_score}/100</span>
+                            </div>
+                        ` : `
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">⏳ In Progress</span>
+                        `}
+                    </div>
+                    <div class="flex space-x-2">
+                        ${album.is_rated ? `
+                            <a href="/albums/${album.id}/completed" class="flex-1 bg-green-600 hover:bg-green-700 text-white text-center py-2 px-3 rounded-md text-sm font-medium transition-colors">View Results</a>
+                        ` : `
+                            <a href="/albums/${album.id}/rate" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-center py-2 px-3 rounded-md text-sm font-medium transition-colors">Continue Rating</a>
+                        `}
+                        <button onclick="showAlbumDetails(${album.id})" class="px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">⋯</button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+        
+        existingContainer.innerHTML += newAlbumCards;
+    }
+}
+
+function updatePaginationButton(data) {
+    const paginationContainer = document.getElementById('pagination-container');
+    
     if (data.has_more) {
-        const paginationContainer = document.getElementById('pagination-container');
+        const nextOffset = data.offset + data.limit;
         paginationContainer.innerHTML = `
             <div class="flex justify-center">
-                <button onclick="loadMoreAlbums(${data.offset + data.limit})" 
+                <button onclick="loadMoreAlbums(${nextOffset})" 
                         class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md text-sm font-medium transition-colors">
                     Load More Albums
                 </button>
             </div>
         `;
+    } else {
+        paginationContainer.innerHTML = '<p class="text-center text-gray-500">No more albums</p>';
     }
 }
 
-function loadMoreAlbums(offset) {
-    // Implementation for loading more albums
-    console.log('Load more albums from offset:', offset);
+// Global variables
+let currentAlbum = null;
+let currentViewMode = 'grid'; // Default to grid view
+let currentSort = 'created_desc'; // Default sort
+
+// Sort handling functions
+function handleSortChange() {
+    const sortSelect = document.getElementById('sort-select');
+    currentSort = sortSelect.value;
+    
+    // Reload albums with new sort
+    const activeFilter = getCurrentFilter();
+    loadAlbums(activeFilter);
 }
 
-// Global variable to store current album data
-let currentAlbum = null;
+// View mode switching functions
+function setViewMode(mode) {
+    currentViewMode = mode;
+    
+    // Update button states
+    const gridBtn = document.querySelector('[onclick*="setViewMode(\'grid\')"]');
+    const listBtn = document.querySelector('[onclick*="setViewMode(\'list\')"]');
+    
+    if (gridBtn && listBtn) {
+        if (mode === 'grid') {
+            gridBtn.classList.add('bg-blue-600', 'text-white');
+            gridBtn.classList.remove('bg-white', 'text-gray-700', 'hover:bg-gray-50');
+            listBtn.classList.remove('bg-blue-600', 'text-white');
+            listBtn.classList.add('bg-white', 'text-gray-700', 'hover:bg-gray-50');
+        } else {
+            listBtn.classList.add('bg-blue-600', 'text-white');
+            listBtn.classList.remove('bg-white', 'text-gray-700', 'hover:bg-gray-50');
+            gridBtn.classList.remove('bg-blue-600', 'text-white');
+            gridBtn.classList.add('bg-white', 'text-gray-700', 'hover:bg-gray-50');
+        }
+    }
+    
+    // Re-render current albums with new view mode
+    const container = document.getElementById('albums-container');
+    const existingContainer = container.querySelector('.grid, .space-y-1');
+    if (existingContainer) {
+        // Get current albums data by re-reading from DOM
+        reRenderCurrentAlbums();
+    }
+}
+
+function reRenderCurrentAlbums() {
+    // Re-fetch and render current albums with new view mode
+    const activeFilter = getCurrentFilter();
+    loadAlbums(activeFilter);
+}
 
 async function showAlbumDetails(albumId) {
     console.log('Showing details for album ID:', albumId);
@@ -344,7 +665,7 @@ async function showAlbumDetails(albumId) {
                     ${album.is_rated && album.rating_score ? `
                     <div class="flex justify-between">
                         <span class="font-medium text-gray-700">Score:</span>
-                        <span class="text-green-600 font-bold text-lg">${album.rating_score}/100</span>
+                        <span class="${getScoreColorClass(album.rating_score)} font-bold text-lg">${album.rating_score}/100</span>
                     </div>
                     ` : ''}
                 </div>

@@ -233,6 +233,44 @@
     @apply outline-none ring-2 ring-blue-500 ring-offset-2;
 }
 
+/* Score-based Colors (matching track rating buttons) */
+.score-red {
+    color: #ef4444 !important; /* Red - 0-32 (Skip range) */
+}
+
+.score-orange {
+    color: #f59e0b !important; /* Orange/Yellow - 33-66 (Filler range) */
+}
+
+.score-light-green {
+    color: #22c55e !important; /* Light Green - 67-99 (Good range) */
+}
+
+.score-dark-green {
+    color: #15803d !important; /* Dark Green - 100 (Standout range) */
+}
+
+/* Background variants for badges/status indicators */
+.score-bg-red {
+    background-color: #ef4444;
+    color: white;
+}
+
+.score-bg-orange {
+    background-color: #f59e0b;
+    color: white;
+}
+
+.score-bg-light-green {
+    background-color: #22c55e;
+    color: white;
+}
+
+.score-bg-dark-green {
+    background-color: #15803d;
+    color: white;
+}
+
 /* Print Styles */
 @media print {
     .no-print {

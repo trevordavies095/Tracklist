@@ -396,23 +396,30 @@ async def get_user_albums(
     limit: int = Query(50, description="Maximum number of results", ge=1, le=100),
     offset: int = Query(0, description="Offset for pagination", ge=0),
     rated: Optional[bool] = Query(None, description="Filter by rated status (true=rated, false=draft, null=all)"),
+    sort: str = Query("created_desc", description="Sort order (created_desc, created_asc, artist_asc, artist_desc, album_asc, album_desc, rating_desc, rating_asc, year_desc, year_asc, rated_desc)"),
     service: RatingService = Depends(get_rating_service),
     db: Session = Depends(get_db)
 ) -> Dict[str, Any]:
     """
     Get user's albums
     
-    Returns paginated list of user's albums with optional filtering:
+    Returns paginated list of user's albums with optional filtering and sorting:
     - rated=true: Only completed/submitted albums
     - rated=false: Only draft/in-progress albums
     - rated=null: All albums (default)
     
-    Results are ordered by creation date (newest first).
+    Sorting options:
+    - created_desc/created_asc: By date added (default: newest first)
+    - artist_asc/artist_desc: By artist name (A→Z / Z→A)
+    - album_asc/album_desc: By album name (A→Z / Z→A)
+    - rating_desc/rating_asc: By rating score (100→0 / 0→100)
+    - year_desc/year_asc: By release year (newest/oldest first)
+    - rated_desc: By recently rated (completed albums first)
     """
     try:
-        logger.info(f"Getting user albums: limit={limit}, offset={offset}, rated={rated}")
+        logger.info(f"Getting user albums: limit={limit}, offset={offset}, rated={rated}, sort={sort}")
         
-        result = service.get_user_albums(db, limit, offset, rated)
+        result = service.get_user_albums(db, limit, offset, rated, sort)
         
         logger.debug(f"Retrieved {len(result['albums'])} albums (total: {result['total']})")
         return result
