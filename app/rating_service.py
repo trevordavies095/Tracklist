@@ -10,6 +10,7 @@ from datetime import datetime, timezone
 
 from .models import Artist, Album, Track, UserSettings
 from .musicbrainz_service import get_musicbrainz_service
+from .services.cover_art_service import get_cover_art_service
 from .exceptions import TracklistException, ServiceNotFoundError, ServiceValidationError
 
 logger = logging.getLogger(__name__)
@@ -78,6 +79,7 @@ class RatingService:
     
     def __init__(self):
         self.musicbrainz_service = get_musicbrainz_service()
+        self.cover_art_service = get_cover_art_service()
     
     async def create_album_for_rating(
         self, 
@@ -124,12 +126,25 @@ class RatingService:
             settings = db.query(UserSettings).filter(UserSettings.user_id == 1).first()
             album_bonus = settings.album_bonus if settings else 0.33
             
+            # Fetch cover art
+            cover_art_url = None
+            try:
+                cover_art_url = await self.cover_art_service.get_cover_art_url(musicbrainz_id)
+                if cover_art_url:
+                    logger.info(f"Found cover art for {mb_album['title']}: {cover_art_url}")
+                else:
+                    logger.info(f"No cover art found for {mb_album['title']}")
+            except Exception as e:
+                logger.error(f"Failed to fetch cover art for {mb_album['title']}: {e}")
+                cover_art_url = None
+            
             # Create album
             album = Album(
                 artist_id=artist.id,
                 name=mb_album["title"],
                 release_year=mb_album.get("year"),
                 musicbrainz_id=musicbrainz_id,
+                cover_art_url=cover_art_url,
                 genre=mb_album.get("country"),  # Temporary mapping
                 total_tracks=mb_album["total_tracks"],
                 total_duration_ms=mb_album.get("total_duration_ms"),
@@ -418,6 +433,7 @@ class RatingService:
             "genre": album.genre,
             "total_tracks": album.total_tracks,
             "total_duration_ms": album.total_duration_ms,
+            "cover_art_url": album.cover_art_url,
             "album_bonus": album.album_bonus,
             "is_rated": album.is_rated,
             "rating_score": album.rating_score,
@@ -448,6 +464,7 @@ class RatingService:
             "title": album.name,
             "artist": album.artist.name,
             "year": album.release_year,
+            "cover_art_url": album.cover_art_url,
             "is_rated": album.is_rated,
             "rating_score": album.rating_score,
             "rated_at": album.rated_at.isoformat() if album.rated_at else None
@@ -509,6 +526,46 @@ class RatingService:
             db.rollback()
             logger.error(f"Failed to delete album {album_id}: {e}")
             raise
+    
+    async def update_missing_cover_art(self, db: Session) -> Dict[str, Any]:
+        """
+        Fetch cover art for albums that don't have it
+        
+        Args:
+            db: Database session
+            
+        Returns:
+            Dict with update statistics
+        """
+        logger.info("Updating missing cover art for albums")
+        
+        # Get albums without cover art
+        albums_without_art = db.query(Album).filter(
+            Album.cover_art_url.is_(None)
+        ).all()
+        
+        updated_count = 0
+        failed_count = 0
+        
+        for album in albums_without_art:
+            try:
+                cover_art_url = await self.cover_art_service.get_cover_art_url(album.musicbrainz_id)
+                if cover_art_url:
+                    album.cover_art_url = cover_art_url
+                    updated_count += 1
+                    logger.info(f"Updated cover art for {album.name}")
+            except Exception as e:
+                logger.error(f"Failed to fetch cover art for {album.name}: {e}")
+                failed_count += 1
+        
+        db.commit()
+        
+        return {
+            "total_albums_checked": len(albums_without_art),
+            "updated": updated_count,
+            "failed": failed_count,
+            "skipped": len(albums_without_art) - updated_count - failed_count
+        }
 
 
 def get_rating_service() -> RatingService:

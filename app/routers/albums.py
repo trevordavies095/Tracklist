@@ -481,6 +481,38 @@ async def delete_album(
         )
 
 
+@router.post("/albums/update-cover-art")
+async def update_album_cover_art(
+    service: RatingService = Depends(get_rating_service),
+    db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    """
+    Update cover art for all albums that don't have it
+    
+    Fetches cover art from MusicBrainz Cover Art Archive API
+    for albums with missing artwork.
+    
+    Returns statistics about the update process.
+    """
+    try:
+        logger.info("Starting cover art update for albums")
+        
+        result = await service.update_missing_cover_art(db)
+        
+        logger.info(f"Cover art update completed: {result['updated']} albums updated")
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error updating cover art: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Cover art update failed",
+                "message": "Failed to update album cover art"
+            }
+        )
+
+
 @router.get("/system/info")
 async def get_system_info() -> Dict[str, Any]:
     """
