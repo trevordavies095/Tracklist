@@ -166,6 +166,9 @@ class MusicBrainzService:
                 
                 releases.append(formatted_release)
             
+            # Sort releases by year ascending (oldest first)
+            releases.sort(key=lambda x: x.get("year") or 9999)
+            
             # Cache the result
             self.cache.set(releases, 3600, cache_key)  # Cache for 1 hour
             
