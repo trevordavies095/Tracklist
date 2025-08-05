@@ -184,7 +184,7 @@ class MusicBrainzClient:
         Returns:
             Dict containing release with complete track information
         """
-        include = ["artist-credits", "recordings", "media"]
+        include = ["artist-credits", "recordings", "media", "release-groups"]
         return await self.get_release_details(release_id, include)
 
 

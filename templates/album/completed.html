@@ -200,11 +200,241 @@
                 </svg>
                 View on MusicBrainz
             </a>
+            
+            <button onclick="openRetagModal()" 
+                    class="inline-flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                </svg>
+                Retag MusicBrainz ID
+            </button>
         </div>
     </div>
 </div>
 
 <script>
+// Modal HTML
+const retagModalHTML = `
+<div id="retagModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-11/12 max-w-2xl shadow-lg rounded-md bg-white">
+        <div class="mb-4">
+            <h3 class="text-lg font-bold text-gray-900">Retag MusicBrainz ID</h3>
+            <p class="text-sm text-gray-600 mt-2">Select a different release from the same release group. Only releases with {{ album.total_tracks }} tracks are shown.</p>
+        </div>
+        
+        <div id="retagLoading" class="text-center py-8">
+            <div class="inline-flex items-center">
+                <svg class="animate-spin h-5 w-5 mr-3 text-blue-600" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span class="text-gray-600">Loading releases...</span>
+            </div>
+        </div>
+        
+        <div id="retagContent" class="hidden">
+            <div id="releasesList" class="max-h-96 overflow-y-auto space-y-2 mb-4">
+                <!-- Releases will be populated here -->
+            </div>
+            
+            <div class="flex justify-end space-x-3">
+                <button onclick="closeRetagModal()" 
+                        class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-colors">
+                    Cancel
+                </button>
+                <button id="confirmRetagBtn" onclick="confirmRetag()" 
+                        disabled
+                        class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors">
+                    Confirm Change
+                </button>
+            </div>
+        </div>
+        
+        <div id="retagError" class="hidden">
+            <div class="bg-red-50 border border-red-200 rounded-md p-4 mb-4">
+                <p class="text-red-700" id="retagErrorMessage"></p>
+            </div>
+            <button onclick="closeRetagModal()" 
+                    class="w-full px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-colors">
+                Close
+            </button>
+        </div>
+    </div>
+</div>
+`;
+
+// Add modal to the page
+document.addEventListener('DOMContentLoaded', function() {
+    document.body.insertAdjacentHTML('beforeend', retagModalHTML);
+});
+
+let selectedMbid = null;
+
+function openRetagModal() {
+    const modal = document.getElementById('retagModal');
+    modal.classList.remove('hidden');
+    
+    // Reset state
+    selectedMbid = null;
+    document.getElementById('confirmRetagBtn').disabled = true;
+    document.getElementById('retagLoading').classList.remove('hidden');
+    document.getElementById('retagContent').classList.add('hidden');
+    document.getElementById('retagError').classList.add('hidden');
+    
+    // Fetch releases from the same release group
+    fetchReleaseGroupReleases();
+}
+
+function closeRetagModal() {
+    document.getElementById('retagModal').classList.add('hidden');
+}
+
+async function fetchReleaseGroupReleases() {
+    try {
+        const response = await fetch(`/api/v1/albums/{{ album.id }}/release-group-releases`);
+        
+        if (!response.ok) {
+            throw new Error('Failed to fetch releases');
+        }
+        
+        const data = await response.json();
+        
+        document.getElementById('retagLoading').classList.add('hidden');
+        
+        if (data.releases && data.releases.length > 0) {
+            displayReleases(data.releases);
+            document.getElementById('retagContent').classList.remove('hidden');
+        } else {
+            showRetagError('No alternative releases found with the same track count.');
+        }
+        
+    } catch (error) {
+        console.error('Error fetching releases:', error);
+        showRetagError('Failed to load releases. Please try again.');
+    }
+}
+
+function displayReleases(releases) {
+    const container = document.getElementById('releasesList');
+    const currentMbid = "{{ album.musicbrainz_id }}";
+    
+    const releasesHTML = releases.map(release => `
+        <label class="block p-4 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors ${release.musicbrainz_id === currentMbid ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}">
+            <input type="radio" 
+                   name="releaseSelection" 
+                   value="${release.musicbrainz_id}"
+                   ${release.musicbrainz_id === currentMbid ? 'checked' : ''}
+                   onchange="selectRelease('${release.musicbrainz_id}')"
+                   class="sr-only">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="font-medium text-gray-900">
+                        ${release.title} ${release.year ? `(${release.year})` : ''}
+                    </div>
+                    <div class="text-sm text-gray-600 mt-1">
+                        ${release.artist} • ${release.track_count} tracks
+                        ${release.musicbrainz_id === currentMbid ? '<span class="ml-2 text-blue-600 font-medium">(Current)</span>' : ''}
+                    </div>
+                    ${release.format || release.country ? `
+                        <div class="text-xs text-gray-500 mt-1">
+                            ${release.format ? `Format: ${release.format}` : ''}
+                            ${release.format && release.country ? ' • ' : ''}
+                            ${release.country ? `Country: ${release.country}` : ''}
+                        </div>
+                    ` : ''}
+                </div>
+                <div class="ml-4">
+                    <svg class="w-5 h-5 ${release.musicbrainz_id === currentMbid ? 'text-blue-500' : 'text-gray-400'}" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                    </svg>
+                </div>
+            </div>
+        </label>
+    `).join('');
+    
+    container.innerHTML = releasesHTML;
+}
+
+function selectRelease(mbid) {
+    selectedMbid = mbid;
+    const currentMbid = "{{ album.musicbrainz_id }}";
+    
+    // Enable confirm button only if a different release is selected
+    document.getElementById('confirmRetagBtn').disabled = (mbid === currentMbid);
+    
+    // Update visual selection
+    const labels = document.querySelectorAll('#releasesList label');
+    labels.forEach(label => {
+        const input = label.querySelector('input');
+        if (input.value === mbid) {
+            label.classList.add('border-blue-500', 'bg-blue-50');
+            label.querySelector('svg').classList.remove('text-gray-400');
+            label.querySelector('svg').classList.add('text-blue-500');
+        } else {
+            label.classList.remove('border-blue-500', 'bg-blue-50');
+            label.classList.add('border-gray-200');
+            if (input.value !== currentMbid) {
+                label.querySelector('svg').classList.add('text-gray-400');
+                label.querySelector('svg').classList.remove('text-blue-500');
+            }
+        }
+    });
+}
+
+async function confirmRetag() {
+    if (!selectedMbid) return;
+    
+    const confirmBtn = document.getElementById('confirmRetagBtn');
+    confirmBtn.disabled = true;
+    confirmBtn.innerHTML = `
+        <svg class="animate-spin h-4 w-4 mr-2 inline" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        Updating...
+    `;
+    
+    try {
+        const response = await fetch(`/api/v1/albums/{{ album.id }}/retag`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                new_musicbrainz_id: selectedMbid
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to update album');
+        }
+        
+        // Reload the page to show updated information
+        window.location.reload();
+        
+    } catch (error) {
+        console.error('Error updating album:', error);
+        showRetagError('Failed to update album. Please try again.');
+        confirmBtn.disabled = false;
+        confirmBtn.innerHTML = 'Confirm Change';
+    }
+}
+
+function showRetagError(message) {
+    document.getElementById('retagLoading').classList.add('hidden');
+    document.getElementById('retagContent').classList.add('hidden');
+    document.getElementById('retagError').classList.remove('hidden');
+    document.getElementById('retagErrorMessage').textContent = message;
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+    const modal = document.getElementById('retagModal');
+    if (event.target === modal) {
+        closeRetagModal();
+    }
+}
+
 function copyRatingToClipboard() {
     const albumTitle = "{{ album.title }}";
     const artistName = "{{ album.artist.name }}";

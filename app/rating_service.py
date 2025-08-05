@@ -586,6 +586,129 @@ class RatingService:
             logger.error(f"Cover art update process failed: {e}")
             raise ServiceException(f"Failed to update cover art: {str(e)}")
 
+    async def get_release_group_releases(self, album_id: int, db: Session) -> Dict[str, Any]:
+        """
+        Get all releases from the same release group with matching track count
+        
+        Args:
+            album_id: Album ID to get releases for
+            db: Database session
+            
+        Returns:
+            Dictionary with matching releases
+        """
+        logger.info(f"Getting release group releases for album {album_id}")
+        
+        # Get the current album
+        album = db.query(Album).filter(Album.id == album_id).first()
+        if not album:
+            raise ServiceNotFoundError("Album", album_id)
+        
+        try:
+            # Get release group from MusicBrainz using current MBID
+            mb_album = await self.musicbrainz_service.get_album_details(album.musicbrainz_id)
+            release_group_id = mb_album.get("release_group_id")
+            
+            if not release_group_id:
+                logger.warning(f"No release group found for album {album.musicbrainz_id}")
+                return {"releases": []}
+            
+            # Get all releases in the release group
+            releases = await self.musicbrainz_service.get_release_group_releases(release_group_id)
+            
+            # Filter releases by track count matching the current album
+            matching_releases = []
+            for release in releases:
+                if release.get("track_count") == album.total_tracks:
+                    matching_releases.append({
+                        "musicbrainz_id": release["musicbrainz_id"],
+                        "title": release["title"], 
+                        "artist": release["artist"]["name"],
+                        "year": release.get("year"),
+                        "track_count": release["track_count"],
+                        "format": release.get("format"),
+                        "country": release.get("country")
+                    })
+            
+            logger.info(f"Found {len(matching_releases)} matching releases for album {album_id}")
+            return {"releases": matching_releases}
+            
+        except Exception as e:
+            logger.error(f"Error getting release group releases: {e}")
+            raise ServiceException(f"Failed to get release group releases: {str(e)}")
+
+    async def retag_album_musicbrainz_id(self, album_id: int, new_mbid: str, db: Session) -> Dict[str, Any]:
+        """
+        Update album's MusicBrainz ID while preserving all ratings and submission data
+        
+        Args:
+            album_id: Album ID to update
+            new_mbid: New MusicBrainz release ID
+            db: Database session
+            
+        Returns:
+            Updated album information
+        """
+        logger.info(f"Retagging album {album_id} to MusicBrainz ID {new_mbid}")
+        
+        # Get the current album
+        album = db.query(Album).filter(Album.id == album_id).first()
+        if not album:
+            raise ServiceNotFoundError("Album", album_id)
+        
+        try:
+            # Fetch new album details from MusicBrainz
+            mb_album = await self.musicbrainz_service.get_album_details(new_mbid)
+            
+            # Validate track count matches
+            if mb_album["total_tracks"] != album.total_tracks:
+                raise ServiceValidationError(
+                    f"Track count mismatch: current album has {album.total_tracks} tracks, "
+                    f"new release has {mb_album['total_tracks']} tracks"
+                )
+            
+            # Fetch new cover art
+            from .services.cover_art_service import get_cover_art_service
+            cover_art_service = get_cover_art_service()
+            cover_art_url = await cover_art_service.get_cover_art_url(new_mbid)
+            
+            # Update album record
+            old_mbid = album.musicbrainz_id
+            album.musicbrainz_id = new_mbid
+            album.name = mb_album["title"]
+            album.release_year = mb_album.get("year")
+            if cover_art_url:
+                album.cover_art_url = cover_art_url
+            
+            # Update artist if different
+            if mb_album["artist"]["name"] != album.artist.name:
+                artist = self._create_or_get_artist(
+                    mb_album["artist"]["name"],
+                    mb_album["artist"]["musicbrainz_id"],
+                    db
+                )
+                album.artist_id = artist.id
+            
+            db.add(album)
+            db.commit()
+            
+            logger.info(f"Successfully retagged album {album_id} from {old_mbid} to {new_mbid}")
+            
+            return {
+                "success": True,
+                "message": "Album successfully retagged",
+                "album": self._format_album_response(album, db),
+                "old_musicbrainz_id": old_mbid,
+                "new_musicbrainz_id": new_mbid
+            }
+            
+        except ServiceValidationError:
+            raise  # Re-raise validation errors
+        except Exception as e:
+            db.rollback()
+            logger.error(f"Error retagging album: {e}")
+            raise ServiceException(f"Failed to retag album: {str(e)}")
+
 
 def get_rating_service() -> RatingService:
     """Get rating service instance"""

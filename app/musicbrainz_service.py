@@ -98,6 +98,94 @@ class MusicBrainzService:
                     {"release_id": release_id, "error": e.details}
                 )
     
+    async def get_release_group_releases(self, release_group_id: str) -> List[Dict[str, Any]]:
+        """
+        Get all releases from a release group
+        
+        Args:
+            release_group_id: MusicBrainz release group ID
+            
+        Returns:
+            List of releases in the release group
+        """
+        cache_key = f"release_group:{release_group_id}"
+        
+        # Check cache first
+        cached_result = self.cache.get(cache_key)
+        if cached_result:
+            logger.debug(f"Cache hit for release group: {release_group_id}")
+            return cached_result
+        
+        try:
+            logger.info(f"Fetching releases for release group: {release_group_id}")
+            
+            client = MusicBrainzClient()
+            
+            # Query for releases in the release group
+            params = {
+                "release-group": release_group_id,
+                "limit": 100,  # Get more releases to ensure we capture all variants
+                "inc": "artist-credits+media"
+            }
+            
+            raw_data = await client.search_releases("", **params)
+            
+            releases = []
+            for release in raw_data.get("releases", []):
+                # Extract artist name
+                artist_name = "Unknown Artist"
+                artist_mbid = None
+                if release.get("artist-credit"):
+                    artist_credit = release["artist-credit"][0]
+                    artist_name = artist_credit.get("name", "Unknown Artist")
+                    if artist_credit.get("artist"):
+                        artist_mbid = artist_credit["artist"].get("id")
+                
+                # Calculate total track count
+                track_count = 0
+                formats = []
+                for medium in release.get("media", []):
+                    track_count += medium.get("track-count", 0)
+                    if medium.get("format"):
+                        formats.append(medium["format"])
+                
+                # Extract year from date
+                year = None
+                if release.get("date"):
+                    try:
+                        year = int(release["date"][:4])
+                    except (ValueError, IndexError):
+                        pass
+                
+                formatted_release = {
+                    "musicbrainz_id": release.get("id"),
+                    "title": release.get("title", "Unknown Title"),
+                    "artist": {
+                        "name": artist_name,
+                        "musicbrainz_id": artist_mbid
+                    },
+                    "year": year,
+                    "track_count": track_count,
+                    "format": ", ".join(formats) if formats else None,
+                    "country": release.get("country"),
+                    "status": release.get("status")
+                }
+                
+                releases.append(formatted_release)
+            
+            # Cache the result
+            self.cache.set(cache_key, releases, ttl=3600)  # Cache for 1 hour
+            
+            logger.info(f"Found {len(releases)} releases in release group: {release_group_id}")
+            return releases
+            
+        except MusicBrainzAPIError as e:
+            logger.error(f"MusicBrainz release group fetch failed for '{release_group_id}': {e.message}")
+            raise TracklistException(
+                f"Release group fetch failed: {e.message}",
+                {"release_group_id": release_group_id, "error": e.details}
+            )
+    
     def _format_search_results(self, raw_data: Dict[str, Any]) -> Dict[str, Any]:
         """
         Format raw MusicBrainz search results into our standard format
@@ -186,6 +274,7 @@ class MusicBrainzService:
             "status": raw_data.get("status"),
             "packaging": raw_data.get("packaging"),
             "barcode": raw_data.get("barcode"),
+            "release_group_id": raw_data.get("release-group", {}).get("id") if raw_data.get("release-group") else None,
             "tracks": [],
             "total_tracks": 0,
             "total_duration_ms": 0
