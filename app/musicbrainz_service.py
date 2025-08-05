@@ -167,7 +167,7 @@ class MusicBrainzService:
                 releases.append(formatted_release)
             
             # Cache the result
-            self.cache.set(cache_key, releases, ttl=3600)  # Cache for 1 hour
+            self.cache.set(releases, 3600, cache_key)  # Cache for 1 hour
             
             logger.info(f"Found {len(releases)} releases in release group: {release_group_id}")
             return releases
