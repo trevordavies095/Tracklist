@@ -151,6 +151,31 @@ class MusicBrainzClient:
         
         return await self._make_request("release", params)
     
+    async def search_releases_by_release_group(
+        self, 
+        release_group_id: str, 
+        limit: int = 100
+    ) -> Dict[str, Any]:
+        """
+        Search for releases in a specific release group
+        
+        Args:
+            release_group_id: MusicBrainz release group ID
+            limit: Maximum number of results (default 100, max 100)
+            
+        Returns:
+            Dict containing releases in the release group
+        """
+        limit = min(limit, 100)  # MusicBrainz API limit
+        
+        params = {
+            "query": f"rgid:{release_group_id}",
+            "limit": limit,
+            "offset": 0
+        }
+        
+        return await self._make_request("release", params)
+    
     async def get_release_details(
         self, 
         release_id: str, 
@@ -184,7 +209,7 @@ class MusicBrainzClient:
         Returns:
             Dict containing release with complete track information
         """
-        include = ["artist-credits", "recordings", "media"]
+        include = ["artist-credits", "recordings", "media", "release-groups"]
         return await self.get_release_details(release_id, include)
 
 

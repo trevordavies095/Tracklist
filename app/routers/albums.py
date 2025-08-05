@@ -513,6 +513,103 @@ async def update_album_cover_art(
         )
 
 
+@router.get("/albums/{album_id}/release-group-releases")
+async def get_release_group_releases(
+    album_id: int = Path(..., description="Album ID", gt=0),
+    service: RatingService = Depends(get_rating_service),
+    db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    """
+    Get all releases from the same release group with matching track count
+    
+    Returns releases that could be alternative versions of the current album
+    """
+    try:
+        logger.info(f"Getting release group releases for album {album_id}")
+        
+        result = await service.get_release_group_releases(album_id, db)
+        
+        logger.info(f"Found {len(result.get('releases', []))} matching releases")
+        return result
+        
+    except ServiceNotFoundError as e:
+        logger.warning(f"Album not found: {album_id}")
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "error": "Album not found",
+                "message": f"Album with ID {album_id} not found"
+            }
+        )
+    except Exception as e:
+        logger.error(f"Error getting release group releases: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Internal server error",
+                "message": "Failed to get release group releases"
+            }
+        )
+
+
+class RetagRequest(BaseModel):
+    """Request model for retagging album"""
+    new_musicbrainz_id: str = Field(..., description="New MusicBrainz release ID", min_length=36, max_length=36)
+
+
+@router.put("/albums/{album_id}/retag")
+async def retag_album_musicbrainz_id(
+    retag_request: RetagRequest,
+    album_id: int = Path(..., description="Album ID", gt=0),
+    service: RatingService = Depends(get_rating_service),
+    db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    """
+    Update album's MusicBrainz ID while preserving all ratings and submission data
+    
+    Args:
+        album_id: Album ID to update
+        request: JSON body with new_musicbrainz_id
+    """
+    try:
+        new_mbid = retag_request.new_musicbrainz_id
+        
+        logger.info(f"Retagging album {album_id} to MusicBrainz ID {new_mbid}")
+        
+        result = await service.retag_album_musicbrainz_id(album_id, new_mbid, db)
+        
+        logger.info(f"Successfully retagged album {album_id}")
+        return result
+        
+    except ServiceNotFoundError as e:
+        logger.warning(f"Album not found: {album_id}")
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "error": "Album not found", 
+                "message": f"Album with ID {album_id} not found"
+            }
+        )
+    except ServiceValidationError as e:
+        logger.warning(f"Retag validation error: {e.message}")
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "error": "Validation error",
+                "message": e.message
+            }
+        )
+    except Exception as e:
+        logger.error(f"Error retagging album: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Internal server error",
+                "message": "Failed to retag album"
+            }
+        )
+
+
 @router.get("/system/info")
 async def get_system_info() -> Dict[str, Any]:
     """
