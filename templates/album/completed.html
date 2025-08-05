@@ -39,8 +39,10 @@
                             </div>
                             <div class="text-base text-gray-600 mb-1">out of 100</div>
                             <div class="text-sm text-gray-500">
-                                {% if album.rating_score >= 90 %}
+                                {% if album.rating_score == 100 %}
                                 Masterpiece
+                                {% elif album.rating_score >= 90 %}
+                                Classic
                                 {% elif album.rating_score >= 80 %}
                                 Excellent
                                 {% elif album.rating_score >= 70 %}
