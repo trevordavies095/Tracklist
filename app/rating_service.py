@@ -124,6 +124,11 @@ class RatingService:
             settings = db.query(UserSettings).filter(UserSettings.user_id == 1).first()
             album_bonus = settings.album_bonus if settings else 0.33
             
+            # Fetch cover art
+            from .services.cover_art_service import get_cover_art_service
+            cover_art_service = get_cover_art_service()
+            cover_art_url = await cover_art_service.get_cover_art_url(musicbrainz_id)
+            
             # Create album
             album = Album(
                 artist_id=artist.id,
@@ -134,7 +139,8 @@ class RatingService:
                 total_tracks=mb_album["total_tracks"],
                 total_duration_ms=mb_album.get("total_duration_ms"),
                 album_bonus=album_bonus,
-                is_rated=False
+                is_rated=False,
+                cover_art_url=cover_art_url
             )
             
             db.add(album)
