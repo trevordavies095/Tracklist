@@ -519,6 +519,67 @@ class RatingService:
             logger.error(f"Failed to delete album {album_id}: {e}")
             raise
 
+    async def update_missing_cover_art(self, db: Session) -> Dict[str, Any]:
+        """
+        Update cover art for all albums that don't have it
+        
+        Fetches cover art from MusicBrainz Cover Art Archive API
+        for albums with missing artwork.
+        
+        Returns:
+            Dictionary with update statistics
+        """
+        from .services.cover_art_service import get_cover_art_service
+        
+        logger.info("Starting cover art update process")
+        
+        try:
+            # Get all albums without cover art
+            albums_without_art = db.query(Album).filter(
+                (Album.cover_art_url == None) | (Album.cover_art_url == "")
+            ).all()
+            
+            logger.info(f"Found {len(albums_without_art)} albums without cover art")
+            
+            cover_art_service = get_cover_art_service()
+            updated_count = 0
+            failed_count = 0
+            
+            for album in albums_without_art:
+                try:
+                    # Fetch cover art URL
+                    cover_art_url = await cover_art_service.get_cover_art_url(album.musicbrainz_id)
+                    
+                    if cover_art_url:
+                        album.cover_art_url = cover_art_url
+                        db.add(album)
+                        updated_count += 1
+                        logger.info(f"Updated cover art for album '{album.name}'")
+                    else:
+                        logger.debug(f"No cover art found for album '{album.name}'")
+                        
+                except Exception as e:
+                    logger.error(f"Failed to update cover art for album '{album.name}': {e}")
+                    failed_count += 1
+            
+            # Commit all updates
+            db.commit()
+            
+            logger.info(f"Cover art update completed: {updated_count} updated, {failed_count} failed")
+            
+            return {
+                "success": True,
+                "total_albums": len(albums_without_art),
+                "updated": updated_count,
+                "failed": failed_count,
+                "message": f"Successfully updated cover art for {updated_count} albums"
+            }
+            
+        except Exception as e:
+            db.rollback()
+            logger.error(f"Cover art update process failed: {e}")
+            raise ServiceException(f"Failed to update cover art: {str(e)}")
+
 
 def get_rating_service() -> RatingService:
     """Get rating service instance"""
