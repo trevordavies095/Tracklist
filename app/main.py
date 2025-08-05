@@ -18,11 +18,51 @@ logger = logging.getLogger(__name__)
 
 # Create FastAPI app
 app = FastAPI(
-    title="Tracklist",
-    description="Self-hostable music album rating application",
+    title="Tracklist API",
+    description="""
+## Tracklist - Self-hostable Music Album Rating Application
+
+Tracklist is a personal music rating system that allows you to rate albums track-by-track to generate precise album scores.
+
+### Key Features
+
+* Track-by-track rating system - Rate each track on a 4-point scale
+* MusicBrainz integration - Search and import album data
+* Precise scoring algorithm - Calculate album scores based on individual track ratings
+* Album artwork - Automatic cover art fetching from Cover Art Archive
+* Responsive design - Works on desktop and mobile devices
+
+### API Sections
+
+* **Albums** - Create, rate, and manage album ratings
+* **Search** - Search for albums in the MusicBrainz database
+* **System** - Health checks and system information
+
+### Rating Scale
+
+- **0.0** - Skip (worst songs)
+- **0.33** - Filler (tolerable but not enjoyable)  
+- **0.67** - Good (playlist-worthy tracks)
+- **1.0** - Standout (album highlights)
+
+### Authentication
+
+This API currently does not require authentication as it's designed for personal use.
+    """,
     version="1.0.0",
     docs_url="/docs",
-    redoc_url="/redoc"
+    redoc_url="/redoc",
+    openapi_url="/openapi.json",
+    openapi_tags=[
+        {
+            "name": "albums",
+            "description": "Album rating operations - create, rate tracks, submit ratings, and manage albums"
+        },
+        {
+            "name": "search", 
+            "description": "Search for albums in the MusicBrainz database"
+        }
+    ]
 )
 
 # Mount static files
@@ -51,6 +91,13 @@ async def startup_event():
 async def health_check():
     """Health check endpoint"""
     return {"status": "healthy", "service": "tracklist"}
+
+
+@app.get("/api/v1/docs")
+async def api_docs_redirect():
+    """Redirect to the main docs"""
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse(url="/docs")
 
 
 # Root endpoint is handled by templates.router
