@@ -559,8 +559,8 @@ class RetagRequest(BaseModel):
 
 @router.put("/albums/{album_id}/retag")
 async def retag_album_musicbrainz_id(
-    album_id: int = Path(..., description="Album ID", gt=0),
     retag_request: RetagRequest,
+    album_id: int = Path(..., description="Album ID", gt=0),
     service: RatingService = Depends(get_rating_service),
     db: Session = Depends(get_db)
 ) -> Dict[str, Any]:

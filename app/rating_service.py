@@ -584,7 +584,7 @@ class RatingService:
         except Exception as e:
             db.rollback()
             logger.error(f"Cover art update process failed: {e}")
-            raise ServiceException(f"Failed to update cover art: {str(e)}")
+            raise TracklistException(f"Failed to update cover art: {str(e)}")
 
     async def get_release_group_releases(self, album_id: int, db: Session) -> Dict[str, Any]:
         """
@@ -635,7 +635,7 @@ class RatingService:
             
         except Exception as e:
             logger.error(f"Error getting release group releases: {e}")
-            raise ServiceException(f"Failed to get release group releases: {str(e)}")
+            raise TracklistException(f"Failed to get release group releases: {str(e)}")
 
     async def retag_album_musicbrainz_id(self, album_id: int, new_mbid: str, db: Session) -> Dict[str, Any]:
         """
@@ -707,7 +707,7 @@ class RatingService:
         except Exception as e:
             db.rollback()
             logger.error(f"Error retagging album: {e}")
-            raise ServiceException(f"Failed to retag album: {str(e)}")
+            raise TracklistException(f"Failed to retag album: {str(e)}")
 
 
 def get_rating_service() -> RatingService:
