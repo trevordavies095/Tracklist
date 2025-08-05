@@ -122,13 +122,7 @@ class MusicBrainzService:
             client = MusicBrainzClient()
             
             # Query for releases in the release group
-            params = {
-                "release-group": release_group_id,
-                "limit": 100,  # Get more releases to ensure we capture all variants
-                "inc": "artist-credits+media"
-            }
-            
-            raw_data = await client.search_releases("", **params)
+            raw_data = await client.search_releases_by_release_group(release_group_id, limit=100)
             
             releases = []
             for release in raw_data.get("releases", []):
