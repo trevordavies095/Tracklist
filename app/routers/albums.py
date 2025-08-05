@@ -160,11 +160,10 @@ async def update_track_rating(
         # Check if this is an HTMX request
         hx_request = request.headers.get("HX-Request")
         if hx_request:
-            # Return a simple success message for HTMX
+            # Return an empty response for HTMX
             # We'll handle the progress update separately through Alpine.js
             return HTMLResponse(
-                f'''<span class="text-green-600 text-sm animate-pulse">✓ Saved</span>
-                <script>
+                f'''<script>
                     // Dispatch event with progress data
                     window.dispatchEvent(new CustomEvent('rating-updated', {{
                         detail: {{
