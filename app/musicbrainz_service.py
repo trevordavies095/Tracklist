@@ -119,10 +119,9 @@ class MusicBrainzService:
         try:
             logger.info(f"Fetching releases for release group: {release_group_id}")
             
-            client = MusicBrainzClient()
-            
             # Query for releases in the release group
-            raw_data = await client.search_releases_by_release_group(release_group_id, limit=100)
+            async with MusicBrainzClient() as client:
+                raw_data = await client.search_releases_by_release_group(release_group_id, limit=100)
             
             releases = []
             for release in raw_data.get("releases", []):
