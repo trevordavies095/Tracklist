@@ -87,7 +87,7 @@ let currentViewMode = 'grid';
 
 // Load albums for this artist
 async function loadArtistAlbums(offset = 0) {
-    const url = `/api/v1/albums?limit=20&offset=${offset}&artist_id=${artistId}&sort=year_desc`;
+    const url = `/api/v1/albums?limit=20&offset=${offset}&artist_id=${artistId}&sort=year_asc`;
     
     try {
         const response = await fetch(url);
