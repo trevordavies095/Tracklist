@@ -204,6 +204,34 @@
 
 <!-- Load user stats and recent activity -->
 <script>
+// Score color utility function
+function getScoreColorClass(score) {
+    console.log('getScoreColorClass called with:', score, typeof score);
+    
+    if (score === null || score === undefined) {
+        console.log('Score is null/undefined, returning empty string');
+        return '';
+    }
+    
+    // Convert to number to ensure proper comparison
+    const numScore = Number(score);
+    console.log('Converted score to number:', numScore);
+    
+    if (numScore === 100) {
+        console.log('Returning dark green for score 100');
+        return 'score-dark-green'; // Perfect score
+    } else if (numScore >= 67) {
+        console.log('Returning light green for score >= 67');
+        return 'score-light-green'; // Good range
+    } else if (numScore >= 33) {
+        console.log('Returning orange for score >= 33');
+        return 'score-orange'; // Filler range
+    } else {
+        console.log('Returning red for score < 33');
+        return 'score-red'; // Skip range
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     // Load user statistics
     htmx.ajax('GET', '/api/v1/albums?limit=1', {
@@ -304,7 +332,7 @@ function renderRecentAlbums(data) {
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                 ✓ Completed
                             </span>
-                            <span class="text-lg font-bold text-green-600">${album.rating_score}/100</span>
+                            <span class="text-lg font-bold ${getScoreColorClass(album.rating_score)}">${album.rating_score}/100</span>
                         </div>
                     ` : `
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
