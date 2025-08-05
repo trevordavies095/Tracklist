@@ -618,8 +618,20 @@ class RatingService:
             
             # Filter releases by track count matching the current album
             matching_releases = []
+            
+            # Import cover art service
+            from .services.cover_art_service import get_cover_art_service
+            cover_art_service = get_cover_art_service()
+            
             for release in releases:
                 if release.get("track_count") == album.total_tracks:
+                    # Fetch cover art for this release
+                    cover_art_url = None
+                    try:
+                        cover_art_url = await cover_art_service.get_cover_art_url(release["musicbrainz_id"])
+                    except Exception as e:
+                        logger.warning(f"Failed to fetch cover art for {release['musicbrainz_id']}: {e}")
+                    
                     matching_releases.append({
                         "musicbrainz_id": release["musicbrainz_id"],
                         "title": release["title"], 
@@ -627,7 +639,8 @@ class RatingService:
                         "year": release.get("year"),
                         "track_count": release["track_count"],
                         "format": release.get("format"),
-                        "country": release.get("country")
+                        "country": release.get("country"),
+                        "cover_art_url": cover_art_url
                     })
             
             logger.info(f"Found {len(matching_releases)} matching releases for album {album_id}")

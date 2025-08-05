@@ -327,23 +327,51 @@ function displayReleases(releases) {
                    onchange="selectRelease('${release.musicbrainz_id}')"
                    class="sr-only">
             <div class="flex items-center justify-between">
-                <div>
-                    <div class="font-medium text-gray-900">
-                        ${release.title} ${release.year ? `(${release.year})` : ''}
+                <div class="flex items-start space-x-3 flex-1">
+                    <!-- Album Artwork -->
+                    <div class="flex-shrink-0">
+                        ${release.cover_art_url ? `
+                            <div class="w-16 h-16 rounded-md overflow-hidden">
+                                <img src="${release.cover_art_url}" 
+                                     alt="${release.title} cover" 
+                                     class="w-full h-full object-cover"
+                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                <div class="w-16 h-16 bg-gradient-to-br from-gray-200 to-gray-300 rounded-md flex items-center justify-center" style="display:none;">
+                                    <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        ` : `
+                            <div class="w-16 h-16 bg-gradient-to-br from-gray-200 to-gray-300 rounded-md flex items-center justify-center">
+                                <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+                                </svg>
+                            </div>
+                        `}
                     </div>
-                    <div class="text-sm text-gray-600 mt-1">
-                        ${release.artist} • ${release.track_count} tracks
-                        ${release.musicbrainz_id === currentMbid ? '<span class="ml-2 text-blue-600 font-medium">(Current)</span>' : ''}
-                    </div>
-                    ${release.format || release.country ? `
-                        <div class="text-xs text-gray-500 mt-1">
-                            ${release.format ? `Format: ${release.format}` : ''}
-                            ${release.format && release.country ? ' • ' : ''}
-                            ${release.country ? `Country: ${release.country}` : ''}
+                    
+                    <!-- Release Info -->
+                    <div class="flex-1 min-w-0">
+                        <div class="font-medium text-gray-900">
+                            ${release.title} ${release.year ? `(${release.year})` : ''}
                         </div>
-                    ` : ''}
+                        <div class="text-sm text-gray-600 mt-1">
+                            ${release.artist} • ${release.track_count} tracks
+                            ${release.musicbrainz_id === currentMbid ? '<span class="ml-2 text-blue-600 font-medium">(Current)</span>' : ''}
+                        </div>
+                        ${release.format || release.country ? `
+                            <div class="text-xs text-gray-500 mt-1">
+                                ${release.format ? `Format: ${release.format}` : ''}
+                                ${release.format && release.country ? ' • ' : ''}
+                                ${release.country ? `Country: ${release.country}` : ''}
+                            </div>
+                        ` : ''}
+                    </div>
                 </div>
-                <div class="ml-4">
+                
+                <!-- Selection Indicator -->
+                <div class="ml-4 flex-shrink-0">
                     <svg class="w-5 h-5 ${release.musicbrainz_id === currentMbid ? 'text-blue-500' : 'text-gray-400'}" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
                     </svg>
