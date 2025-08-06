@@ -28,14 +28,52 @@
                 
                 <!-- Album Info & Score -->
                 <div class="flex-1">
-                    <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ album.title }}</h1>
+                    <div class="flex items-start justify-between mb-2">
+                        <h1 class="text-3xl font-bold text-gray-900">
+                            {{ album.title }}
+                            {% if album.year %}
+                            <span class="text-2xl font-normal text-gray-500">({{ album.year }})</span>
+                            {% endif %}
+                        </h1>
+                        <!-- Action Buttons -->
+                        <div class="flex items-center space-x-2 ml-4">
+                            <button onclick="editRating()" 
+                                    title="Edit Rating"
+                                    class="p-2 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all duration-200 group relative">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                </svg>
+                                <span class="absolute -bottom-8 right-0 text-xs bg-gray-800 text-white px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Edit Rating</span>
+                            </button>
+                            <button onclick="openRetagModal()" 
+                                    title="Change Release Version"
+                                    class="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all duration-200 group relative">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                                </svg>
+                                <span class="absolute -bottom-8 right-0 text-xs bg-gray-800 text-white px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Change Release</span>
+                            </button>
+                            <a href="https://musicbrainz.org/release/{{ album.musicbrainz_id }}" 
+                               target="_blank"
+                               title="View on MusicBrainz"
+                               class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 group relative">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                                </svg>
+                                <span class="absolute -bottom-8 right-0 text-xs bg-gray-800 text-white px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">MusicBrainz</span>
+                            </a>
+                        </div>
+                    </div>
                     <p class="text-xl text-gray-600 mb-6">by <a href="/artists/{{ album.artist.id }}/albums" class="hover:text-blue-600 hover:underline transition-colors">{{ album.artist.name }}</a></p>
                     
                     <!-- Final Score Display -->
                     <div class="bg-gradient-to-r from-blue-50 to-green-50 rounded-lg p-4 mb-6">
                         <div class="text-center">
-                            <div class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-green-600 mb-1">
+                            <div class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-green-600 mb-1 group relative inline-block cursor-help">
                                 {{ album.rating_score }}
+                                <span class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-xs bg-gray-800 text-white px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
+                                    Rated: <span id="formatted-date"></span>
+                                </span>
                             </div>
                             <div class="text-base text-gray-600 mb-1">out of 100</div>
                             <div class="text-sm text-gray-500">
@@ -60,30 +98,6 @@
                         </div>
                     </div>
                     
-                    <!-- Album Details -->
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                        {% if album.year %}
-                        <div>
-                            <span class="font-medium text-gray-700">Year:</span>
-                            <span class="text-gray-600">{{ album.year }}</span>
-                        </div>
-                        {% endif %}
-                        
-                        <div>
-                            <span class="font-medium text-gray-700">Tracks:</span>
-                            <span class="text-gray-600">{{ album.total_tracks }}</span>
-                        </div>
-                        
-                        <div>
-                            <span class="font-medium text-gray-700">Rated:</span>
-                            <span class="text-gray-600">{{ album.rated_at[:10] if album.rated_at else 'Today' }}</span>
-                        </div>
-                        
-                        <div>
-                            <span class="font-medium text-gray-700">Bonus:</span>
-                            <span class="text-gray-600">+{{ album.album_bonus }}</span>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -92,7 +106,10 @@
     <!-- Track Ratings Summary -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-8">
         <div class="p-6">
-            <h3 class="text-xl font-semibold text-gray-900 mb-6">Track Ratings</h3>
+            <div class="flex items-baseline justify-between mb-6">
+                <h3 class="text-xl font-semibold text-gray-900">Track Ratings</h3>
+                <span class="text-xs text-gray-500">Album Bonus: +{{ album.album_bonus }}</span>
+            </div>
             
             <!-- Rating Distribution -->
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
@@ -160,56 +177,6 @@
             </div>
         </div>
     </div>
-    
-    <!-- Actions -->
-    <div class="flex flex-col sm:flex-row justify-center space-y-3 sm:space-y-0 sm:space-x-4 mb-8">
-        <a href="/albums" 
-           class="inline-flex items-center justify-center px-6 py-3 border border-gray-300 rounded-md text-base font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors">
-            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
-            </svg>
-            Back to My Albums
-        </a>
-        
-        <a href="/search" 
-           class="inline-flex items-center justify-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-base font-medium text-white rounded-md transition-colors">
-            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-            </svg>
-            Rate Another Album
-        </a>
-    </div>
-    
-    <!-- Share & Export Options -->
-    <div class="bg-gray-50 rounded-lg p-6 text-center">
-        <h4 class="font-medium text-gray-900 mb-4">Share Your Rating</h4>
-        <div class="flex flex-col sm:flex-row justify-center space-y-2 sm:space-y-0 sm:space-x-4">
-            <button onclick="copyRatingToClipboard()" 
-                    class="inline-flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors">
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-                </svg>
-                Copy Rating Summary
-            </button>
-            
-            <a href="https://musicbrainz.org/release/{{ album.musicbrainz_id }}" 
-               target="_blank"
-               class="inline-flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors">
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
-                </svg>
-                View on MusicBrainz
-            </a>
-            
-            <button onclick="openRetagModal()" 
-                    class="inline-flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors">
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
-                </svg>
-                Retag MusicBrainz ID
-            </button>
-        </div>
-    </div>
 </div>
 
 <script>
@@ -266,6 +233,25 @@ const retagModalHTML = `
 // Add modal to the page
 document.addEventListener('DOMContentLoaded', function() {
     document.body.insertAdjacentHTML('beforeend', retagModalHTML);
+    
+    // Format the rated date
+    const ratedAt = "{{ album.rated_at[:10] if album.rated_at else '' }}";
+    if (ratedAt) {
+        const date = new Date(ratedAt + 'T00:00:00');
+        const options = { month: 'short', day: 'numeric', year: 'numeric' };
+        let formattedDate = date.toLocaleDateString('en-US', options);
+        
+        // Add ordinal suffix to day
+        const day = date.getDate();
+        const suffix = day % 10 === 1 && day !== 11 ? 'st' :
+                      day % 10 === 2 && day !== 12 ? 'nd' :
+                      day % 10 === 3 && day !== 13 ? 'rd' : 'th';
+        formattedDate = formattedDate.replace(/\d+/, day + suffix);
+        
+        document.getElementById('formatted-date').textContent = formattedDate;
+    } else {
+        document.getElementById('formatted-date').textContent = 'Today';
+    }
 });
 
 let selectedMbid = null;
@@ -463,32 +449,50 @@ window.onclick = function(event) {
     }
 }
 
-function copyRatingToClipboard() {
-    const albumTitle = "{{ album.title }}";
-    const artistName = "{{ album.artist.name }}";
-    const score = {{ album.rating_score }};
+async function editRating() {
+    const albumId = {{ album.id }};
     
-    const text = `Just rated "${albumTitle}" by ${artistName}: ${score}/100 on Tracklist! 🎵`;
+    // Show confirmation dialog
+    if (!confirm('This will revert the album to "In Progress" status and allow you to re-rate all tracks. Are you sure you want to continue?')) {
+        return;
+    }
     
-    navigator.clipboard.writeText(text).then(() => {
-        // Show success feedback
-        const button = event.target.closest('button');
-        const originalText = button.innerHTML;
-        button.innerHTML = `
-            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-            </svg>
-            Copied!
-        `;
-        button.classList.add('bg-green-50', 'border-green-300', 'text-green-700');
+    // Show loading state on button
+    const button = event.target.closest('button');
+    const originalHTML = button.innerHTML;
+    button.disabled = true;
+    button.innerHTML = `
+        <svg class="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        Reverting...
+    `;
+    
+    try {
+        const response = await fetch(`/api/v1/albums/${albumId}/revert`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
         
-        setTimeout(() => {
-            button.innerHTML = originalText;
-            button.classList.remove('bg-green-50', 'border-green-300', 'text-green-700');
-        }, 2000);
-    }).catch(() => {
-        alert('Failed to copy to clipboard');
-    });
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail?.message || 'Failed to revert album');
+        }
+        
+        // Redirect to the rating page
+        window.location.href = `/albums/${albumId}/rate`;
+        
+    } catch (error) {
+        console.error('Error reverting album:', error);
+        alert('Failed to revert album to in-progress status. Please try again.');
+        
+        // Restore button state
+        button.disabled = false;
+        button.innerHTML = originalHTML;
+    }
 }
 </script>
 {% endblock %}

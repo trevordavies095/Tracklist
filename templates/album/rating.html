@@ -8,20 +8,20 @@
 <div class="max-w-6xl mx-auto">
     <!-- Album Header -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
-        <div class="p-6">
-            <div class="flex flex-col md:flex-row md:items-start space-y-4 md:space-y-0 md:space-x-6">
+        <div class="p-8">
+            <div class="flex flex-col lg:flex-row lg:items-center space-y-6 lg:space-y-0 lg:space-x-8">
                 <!-- Album Artwork -->
                 <div class="flex-shrink-0">
                     {% if album.cover_art_url %}
-                        <div class="w-32 h-32 md:w-48 md:h-48 rounded-lg overflow-hidden">
+                        <div class="w-48 h-48 rounded-lg overflow-hidden">
                             <img src="{{ album.cover_art_url }}" 
                                  alt="{{ album.title }} cover" 
                                  class="w-full h-full object-cover"
-                                 onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'w-32 h-32 md:w-48 md:h-48 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg flex items-center justify-center\'><svg class=\'w-16 h-16 md:w-24 md:h-24 text-gray-400\' fill=\'none\' stroke=\'currentColor\' viewBox=\'0 0 24 24\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3\'></path></svg></div>';">
+                                 onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'w-48 h-48 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg flex items-center justify-center\'><svg class=\'w-24 h-24 text-gray-400\' fill=\'none\' stroke=\'currentColor\' viewBox=\'0 0 24 24\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3\'></path></svg></div>';">
                         </div>
                     {% else %}
-                        <div class="w-32 h-32 md:w-48 md:h-48 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg flex items-center justify-center">
-                            <svg class="w-16 h-16 md:w-24 md:h-24 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="w-48 h-48 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg flex items-center justify-center">
+                            <svg class="w-24 h-24 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
                             </svg>
                         </div>
@@ -29,48 +29,48 @@
                 </div>
                 
                 <!-- Album Info -->
-                <div class="flex-1 min-w-0">
-                    <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ album.title }}</h1>
-                    <p class="text-xl text-gray-600 mb-4">by {{ album.artist.name }}</p>
-                    
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                        {% if album.year %}
-                        <div>
-                            <span class="font-medium text-gray-700">Year:</span>
-                            <span class="text-gray-600">{{ album.year }}</span>
+                <div class="flex-1">
+                    <div class="flex items-start justify-between mb-2">
+                        <h1 class="text-3xl font-bold text-gray-900 group relative inline-block{% if album.genre %} cursor-help{% endif %}">
+                            {{ album.title }}
+                            {% if album.year %}
+                            <span class="text-2xl font-normal text-gray-500">({{ album.year }})</span>
+                            {% endif %}
+                            {% if album.genre %}
+                            <span class="absolute -bottom-8 left-0 text-xs bg-gray-800 text-white px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
+                                Origin: {{ album.genre }}
+                            </span>
+                            {% endif %}
+                        </h1>
+                        <!-- Action Buttons (No Edit Rating since it's in progress) -->
+                        <div class="flex items-center space-x-2 ml-4">
+                            <button onclick="openRetagModal()" 
+                                    title="Change Release Version"
+                                    class="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all duration-200 group relative">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                                </svg>
+                                <span class="absolute -bottom-8 right-0 text-xs bg-gray-800 text-white px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Change Release</span>
+                            </button>
+                            <a href="https://musicbrainz.org/release/{{ album.musicbrainz_id }}" 
+                               target="_blank"
+                               title="View on MusicBrainz"
+                               class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 group relative">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                                </svg>
+                                <span class="absolute -bottom-8 right-0 text-xs bg-gray-800 text-white px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">MusicBrainz</span>
+                            </a>
                         </div>
-                        {% endif %}
-                        
-                        <div>
-                            <span class="font-medium text-gray-700">Tracks:</span>
-                            <span class="text-gray-600">{{ album.total_tracks }}</span>
-                        </div>
-                        
-                        {% if album.total_duration_ms %}
-                        <div>
-                            <span class="font-medium text-gray-700">Duration:</span>
-                            <span class="text-gray-600">{{ (album.total_duration_ms / 60000) | round(0) | int }} min</span>
-                        </div>
-                        {% endif %}
-                        
-                        {% if album.genre %}
-                        <div>
-                            <span class="font-medium text-gray-700">Origin:</span>
-                            <span class="text-gray-600">{{ album.genre }}</span>
-                        </div>
-                        {% endif %}
                     </div>
+                    <p class="text-xl text-gray-600 mb-6">by <a href="/artists/{{ album.artist.id }}/albums" class="hover:text-blue-600 hover:underline transition-colors">{{ album.artist.name }}</a></p>
                     
-                    <!-- MusicBrainz Link -->
-                    <div class="mt-4">
-                        <a href="https://musicbrainz.org/release/{{ album.musicbrainz_id }}" 
-                           target="_blank" 
-                           class="inline-flex items-center text-sm text-blue-600 hover:text-blue-800">
-                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
-                            </svg>
-                            View on MusicBrainz
-                        </a>
+                    <!-- Rating Status -->
+                    <div class="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                        <div class="text-center">
+                            <div class="text-lg font-semibold text-amber-800 mb-1">Rating in Progress</div>
+                            <div class="text-sm text-amber-600">Rate each track below to complete</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -103,7 +103,12 @@
     <!-- Track List -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200">
         <div class="p-6">
-            <h2 class="text-xl font-semibold text-gray-900 mb-6">Rate Each Track</h2>
+            <div class="flex items-baseline justify-between mb-6">
+                <h2 class="text-xl font-semibold text-gray-900">Rate Each Track</h2>
+                {% if album.total_duration_ms %}
+                <span class="text-xs text-gray-500">Total Duration: {{ (album.total_duration_ms / 60000) | round(0) | int }} min</span>
+                {% endif %}
+            </div>
             
             <div class="space-y-4">
                 {% for track in tracks %}
@@ -229,5 +234,253 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+// Retag Modal HTML
+const retagModalHTML = `
+<div id="retagModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-11/12 max-w-2xl shadow-lg rounded-md bg-white">
+        <div class="mb-4">
+            <h3 class="text-lg font-bold text-gray-900">Change Release Version</h3>
+            <p class="text-sm text-gray-600 mt-2">Select a different release from the same release group. Only releases with {{ album.total_tracks }} tracks are shown.</p>
+        </div>
+        
+        <div id="retagLoading" class="text-center py-8">
+            <div class="inline-flex items-center">
+                <svg class="animate-spin h-5 w-5 mr-3 text-blue-600" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span class="text-gray-600">Loading releases...</span>
+            </div>
+        </div>
+        
+        <div id="retagContent" class="hidden">
+            <div id="releasesList" class="max-h-96 overflow-y-auto space-y-2 mb-4">
+                <!-- Releases will be populated here -->
+            </div>
+            
+            <div class="flex justify-end space-x-3">
+                <button onclick="closeRetagModal()" 
+                        class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-colors">
+                    Cancel
+                </button>
+                <button id="confirmRetagBtn" onclick="confirmRetag()" 
+                        disabled
+                        class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors">
+                    Confirm Change
+                </button>
+            </div>
+        </div>
+        
+        <div id="retagError" class="hidden">
+            <div class="bg-red-50 border border-red-200 rounded-md p-4 mb-4">
+                <p class="text-red-700" id="retagErrorMessage"></p>
+            </div>
+            <button onclick="closeRetagModal()" 
+                    class="w-full px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-colors">
+                Close
+            </button>
+        </div>
+    </div>
+</div>
+`;
+
+// Add modal to the page
+document.body.insertAdjacentHTML('beforeend', retagModalHTML);
+
+let selectedMbid = null;
+
+function openRetagModal() {
+    const modal = document.getElementById('retagModal');
+    modal.classList.remove('hidden');
+    
+    // Reset state
+    selectedMbid = null;
+    document.getElementById('confirmRetagBtn').disabled = true;
+    document.getElementById('retagLoading').classList.remove('hidden');
+    document.getElementById('retagContent').classList.add('hidden');
+    document.getElementById('retagError').classList.add('hidden');
+    
+    // Fetch releases from the same release group
+    fetchReleaseGroupReleases();
+}
+
+function closeRetagModal() {
+    document.getElementById('retagModal').classList.add('hidden');
+}
+
+async function fetchReleaseGroupReleases() {
+    try {
+        const response = await fetch(`/api/v1/albums/{{ album.id }}/release-group-releases`);
+        
+        if (!response.ok) {
+            throw new Error('Failed to fetch releases');
+        }
+        
+        const data = await response.json();
+        
+        document.getElementById('retagLoading').classList.add('hidden');
+        
+        if (data.releases && data.releases.length > 0) {
+            displayReleases(data.releases);
+            document.getElementById('retagContent').classList.remove('hidden');
+        } else {
+            showRetagError('No alternative releases found with the same track count.');
+        }
+        
+    } catch (error) {
+        console.error('Error fetching releases:', error);
+        showRetagError('Failed to load releases. Please try again.');
+    }
+}
+
+function displayReleases(releases) {
+    const container = document.getElementById('releasesList');
+    const currentMbid = "{{ album.musicbrainz_id }}";
+    
+    const releasesHTML = releases.map(release => `
+        <label class="block p-4 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors ${release.musicbrainz_id === currentMbid ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}">
+            <input type="radio" 
+                   name="releaseSelection" 
+                   value="${release.musicbrainz_id}"
+                   ${release.musicbrainz_id === currentMbid ? 'checked' : ''}
+                   onchange="selectRelease('${release.musicbrainz_id}')"
+                   class="sr-only">
+            <div class="flex items-center justify-between">
+                <div class="flex items-start space-x-3 flex-1">
+                    <!-- Album Artwork -->
+                    <div class="flex-shrink-0">
+                        ${release.cover_art_url ? `
+                            <div class="w-16 h-16 rounded-md overflow-hidden">
+                                <img src="${release.cover_art_url}" 
+                                     alt="${release.title} cover" 
+                                     class="w-full h-full object-cover"
+                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                <div class="w-16 h-16 bg-gradient-to-br from-gray-200 to-gray-300 rounded-md flex items-center justify-center" style="display:none;">
+                                    <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        ` : `
+                            <div class="w-16 h-16 bg-gradient-to-br from-gray-200 to-gray-300 rounded-md flex items-center justify-center">
+                                <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+                                </svg>
+                            </div>
+                        `}
+                    </div>
+                    
+                    <!-- Release Info -->
+                    <div class="flex-1 min-w-0">
+                        <div class="font-medium text-gray-900">
+                            ${release.title} ${release.year ? `(${release.year})` : ''}
+                        </div>
+                        <div class="text-sm text-gray-600 mt-1">
+                            ${release.artist} • ${release.track_count} tracks
+                            ${release.musicbrainz_id === currentMbid ? '<span class="ml-2 text-blue-600 font-medium">(Current)</span>' : ''}
+                        </div>
+                        ${release.format || release.country ? `
+                            <div class="text-xs text-gray-500 mt-1">
+                                ${release.format ? `Format: ${release.format}` : ''}
+                                ${release.format && release.country ? ' • ' : ''}
+                                ${release.country ? `Country: ${release.country}` : ''}
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+                
+                <!-- Selection Indicator -->
+                <div class="ml-4 flex-shrink-0">
+                    <svg class="w-5 h-5 ${release.musicbrainz_id === currentMbid ? 'text-blue-500' : 'text-gray-400'}" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                    </svg>
+                </div>
+            </div>
+        </label>
+    `).join('');
+    
+    container.innerHTML = releasesHTML;
+}
+
+function selectRelease(mbid) {
+    selectedMbid = mbid;
+    const currentMbid = "{{ album.musicbrainz_id }}";
+    
+    // Enable confirm button only if a different release is selected
+    document.getElementById('confirmRetagBtn').disabled = (mbid === currentMbid);
+    
+    // Update visual selection
+    const labels = document.querySelectorAll('#releasesList label');
+    labels.forEach(label => {
+        const input = label.querySelector('input');
+        if (input.value === mbid) {
+            label.classList.add('border-blue-500', 'bg-blue-50');
+            label.querySelector('svg').classList.remove('text-gray-400');
+            label.querySelector('svg').classList.add('text-blue-500');
+        } else {
+            label.classList.remove('border-blue-500', 'bg-blue-50');
+            label.classList.add('border-gray-200');
+            if (input.value !== currentMbid) {
+                label.querySelector('svg').classList.add('text-gray-400');
+                label.querySelector('svg').classList.remove('text-blue-500');
+            }
+        }
+    });
+}
+
+async function confirmRetag() {
+    if (!selectedMbid) return;
+    
+    const confirmBtn = document.getElementById('confirmRetagBtn');
+    confirmBtn.disabled = true;
+    confirmBtn.innerHTML = `
+        <svg class="animate-spin h-4 w-4 mr-2 inline" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        Updating...
+    `;
+    
+    try {
+        const response = await fetch(`/api/v1/albums/{{ album.id }}/retag`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                new_musicbrainz_id: selectedMbid
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to update album');
+        }
+        
+        // Reload the page to show updated information
+        window.location.reload();
+        
+    } catch (error) {
+        console.error('Error updating album:', error);
+        showRetagError('Failed to update album. Please try again.');
+        confirmBtn.disabled = false;
+        confirmBtn.innerHTML = 'Confirm Change';
+    }
+}
+
+function showRetagError(message) {
+    document.getElementById('retagLoading').classList.add('hidden');
+    document.getElementById('retagContent').classList.add('hidden');
+    document.getElementById('retagError').classList.remove('hidden');
+    document.getElementById('retagErrorMessage').textContent = message;
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+    const modal = document.getElementById('retagModal');
+    if (event.target === modal) {
+        closeRetagModal();
+    }
+}
 </script>
 {% endblock %}

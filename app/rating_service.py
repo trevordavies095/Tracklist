@@ -525,6 +525,52 @@ class RatingService:
             logger.error(f"Failed to delete album {album_id}: {e}")
             raise
 
+    def revert_album_to_in_progress(self, album_id: int, db: Session) -> Dict[str, Any]:
+        """
+        Revert a completed album to 'In Progress' status for re-rating
+        
+        This method:
+        - Changes album status from completed to in-progress
+        - Preserves all existing track ratings for editing
+        - Clears the final score and rated_at timestamp
+        - Allows user to modify ratings and resubmit
+        
+        Args:
+            album_id: Album ID to revert
+            db: Database session
+            
+        Returns:
+            Dict with updated album information
+            
+        Raises:
+            NotFoundError: If album not found
+            ValidationError: If album is not in completed state
+        """
+        logger.info(f"Reverting album {album_id} to in-progress status")
+        
+        album = db.query(Album).filter(Album.id == album_id).first()
+        if not album:
+            raise ServiceNotFoundError("Album", album_id)
+        
+        # Check if album is actually completed
+        if not album.is_rated:
+            raise ServiceValidationError(
+                "Album is already in progress. Only completed albums can be reverted for re-rating."
+            )
+        
+        # Revert album status
+        album.is_rated = False
+        album.rating_score = None
+        album.rated_at = None
+        
+        # Note: We keep all track ratings intact so user can modify them
+        
+        db.commit()
+        
+        logger.info(f"Successfully reverted album {album_id} to in-progress status")
+        
+        return self._format_album_response(album, db, include_tracks=True)
+
     async def update_missing_cover_art(self, db: Session) -> Dict[str, Any]:
         """
         Update cover art for all albums that don't have it
