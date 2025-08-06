@@ -1,11 +1,11 @@
 # Tracklist
 
-A personal music album rating system built with FastAPI and SQLite. Discover, rate, and track your favorite albums with precision using a 4-point track rating system.
+A personal music album rating system built with FastAPI and SQLite. Rate and track your favorite albums with precision using a 4 point track rating system.
 
 ## Features
 
 - **Album Search**: Find albums from the MusicBrainz database
-- **Track-by-Track Rating**: Rate each song with a 4-point scale (Skip, Filler, Good, Standout)
+- **Track by Track Rating**: Rate each song with a 4 point scale (Skip, Filler, Good, Standout)
 - **Album Scoring**: Automatic score calculation out of 100 based on track ratings
 - **Album Management**: View, organize, and manage your rated albums
 - **Cover Art**: Automatic cover art fetching from Cover Art Archive
