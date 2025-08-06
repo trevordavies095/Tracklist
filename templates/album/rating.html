@@ -10,13 +10,22 @@
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
         <div class="p-6">
             <div class="flex flex-col md:flex-row md:items-start space-y-4 md:space-y-0 md:space-x-6">
-                <!-- Album Artwork Placeholder -->
+                <!-- Album Artwork -->
                 <div class="flex-shrink-0">
-                    <div class="w-32 h-32 md:w-48 md:h-48 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg flex items-center justify-center">
-                        <svg class="w-16 h-16 md:w-24 md:h-24 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
-                        </svg>
-                    </div>
+                    {% if album.cover_art_url %}
+                        <div class="w-32 h-32 md:w-48 md:h-48 rounded-lg overflow-hidden">
+                            <img src="{{ album.cover_art_url }}" 
+                                 alt="{{ album.title }} cover" 
+                                 class="w-full h-full object-cover"
+                                 onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'w-32 h-32 md:w-48 md:h-48 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg flex items-center justify-center\'><svg class=\'w-16 h-16 md:w-24 md:h-24 text-gray-400\' fill=\'none\' stroke=\'currentColor\' viewBox=\'0 0 24 24\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3\'></path></svg></div>';">
+                        </div>
+                    {% else %}
+                        <div class="w-32 h-32 md:w-48 md:h-48 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg flex items-center justify-center">
+                            <svg class="w-16 h-16 md:w-24 md:h-24 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+                            </svg>
+                        </div>
+                    {% endif %}
                 </div>
                 
                 <!-- Album Info -->
