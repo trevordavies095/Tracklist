@@ -45,7 +45,6 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             # develop branch -> edge tag
-            type=raw,value=edge,enable={{is_default_branch}}
             type=raw,value=edge,enable=${{ github.ref == 'refs/heads/develop' }}
             # main branch -> latest tag
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
@@ -53,8 +52,10 @@ jobs:
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
-            # sha
-            type=sha,prefix={{branch}}-
+            # sha (short format without prefix)
+            type=sha,format=short
+            # pr events
+            type=ref,event=pr
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
@@ -65,3 +66,5 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          # For PRs, just build for linux/amd64 to speed up builds
+          platforms: ${{ github.event_name == 'pull_request' && 'linux/amd64' || 'linux/amd64,linux/arm64' }}
