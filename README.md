@@ -41,59 +41,44 @@ A personal music album rating system built with FastAPI and SQLite. Rate and tra
 
 ## Quick Start
 
-### Using Docker (Recommended)
+1. Create a `docker-compose.yml` file:
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/yourusername/tracklist.git
-   cd tracklist
-   ```
+```yaml
+version: '3.8'
 
-2. Copy and configure environment variables:
-   ```bash
-   cp .env.example .env
-   # Edit .env with your preferences
-   ```
+services:
+  tracklist:
+    container_name: tracklist
+    image: ghcr.io/trevordavies095/tracklist:latest
+    ports:
+      - "8321:8000"  # Maps port 8321 on host to 8000 in container
+    volumes:
+      # Named volume for data persistence
+      - tracklist_data:/app/data
+      # Optional: Mount existing database from host
+      # - /path/to/your/data:/app/data
+    environment:
+      - TRACKLIST_DB_PATH=/app/data/tracklist.db
+      - ENVIRONMENT=production
+      - LOG_LEVEL=ERROR  # Options: DEBUG, INFO, WARNING, ERROR
+    restart: unless-stopped
 
-3. Run with Docker Compose:
+volumes:
+  tracklist_data:  # Docker-managed volume for database
+```
+
+2. Start the application:
    ```bash
    docker-compose up -d
    ```
 
-4. Access the application at `http://localhost:8000`
+3. Access the application at `http://localhost:8321`
 
-### Local Development
-
-1. **Prerequisites**:
-   - Python 3.9+
-   - pip
-
-2. **Install dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-3. **Configure environment**:
-   ```bash
-   cp .env.example .env
-   # Edit .env with your database path and preferences
-   ```
-
-4. **Run the application**:
-   ```bash
-   python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
-   ```
-
-## Configuration
-
-Key configuration options in `.env`:
-
-- `TRACKLIST_DB_PATH`: Database file location
-- `MUSICBRAINZ_USER_AGENT`: Your app identifier for MusicBrainz API
-- `LOG_LEVEL`: Logging verbosity
-- `SECRET_KEY`: Session security key
-
-See `.env.example` for full configuration options.
+To update to the latest version:
+```bash
+docker-compose pull
+docker-compose up -d
+```
 
 ## Project Structure
 

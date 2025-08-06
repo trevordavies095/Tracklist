@@ -75,7 +75,5 @@ test_styles.html
 # Old database files
 Musium.db
 
-# Temporary documentation (consider moving to docs/)
-# Phase3_Summary.md
-# Phase4_Demo.md
-docs/devops.md
+# Documentation
+docs/
