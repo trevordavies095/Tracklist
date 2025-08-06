@@ -26,6 +26,10 @@ A personal music album rating system built with FastAPI and SQLite. Discover, ra
 ![Album Rating Results](https://i.imgur.com/Bbtv30S.png)
 *See your final album score with track-by-track rating breakdown and statistics*
 
+### Artist Albums - Browse by Artist
+![Artist Albums View](https://i.imgur.com/U9EXubd.png)
+*View all rated albums from a specific artist with scores and completion status*
+
 ## Rating System
 
 - **Skip (0.0)**: Never want to hear this track
