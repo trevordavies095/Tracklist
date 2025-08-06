@@ -15,19 +15,23 @@ A personal music album rating system built with FastAPI and SQLite. Rate and tra
 ## Screenshots
 
 ### Homepage - Dashboard Overview
-![Tracklist Homepage](https://i.imgur.com/ebkdXMC.png)
+![Tracklist Homepage](https://i.imgur.com/NWvM7By.png)
 *View your recent activity, statistics, and quick access to search and albums*
 
 ### My Albums - Collection Management
-![My Albums Page](https://i.imgur.com/RoQHmbL.png)
+![My Albums Page](https://i.imgur.com/99XLvdo.png)
 *Browse, filter, and manage your rated album collection with color-coded scores*
 
+### Rate Albums - Easy Rating System
+![Album Rating](https://i.imgur.com/Fg3mz8a.png)
+*Quickly rate albums using keyboard shortcuts*
+
 ### Album Results - Detailed Rating Breakdown
-![Album Rating Results](https://i.imgur.com/Bbtv30S.png)
+![Album Rating Results](https://i.imgur.com/M1Yxe87.png)
 *See your final album score with track-by-track rating breakdown and statistics*
 
 ### Artist Albums - Browse by Artist
-![Artist Albums View](https://i.imgur.com/U9EXubd.png)
+![Artist Albums View](https://i.imgur.com/5AyhlEf.png)
 *View all rated albums from a specific artist with scores and completion status*
 
 ## Rating System
