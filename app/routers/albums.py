@@ -557,6 +557,64 @@ class RetagRequest(BaseModel):
     new_musicbrainz_id: str = Field(..., description="New MusicBrainz release ID", min_length=36, max_length=36)
 
 
+@router.put("/albums/{album_id}/revert")
+async def revert_album_to_in_progress(
+    album_id: int = Path(..., description="Album ID", gt=0),
+    service: RatingService = Depends(get_rating_service),
+    db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    """
+    Revert completed album to 'In Progress' status for re-rating
+    
+    This endpoint:
+    - Changes album status from completed to in-progress
+    - Preserves all existing track ratings
+    - Clears the final score and rated_at timestamp
+    - Allows user to modify ratings and resubmit
+    
+    Args:
+        album_id: Album ID to revert
+        
+    Returns:
+        Dict with updated album information
+    """
+    try:
+        logger.info(f"Reverting album {album_id} to in-progress status")
+        
+        result = service.revert_album_to_in_progress(album_id, db)
+        
+        logger.info(f"Successfully reverted album {album_id} to in-progress")
+        return result
+        
+    except ServiceNotFoundError as e:
+        logger.warning(f"Album not found: {album_id}")
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "error": "Album not found",
+                "message": f"Album with ID {album_id} not found"
+            }
+        )
+    except ServiceValidationError as e:
+        logger.warning(f"Revert validation error: {e.message}")
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "error": "Cannot revert album",
+                "message": e.message
+            }
+        )
+    except Exception as e:
+        logger.error(f"Error reverting album: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Internal server error",
+                "message": "Failed to revert album"
+            }
+        )
+
+
 @router.put("/albums/{album_id}/retag")
 async def retag_album_musicbrainz_id(
     retag_request: RetagRequest,
