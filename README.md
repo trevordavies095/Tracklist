@@ -12,6 +12,20 @@ A personal music album rating system built with FastAPI and SQLite. Discover, ra
 - **MusicBrainz Integration**: Full integration with MusicBrainz for accurate metadata
 - **Responsive Design**: Works on desktop and mobile devices
 
+## Screenshots
+
+### Homepage - Dashboard Overview
+![Tracklist Homepage](https://i.imgur.com/ebkdXMC.png)
+*View your recent activity, statistics, and quick access to search and albums*
+
+### My Albums - Collection Management
+![My Albums Page](https://i.imgur.com/RoQHmbL.png)
+*Browse, filter, and manage your rated album collection with color-coded scores*
+
+### Album Results - Detailed Rating Breakdown
+![Album Rating Results](https://i.imgur.com/Bbtv30S.png)
+*See your final album score with track-by-track rating breakdown and statistics*
+
 ## Rating System
 
 - **Skip (0.0)**: Never want to hear this track
