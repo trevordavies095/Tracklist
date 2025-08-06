@@ -58,4 +58,23 @@ htmlcov/
 # OS
 .DS_Store
 Thumbs.db
+
+# Claude settings
 .claude/settings.local.json
+
+# Development scripts and migration files
+add_cover_art_column.py
+migrate_cli_to_webui.py
+recalculate_scores.py
+validate_phase1.py
+test_cli_migration.py
+test_cover_art.py
+test_phase1.py
+test_styles.html
+
+# Old database files
+Musium.db
+
+# Temporary documentation (consider moving to docs/)
+# Phase3_Summary.md
+# Phase4_Demo.md
