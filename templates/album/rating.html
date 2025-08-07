@@ -34,7 +34,7 @@
                         <h1 class="text-3xl font-bold text-gray-900 group relative inline-block{% if album.genre %} cursor-help{% endif %}">
                             {{ album.title }}
                             {% if album.year %}
-                            <span class="text-2xl font-normal text-gray-500">({{ album.year }})</span>
+                            <span class="text-2xl font-normal text-gray-500">(<a href="/years/{{ album.year }}/albums" class="hover:text-blue-600 hover:underline transition-colors">{{ album.year }}</a>)</span>
                             {% endif %}
                             {% if album.genre %}
                             <span class="absolute -bottom-8 left-0 text-xs bg-gray-800 text-white px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ artist.name }} - Albums - Tracklist{% endblock %}
+{% block title %}{{ year }} Albums - Tracklist{% endblock %}
 
 {% block content %}
 <div class="max-w-6xl mx-auto">
@@ -12,9 +12,9 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                 </svg>
             </a>
-            <h1 class="text-3xl font-bold text-gray-900">{{ artist.name }}</h1>
+            <h1 class="text-3xl font-bold text-gray-900">{{ year }}</h1>
         </div>
-        <p class="text-gray-600">All albums by this artist in your library</p>
+        <p class="text-gray-600">All albums from {{ year }} in your library</p>
     </div>
     
     <!-- Albums Container -->
@@ -41,8 +41,8 @@
             <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
             </svg>
-            <h3 class="text-lg font-medium text-gray-900 mb-2">No albums by {{ artist.name }}</h3>
-            <p class="text-gray-600 mb-6">You haven't rated any albums by this artist yet</p>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">No albums from {{ year }}</h3>
+            <p class="text-gray-600 mb-6">You haven't rated any albums from {{ year }} yet</p>
             <a href="/search" 
                class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition-colors">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -61,7 +61,7 @@
 
 <script>
 // Import necessary functions from albums page
-const artistId = {{ artist.id }};
+const year = {{ year }};
 
 // Score color utility function
 function getScoreColorClass(score) {
@@ -85,9 +85,10 @@ function getScoreColorClass(score) {
 // Global variables
 let currentViewMode = 'grid';
 
-// Load albums for this artist
-async function loadArtistAlbums(offset = 0) {
-    const url = `/api/v1/albums?limit=20&offset=${offset}&artist_id=${artistId}&sort=year_asc`;
+// Load albums for this year with custom sorting
+async function loadYearAlbums(offset = 0) {
+    // Custom sorting: in-progress first, then rated by score desc
+    const url = `/api/v1/albums?limit=20&offset=${offset}&year=${year}&sort=rated_desc`;
     
     try {
         const response = await fetch(url);
@@ -100,6 +101,24 @@ async function loadArtistAlbums(offset = 0) {
                 document.getElementById('pagination-container').innerHTML = '';
             } else {
                 document.getElementById('empty-state').classList.add('hidden');
+                
+                // Custom sorting on client side: in-progress first, then rated by score
+                if (data.albums) {
+                    data.albums.sort((a, b) => {
+                        // In-progress albums first
+                        if (!a.is_rated && b.is_rated) return -1;
+                        if (a.is_rated && !b.is_rated) return 1;
+                        
+                        // Among rated albums, sort by score descending
+                        if (a.is_rated && b.is_rated) {
+                            return (b.rating_score || 0) - (a.rating_score || 0);
+                        }
+                        
+                        // Among in-progress albums, maintain original order
+                        return 0;
+                    });
+                }
+                
                 if (offset === 0) {
                     renderAlbums(data);
                 } else {
@@ -156,7 +175,9 @@ function renderAlbums(data) {
                     <!-- Album Info -->
                     <div class="flex-1 min-w-0">
                         <h3 class="font-semibold text-gray-900 truncate" title="${album.title}">${album.title}</h3>
-                        ${album.year ? `<p class="text-sm text-gray-500"><a href="/years/${album.year}/albums" class="hover:text-blue-600 hover:underline transition-colors">${album.year}</a></p>` : ''}
+                        <p class="text-sm text-gray-500">
+                            <a href="/artists/${album.artist_id}/albums" class="hover:underline">${album.artist}</a>
+                        </p>
                     </div>
                 </div>
                 
@@ -232,7 +253,9 @@ function appendAlbumsToGrid(data) {
                     </div>
                 `}
                 <h3 class="font-semibold text-gray-900 mb-1 truncate" title="${album.title}">${album.title}</h3>
-                ${album.year ? `<p class="text-sm text-gray-500 mb-4"><a href="/years/${album.year}/albums" class="hover:text-blue-600 hover:underline transition-colors">${album.year}</a></p>` : '<div class="mb-4"></div>'}
+                <p class="text-sm text-gray-500 mb-4">
+                    <a href="/artists/${album.artist_id}/albums" class="hover:underline">${album.artist}</a>
+                </p>
                 <div class="mb-4">
                     ${album.is_rated ? `
                         <div class="flex items-center justify-between">
@@ -264,7 +287,7 @@ function updatePaginationButton(data) {
         const nextOffset = data.offset + data.limit;
         paginationContainer.innerHTML = `
             <div class="flex justify-center">
-                <button onclick="loadArtistAlbums(${nextOffset})" 
+                <button onclick="loadYearAlbums(${nextOffset})" 
                         class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md text-sm font-medium transition-colors">
                     Load More Albums
                 </button>
@@ -278,7 +301,7 @@ function updatePaginationButton(data) {
 // Initialize page
 document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('albums-loading').style.display = 'grid';
-    loadArtistAlbums();
+    loadYearAlbums();
 });
 </script>
 {% endblock %}

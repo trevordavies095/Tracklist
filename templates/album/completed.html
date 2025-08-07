@@ -32,7 +32,7 @@
                         <h1 class="text-3xl font-bold text-gray-900">
                             {{ album.title }}
                             {% if album.year %}
-                            <span class="text-2xl font-normal text-gray-500">({{ album.year }})</span>
+                            <span class="text-2xl font-normal text-gray-500">(<a href="/years/{{ album.year }}/albums" class="hover:text-blue-600 hover:underline transition-colors">{{ album.year }}</a>)</span>
                             {% endif %}
                         </h1>
                         <!-- Action Buttons -->
