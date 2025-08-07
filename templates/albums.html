@@ -381,7 +381,7 @@ function renderAlbums(data) {
                             <div class="min-w-0 flex-1">
                                 <h3 class="font-semibold text-gray-900 truncate" title="${album.title}">${album.title}</h3>
                                 <p class="text-sm text-gray-600 truncate" title="${album.artist}"><a href="/artists/${album.artist_id}/albums" class="hover:text-blue-600 hover:underline transition-colors">${album.artist}</a></p>
-                                ${album.year ? `<p class="text-xs text-gray-500">${album.year}</p>` : ''}
+                                ${album.year ? `<p class="text-xs text-gray-500"><a href="/years/${album.year}/albums" class="hover:text-blue-600 hover:underline transition-colors">${album.year}</a></p>` : ''}
                             </div>
                             
                             <!-- Status and Score -->
@@ -600,7 +600,7 @@ function appendAlbumsToGrid(data) {
                             <div class="min-w-0 flex-1">
                                 <h3 class="font-semibold text-gray-900 truncate" title="${album.title}">${album.title}</h3>
                                 <p class="text-sm text-gray-600 truncate" title="${album.artist}"><a href="/artists/${album.artist_id}/albums" class="hover:text-blue-600 hover:underline transition-colors">${album.artist}</a></p>
-                                ${album.year ? `<p class="text-xs text-gray-500">${album.year}</p>` : ''}
+                                ${album.year ? `<p class="text-xs text-gray-500"><a href="/years/${album.year}/albums" class="hover:text-blue-600 hover:underline transition-colors">${album.year}</a></p>` : ''}
                             </div>
                             <div class="flex items-center space-x-4 ml-4">
                                 ${album.is_rated ? `
@@ -835,7 +835,7 @@ async function showAlbumDetails(albumId) {
                     ${album.year ? `
                     <div class="flex justify-between">
                         <span class="font-medium text-gray-700">Year:</span>
-                        <span class="text-gray-900">${album.year}</span>
+                        <a href="/years/${album.year}/albums" class="text-gray-900 hover:text-blue-600 hover:underline transition-colors">${album.year}</a>
                     </div>
                     ` : ''}
                     <div class="flex justify-between">

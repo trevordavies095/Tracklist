@@ -323,7 +323,8 @@ class RatingService:
         filter_rated: Optional[bool] = None,
         sort: str = "created_desc",
         search: Optional[str] = None,
-        artist_id: Optional[int] = None
+        artist_id: Optional[int] = None,
+        year: Optional[int] = None
     ) -> Dict[str, Any]:
         """Get user's albums with optional filtering, sorting, and searching"""
         query = db.query(Album).join(Artist)
@@ -334,6 +335,10 @@ class RatingService:
         # Apply artist filter
         if artist_id is not None:
             query = query.filter(Album.artist_id == artist_id)
+        
+        # Apply year filter
+        if year is not None:
+            query = query.filter(Album.release_year == year)
         
         # Apply search filter
         if search and search.strip():

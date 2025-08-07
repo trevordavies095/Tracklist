@@ -62,6 +62,19 @@ async def artist_albums_page(
     })
 
 
+@router.get("/years/{year}/albums", response_class=HTMLResponse)
+async def year_albums_page(
+    request: Request,
+    year: int = Path(..., description="Year", ge=1900, le=2100),
+    db: Session = Depends(get_db)
+):
+    """Year's albums page"""
+    return templates.TemplateResponse("year_albums.html", {
+        "request": request,
+        "year": year
+    })
+
+
 @router.get("/albums/{album_id}/rate", response_class=HTMLResponse)
 async def rating_page(
     request: Request,
