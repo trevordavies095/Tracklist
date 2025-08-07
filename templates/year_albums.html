@@ -87,8 +87,8 @@ let currentViewMode = 'grid';
 
 // Load albums for this year with custom sorting
 async function loadYearAlbums(offset = 0) {
-    // Custom sorting: in-progress first, then rated by score desc
-    const url = `/api/v1/albums?limit=20&offset=${offset}&year=${year}&sort=rated_desc`;
+    // Use backend sorting: in-progress first, then rated by score desc
+    const url = `/api/v1/albums?limit=20&offset=${offset}&year=${year}&sort=rating_desc_status`;
     
     try {
         const response = await fetch(url);
@@ -101,23 +101,6 @@ async function loadYearAlbums(offset = 0) {
                 document.getElementById('pagination-container').innerHTML = '';
             } else {
                 document.getElementById('empty-state').classList.add('hidden');
-                
-                // Custom sorting on client side: in-progress first, then rated by score
-                if (data.albums) {
-                    data.albums.sort((a, b) => {
-                        // In-progress albums first
-                        if (!a.is_rated && b.is_rated) return -1;
-                        if (a.is_rated && !b.is_rated) return 1;
-                        
-                        // Among rated albums, sort by score descending
-                        if (a.is_rated && b.is_rated) {
-                            return (b.rating_score || 0) - (a.rating_score || 0);
-                        }
-                        
-                        // Among in-progress albums, maintain original order
-                        return 0;
-                    });
-                }
                 
                 if (offset === 0) {
                     renderAlbums(data);

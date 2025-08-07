@@ -374,6 +374,11 @@ class RatingService:
         elif sort == "rated_desc":
             # Recently rated first (completed albums sorted by rated_at desc, then in-progress)
             query = query.order_by(Album.rated_at.desc().nulls_last())
+        elif sort == "rating_desc_status":
+            # Rating descending with in-progress albums first
+            # is_rated=False (in progress) should come before is_rated=True (completed)
+            # Then sort by rating_score descending for completed albums
+            query = query.order_by(Album.is_rated.asc(), Album.rating_score.desc().nulls_last())
         else:
             # Default to created_desc for unknown sorts
             query = query.order_by(Album.created_at.desc())
