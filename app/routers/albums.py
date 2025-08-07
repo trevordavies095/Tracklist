@@ -395,7 +395,7 @@ async def get_user_albums(
     limit: int = Query(50, description="Maximum number of results", ge=1, le=100),
     offset: int = Query(0, description="Offset for pagination", ge=0),
     rated: Optional[bool] = Query(None, description="Filter by rated status (true=rated, false=draft, null=all)"),
-    sort: str = Query("created_desc", description="Sort order (created_desc, created_asc, artist_asc, artist_desc, album_asc, album_desc, rating_desc, rating_asc, year_desc, year_asc, rated_desc)"),
+    sort: str = Query("created_desc", description="Sort order (created_desc, created_asc, artist_asc, artist_desc, album_asc, album_desc, rating_desc, rating_asc, year_desc, year_asc, rated_desc, rating_desc_status)"),
     search: Optional[str] = Query(None, description="Search query for album title or artist name"),
     artist_id: Optional[int] = Query(None, description="Filter by artist ID"),
     year: Optional[int] = Query(None, description="Filter by release year"),
@@ -418,6 +418,7 @@ async def get_user_albums(
     - rating_desc/rating_asc: By rating score (100→0 / 0→100)
     - year_desc/year_asc: By release year (newest/oldest first)
     - rated_desc: By recently rated (completed albums first)
+    - rating_desc_status: By rating score desc with in-progress albums first
     """
     try:
         logger.info(f"Getting user albums: limit={limit}, offset={offset}, rated={rated}, sort={sort}, search={search}, artist_id={artist_id}, year={year}")
