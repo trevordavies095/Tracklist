@@ -253,7 +253,8 @@ class RatingService:
             "projected_score": projected_score,
             "is_submitted": album.is_rated,
             "final_score": album.rating_score,
-            "album_bonus": album.album_bonus
+            "album_bonus": album.album_bonus,
+            "notes": album.notes
         }
     
     def submit_album_rating(self, album_id: int, db: Session) -> Dict[str, Any]:
@@ -444,6 +445,7 @@ class RatingService:
             "album_bonus": album.album_bonus,
             "is_rated": album.is_rated,
             "rating_score": album.rating_score,
+            "notes": album.notes,
             "rated_at": album.rated_at.isoformat() if album.rated_at else None,
             "created_at": album.created_at.isoformat()
         }
@@ -580,6 +582,44 @@ class RatingService:
         logger.info(f"Successfully reverted album {album_id} to in-progress status")
         
         return self._format_album_response(album, db, include_tracks=True)
+
+    def update_album_notes(self, album_id: int, notes: str, db: Session) -> Dict[str, Any]:
+        """
+        Update notes for an album
+        
+        Args:
+            album_id: Album ID
+            notes: Notes text (max 5000 characters)
+            db: Database session
+            
+        Returns:
+            Dict with updated album information
+            
+        Raises:
+            NotFoundError: If album not found
+            ValidationError: If notes exceed character limit
+        """
+        logger.info(f"Updating notes for album {album_id}")
+        
+        album = db.query(Album).filter(Album.id == album_id).first()
+        if not album:
+            raise ServiceNotFoundError("Album", album_id)
+        
+        # Validate notes length
+        if notes and len(notes) > 5000:
+            raise ServiceValidationError("Notes cannot exceed 5000 characters")
+        
+        # Update notes
+        album.notes = notes
+        db.commit()
+        
+        logger.info(f"Successfully updated notes for album {album_id}")
+        
+        return {
+            "success": True,
+            "album_id": album_id,
+            "notes": album.notes
+        }
 
     async def update_missing_cover_art(self, db: Session) -> Dict[str, Any]:
         """

@@ -250,6 +250,83 @@ async def get_album_progress(
         )
 
 
+@router.put("/albums/{album_id}/notes")
+async def update_album_notes(
+    request: Request,
+    album_id: int = Path(..., description="Album ID", gt=0),
+    service: RatingService = Depends(get_rating_service),
+    db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    """
+    Update notes for an album
+    
+    Allows adding or updating personal notes for an album.
+    Notes are limited to 5000 characters and can be updated
+    at any time during or after the rating process.
+    """
+    try:
+        # Get notes from request body
+        if request.headers.get("content-type") == "application/x-www-form-urlencoded":
+            form = await request.form()
+            notes = form.get("notes", "")
+        else:
+            try:
+                body = await request.json()
+                notes = body.get("notes", "")
+            except Exception:
+                raise HTTPException(
+                    status_code=400,
+                    detail={
+                        "error": "Invalid request",
+                        "message": "Notes value is required"
+                    }
+                )
+        
+        logger.info(f"Updating notes for album {album_id}")
+        
+        result = service.update_album_notes(album_id, notes, db)
+        
+        logger.info(f"Notes updated successfully for album {album_id}")
+        
+        # Check if this is an HTMX request
+        hx_request = request.headers.get("HX-Request")
+        if hx_request:
+            # Return a simple success response for HTMX
+            return HTMLResponse(
+                '''<div class="text-green-600">Notes saved</div>'''
+            )
+        
+        return result
+        
+    except ServiceNotFoundError as e:
+        logger.warning(f"Album not found: {album_id}")
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "error": "Album not found",
+                "message": f"Album with ID {album_id} not found"
+            }
+        )
+    except ServiceValidationError as e:
+        logger.warning(f"Invalid notes: {e.message}")
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "error": "Invalid notes",
+                "message": e.message
+            }
+        )
+    except Exception as e:
+        logger.error(f"Unexpected error updating album notes: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Internal server error",
+                "message": "Failed to save album notes"
+            }
+        )
+
+
 @router.post("/albums/{album_id}/submit")
 async def submit_album_rating(
     request: Request,
