@@ -820,9 +820,21 @@ class RatingService:
                     f"new release has {mb_album['total_tracks']} tracks"
                 )
             
-            # Fetch new cover art
+            # Delete old cached cover art if it exists
             from .services.cover_art_service import get_cover_art_service
+            from .services.cover_art_cache_service import get_cover_art_cache_service
+            
+            cache_service = get_cover_art_cache_service()
             cover_art_service = get_cover_art_service()
+            
+            # Delete old cached images
+            try:
+                if cache_service.delete_cached_covers(album_id):
+                    logger.info(f"Deleted old cached cover art for album {album_id}")
+            except Exception as e:
+                logger.warning(f"Failed to delete old cached cover art: {e}")
+            
+            # Fetch new cover art URL
             cover_art_url = await cover_art_service.get_cover_art_url(new_mbid)
             
             # Update album record
@@ -830,8 +842,26 @@ class RatingService:
             album.musicbrainz_id = new_mbid
             album.name = mb_album["title"]
             album.release_year = mb_album.get("year")
+            
+            # Update cover art and clear local path (will be re-cached)
             if cover_art_url:
                 album.cover_art_url = cover_art_url
+                album.cover_art_local_path = None  # Clear old local path
+                
+                # Cache the new cover art immediately
+                try:
+                    cached_paths = await cache_service.download_and_cache(
+                        album_id, cover_art_url
+                    )
+                    if cached_paths and 'medium' in cached_paths:
+                        album.cover_art_local_path = cached_paths['medium']
+                        logger.info(f"Cached new cover art for retagged album {album_id}")
+                except Exception as e:
+                    logger.warning(f"Failed to cache new cover art: {e}")
+            else:
+                # No cover art available for new release
+                album.cover_art_url = None
+                album.cover_art_local_path = None
             
             # Update artist if different
             if mb_album["artist"]["name"] != album.artist.name:
