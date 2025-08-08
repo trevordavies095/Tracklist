@@ -13,6 +13,9 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 RUN apt-get update && apt-get install -y \
     gcc \
     curl \
+    libjpeg-dev \
+    libpng-dev \
+    libwebp-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first (for better caching)
@@ -25,7 +28,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Create necessary directories
-RUN mkdir -p logs data
+RUN mkdir -p logs data static/covers/thumbnail static/covers/medium static/covers/large static/covers/original
 
 # Create non-root user for security
 RUN useradd --create-home --shell /bin/bash tracklist && \
