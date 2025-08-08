@@ -87,9 +87,19 @@ def get_db():
 def init_db():
     """Initialize database with default data"""
     from .models import UserSettings
+    from .migrations import run_migrations
     
     # First create all tables
     create_tables()
+    
+    # Run migrations to update existing databases
+    try:
+        migrations_applied = run_migrations(engine)
+        if migrations_applied:
+            logger.info(f"Applied {len(migrations_applied)} database migrations")
+    except Exception as e:
+        logger.error(f"Error running migrations: {e}")
+        # Continue anyway - migrations might not be critical
     
     db = SessionLocal()
     try:
