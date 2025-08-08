@@ -60,12 +60,12 @@ async def create_album_for_rating(
         if hx_request:
             # Return HTML button for HTMX
             return HTMLResponse(
-                f'''<button class="flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 cursor-default transition-colors">
+                f'''<a href="/albums/{result['id']}/rate" class="flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 transition-colors">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                     </svg>
-                    Added - <a href="/albums/{result['id']}/rate" class="underline">Rate Now</a>
-                </button>'''
+                    Rate Now
+                </a>'''
             )
         
         # Return JSON for API calls
@@ -246,6 +246,83 @@ async def get_album_progress(
             detail={
                 "error": "Internal server error",
                 "message": "Failed to get album progress"
+            }
+        )
+
+
+@router.put("/albums/{album_id}/notes")
+async def update_album_notes(
+    request: Request,
+    album_id: int = Path(..., description="Album ID", gt=0),
+    service: RatingService = Depends(get_rating_service),
+    db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    """
+    Update notes for an album
+    
+    Allows adding or updating personal notes for an album.
+    Notes are limited to 5000 characters and can be updated
+    at any time during or after the rating process.
+    """
+    try:
+        # Get notes from request body
+        if request.headers.get("content-type") == "application/x-www-form-urlencoded":
+            form = await request.form()
+            notes = form.get("notes", "")
+        else:
+            try:
+                body = await request.json()
+                notes = body.get("notes", "")
+            except Exception:
+                raise HTTPException(
+                    status_code=400,
+                    detail={
+                        "error": "Invalid request",
+                        "message": "Notes value is required"
+                    }
+                )
+        
+        logger.info(f"Updating notes for album {album_id}")
+        
+        result = service.update_album_notes(album_id, notes, db)
+        
+        logger.info(f"Notes updated successfully for album {album_id}")
+        
+        # Check if this is an HTMX request
+        hx_request = request.headers.get("HX-Request")
+        if hx_request:
+            # Return a simple success response for HTMX
+            return HTMLResponse(
+                '''<div class="text-green-600">Notes saved</div>'''
+            )
+        
+        return result
+        
+    except ServiceNotFoundError as e:
+        logger.warning(f"Album not found: {album_id}")
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "error": "Album not found",
+                "message": f"Album with ID {album_id} not found"
+            }
+        )
+    except ServiceValidationError as e:
+        logger.warning(f"Invalid notes: {e.message}")
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "error": "Invalid notes",
+                "message": e.message
+            }
+        )
+    except Exception as e:
+        logger.error(f"Unexpected error updating album notes: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Internal server error",
+                "message": "Failed to save album notes"
             }
         )
 

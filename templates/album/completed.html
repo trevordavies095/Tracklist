@@ -103,6 +103,30 @@
         </div>
     </div>
     
+    <!-- Album Notes (if present) -->
+    {% if album.notes %}
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-8">
+        <div class="p-6">
+            <details class="cursor-pointer group">
+                <summary class="flex items-center justify-between text-xl font-semibold text-gray-900 hover:text-gray-700 select-none list-none">
+                    <span class="flex items-center">
+                        <svg class="w-5 h-5 mr-2 transform transition-transform duration-200 group-open:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                        Album Notes
+                    </span>
+                    <span class="text-sm font-normal text-gray-500 group-open:hidden">Click to expand</span>
+                </summary>
+                <div class="mt-4 pt-4 border-t border-gray-100">
+                    <div class="prose prose-gray max-w-none">
+                        <p class="text-gray-700 whitespace-pre-wrap">{{ album.notes }}</p>
+                    </div>
+                </div>
+            </details>
+        </div>
+    </div>
+    {% endif %}
+    
     <!-- Track Ratings Summary -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-8">
         <div class="p-6">
