@@ -81,7 +81,7 @@ async def cache_cover_art_on_startup(limit: Optional[int] = None):
         db.rollback()
     finally:
         db.close()
-        await cache_service.close()
+        # Don't close the cache service as it's a singleton that will be reused
 
 
 def start_background_tasks():

@@ -41,23 +41,32 @@ class CoverArtCacheService:
     def __init__(self):
         """Initialize the cover art cache service"""
         self.ensure_cache_directories()
-        
-        if HTTPX_AVAILABLE:
-            self.client = httpx.AsyncClient(
-                timeout=30.0,
-                follow_redirects=True,
-                headers={
-                    "User-Agent": "Tracklist/1.0 Cover Art Cache"
-                }
-            )
-        else:
-            self.client = None
+        self._client = None
     
     def ensure_cache_directories(self):
         """Create cache directories if they don't exist"""
         for size in self.SIZES:
             size_dir = self.CACHE_DIR / size
             size_dir.mkdir(parents=True, exist_ok=True)
+    
+    async def get_client(self) -> Optional[httpx.AsyncClient]:
+        """Get or create the HTTP client"""
+        if not HTTPX_AVAILABLE:
+            return None
+        
+        # Check if client exists and is not closed
+        if self._client and not self._client.is_closed:
+            return self._client
+        
+        # Create a new client if needed
+        self._client = httpx.AsyncClient(
+            timeout=30.0,
+            follow_redirects=True,
+            headers={
+                "User-Agent": "Tracklist/1.0 Cover Art Cache"
+            }
+        )
+        return self._client
     
     def get_cache_filename(self, album_id: int, size: str = 'medium') -> str:
         """
@@ -117,7 +126,8 @@ class CoverArtCacheService:
         Returns:
             Dictionary of size -> local path mappings, or None if failed
         """
-        if not HTTPX_AVAILABLE or not self.client:
+        client = await self.get_client()
+        if not client:
             logger.warning("httpx not available, skipping cover art cache")
             return None
         
@@ -132,7 +142,7 @@ class CoverArtCacheService:
             logger.info(f"Downloading cover art for album {album_id} from {cover_art_url}")
             
             # Download the image
-            response = await self.client.get(cover_art_url)
+            response = await client.get(cover_art_url)
             if response.status_code != 200:
                 logger.error(f"Failed to download cover art: HTTP {response.status_code}")
                 return None
@@ -315,9 +325,10 @@ class CoverArtCacheService:
         return cleaned
     
     async def close(self):
-        """Close the HTTP client"""
-        if self.client:
-            await self.client.aclose()
+        """Close the HTTP client if it exists"""
+        if self._client and not self._client.is_closed:
+            await self._client.aclose()
+            self._client = None
 
 
 # Global instance
