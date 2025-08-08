@@ -29,6 +29,7 @@ class Album(Base):
     release_year = Column(Integer)
     musicbrainz_id = Column(Text, unique=True, nullable=False)
     cover_art_url = Column(Text)
+    cover_art_local_path = Column(Text)
     genre = Column(Text)
     total_tracks = Column(Integer)
     total_duration_ms = Column(Integer)

@@ -424,46 +424,20 @@ async def submit_album_rating(
         )
 
 
-@router.get("/albums/{album_id}")
-async def get_album_rating(
-    album_id: int = Path(..., description="Album ID", gt=0),
-    service: RatingService = Depends(get_rating_service),
-    db: Session = Depends(get_db)
-) -> Dict[str, Any]:
-    """
-    Get complete album rating information
+@router.get("/albums/cache-stats")
+async def get_cover_cache_stats() -> Dict[str, Any]:
+    """Get statistics about the cover art cache"""
+    from ..services.cover_art_cache_service import get_cover_art_cache_service
     
-    Returns full album details including:
-    - Album and artist information
-    - All track ratings
-    - Final score (if submitted)
-    - Rating metadata
-    """
     try:
-        logger.info(f"Getting album rating for album {album_id}")
-        
-        result = service.get_album_rating(album_id, db)
-        
-        logger.debug(f"Album rating retrieved: {result['title']}")
-        return result
-        
-    except ServiceNotFoundError as e:
-        logger.warning(f"Album not found: {album_id}")
-        raise HTTPException(
-            status_code=404,
-            detail={
-                "error": "Album not found",
-                "message": f"Album with ID {album_id} not found"
-            }
-        )
+        cache_service = get_cover_art_cache_service()
+        stats = cache_service.get_cache_stats()
+        return stats
     except Exception as e:
-        logger.error(f"Unexpected error getting album rating: {e}", exc_info=True)
+        logger.error(f"Failed to get cache stats: {e}")
         raise HTTPException(
             status_code=500,
-            detail={
-                "error": "Internal server error",
-                "message": "Failed to get album rating"
-            }
+            detail=f"Failed to get cache statistics: {str(e)}"
         )
 
 
@@ -557,6 +531,119 @@ async def delete_album(
                 "error": "Internal server error",
                 "message": "Failed to delete album"
             }
+        )
+
+
+@router.get("/albums/{album_id}")
+async def get_album_rating(
+    album_id: int = Path(..., description="Album ID", gt=0),
+    service: RatingService = Depends(get_rating_service),
+    db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    """
+    Get complete album rating information
+    
+    Returns full album details including:
+    - Album and artist information
+    - All track ratings
+    - Final score (if submitted)
+    - Rating metadata
+    """
+    try:
+        logger.info(f"Getting album rating for album {album_id}")
+        
+        result = service.get_album_rating(album_id, db)
+        
+        logger.debug(f"Album rating retrieved: {result['title']}")
+        return result
+        
+    except ServiceNotFoundError as e:
+        logger.warning(f"Album not found: {album_id}")
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "error": "Album not found",
+                "message": f"Album with ID {album_id} not found"
+            }
+        )
+    except Exception as e:
+        logger.error(f"Unexpected error getting album rating: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Internal server error",
+                "message": "Failed to get album rating"
+            }
+        )
+
+
+@router.post("/albums/cache-all-covers")
+async def cache_all_album_covers(
+    service: RatingService = Depends(get_rating_service),
+    db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    """
+    Download and cache cover art for all albums that have URLs but no local cache
+    
+    This endpoint will:
+    1. Find all albums with cover_art_url but no cover_art_local_path
+    2. Download and cache the images locally
+    3. Update the database with local paths
+    
+    Returns statistics about the caching operation
+    """
+    from ..services.cover_art_cache_service import get_cover_art_cache_service
+    from ..models import Album
+    
+    try:
+        logger.info("Starting bulk cover art caching")
+        
+        # Get albums with URLs but no local cache
+        albums_to_cache = db.query(Album).filter(
+            (Album.cover_art_url != None) & 
+            (Album.cover_art_url != "") &
+            ((Album.cover_art_local_path == None) | (Album.cover_art_local_path == ""))
+        ).all()
+        
+        logger.info(f"Found {len(albums_to_cache)} albums to cache")
+        
+        cache_service = get_cover_art_cache_service()
+        cached_count = 0
+        failed_count = 0
+        
+        for album in albums_to_cache:
+            try:
+                cached_paths = await cache_service.download_and_cache(
+                    album.id, album.cover_art_url
+                )
+                if cached_paths and 'medium' in cached_paths:
+                    album.cover_art_local_path = cached_paths['medium']
+                    db.add(album)
+                    cached_count += 1
+                    logger.debug(f"Cached cover art for album '{album.name}'")
+            except Exception as e:
+                logger.error(f"Failed to cache cover art for album '{album.name}': {e}")
+                failed_count += 1
+        
+        db.commit()
+        
+        # Get cache statistics
+        cache_stats = cache_service.get_cache_stats()
+        
+        return {
+            "success": True,
+            "albums_processed": len(albums_to_cache),
+            "cached": cached_count,
+            "failed": failed_count,
+            "cache_stats": cache_stats,
+            "message": f"Successfully cached {cached_count} album covers"
+        }
+        
+    except Exception as e:
+        logger.error(f"Bulk cover art caching failed: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to cache cover art: {str(e)}"
         )
 
 

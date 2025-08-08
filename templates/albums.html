@@ -355,11 +355,12 @@ function renderAlbums(data) {
             <div class="album-row bg-white border border-gray-200 hover:bg-gray-50 transition-all duration-200">
                 <div class="flex items-center p-4">
                     <!-- Album Art -->
-                    ${album.cover_art_url ? `
+                    ${album.cover_art_local_path || album.cover_art_url ? `
                         <div class="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 mr-4">
-                            <img src="${album.cover_art_url}" 
+                            <img src="${album.cover_art_local_path || album.cover_art_url}" 
                                  alt="${album.title} cover" 
                                  class="w-full h-full object-cover"
+                                 loading="lazy"
                                  onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                             <div class="w-12 h-12 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg flex items-center justify-center" style="display:none;">
                                 <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -430,11 +431,12 @@ function renderAlbums(data) {
                 <div class="p-4">
                     <div class="flex space-x-3 mb-3">
                         <!-- Album Art -->
-                        ${album.cover_art_url ? `
+                        ${album.cover_art_local_path || album.cover_art_url ? `
                             <div class="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
-                                <img src="${album.cover_art_url}" 
+                                <img src="${album.cover_art_local_path || album.cover_art_url}" 
                                      alt="${album.title} cover" 
                                      class="w-full h-full object-cover"
+                                     loading="lazy"
                                      onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                 <div class="w-12 h-12 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg flex items-center justify-center" style="display:none;">
                                     <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -576,11 +578,12 @@ function appendAlbumsToGrid(data) {
         const newAlbumRows = albums.map(album => `
             <div class="album-row bg-white border border-gray-200 hover:bg-gray-50 transition-all duration-200">
                 <div class="flex items-center p-4">
-                    ${album.cover_art_url ? `
+                    ${album.cover_art_local_path || album.cover_art_url ? `
                         <div class="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 mr-4">
-                            <img src="${album.cover_art_url}" 
+                            <img src="${album.cover_art_local_path || album.cover_art_url}" 
                                  alt="${album.title} cover" 
                                  class="w-full h-full object-cover"
+                                 loading="lazy"
                                  onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                             <div class="w-12 h-12 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg flex items-center justify-center" style="display:none;">
                                 <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -632,11 +635,12 @@ function appendAlbumsToGrid(data) {
                 <div class="p-4">
                     <div class="flex space-x-3 mb-3">
                         <!-- Album Art -->
-                        ${album.cover_art_url ? `
+                        ${album.cover_art_local_path || album.cover_art_url ? `
                             <div class="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
-                                <img src="${album.cover_art_url}" 
+                                <img src="${album.cover_art_local_path || album.cover_art_url}" 
                                      alt="${album.title} cover" 
                                      class="w-full h-full object-cover"
+                                     loading="lazy"
                                      onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                 <div class="w-12 h-12 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg flex items-center justify-center" style="display:none;">
                                     <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

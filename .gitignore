@@ -59,6 +59,9 @@ htmlcov/
 .DS_Store
 Thumbs.db
 
+# Local cover art cache
+static/covers/
+
 # Claude settings
 .claude/settings.local.json
 

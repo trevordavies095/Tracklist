@@ -126,8 +126,16 @@ class RatingService:
             
             # Fetch cover art
             from .services.cover_art_service import get_cover_art_service
+            from .services.cover_art_cache_service import get_cover_art_cache_service
             cover_art_service = get_cover_art_service()
+            cover_art_cache_service = get_cover_art_cache_service()
             cover_art_url = await cover_art_service.get_cover_art_url(musicbrainz_id)
+            
+            # Cache cover art locally if URL is available
+            cover_art_local_path = None
+            if cover_art_url:
+                # Note: album.id is not available yet, will update after album creation
+                pass
             
             # Create album
             album = Album(
@@ -140,11 +148,21 @@ class RatingService:
                 total_duration_ms=mb_album.get("total_duration_ms"),
                 album_bonus=album_bonus,
                 is_rated=False,
-                cover_art_url=cover_art_url
+                cover_art_url=cover_art_url,
+                cover_art_local_path=cover_art_local_path
             )
             
             db.add(album)
             db.flush()  # Get album ID
+            
+            # Now cache the cover art with the album ID
+            if cover_art_url:
+                cached_paths = await cover_art_cache_service.download_and_cache(
+                    album.id, cover_art_url
+                )
+                if cached_paths and 'medium' in cached_paths:
+                    album.cover_art_local_path = cached_paths['medium']
+                    db.add(album)
             
             # Create tracks
             for track_data in mb_album["tracks"]:
@@ -442,6 +460,7 @@ class RatingService:
             "total_tracks": album.total_tracks,
             "total_duration_ms": album.total_duration_ms,
             "cover_art_url": album.cover_art_url,
+            "cover_art_local_path": album.cover_art_local_path,
             "album_bonus": album.album_bonus,
             "is_rated": album.is_rated,
             "rating_score": album.rating_score,
@@ -475,6 +494,7 @@ class RatingService:
             "artist_id": album.artist.id,
             "year": album.release_year,
             "cover_art_url": album.cover_art_url,
+            "cover_art_local_path": album.cover_art_local_path,
             "is_rated": album.is_rated,
             "rating_score": album.rating_score,
             "rated_at": album.rated_at.isoformat() if album.rated_at else None
@@ -513,6 +533,16 @@ class RatingService:
         try:
             # Get track count for logging
             track_count = db.query(Track).filter(Track.album_id == album_id).count()
+            
+            # Delete cached cover art if it exists
+            from .services.cover_art_cache_service import get_cover_art_cache_service
+            try:
+                cache_service = get_cover_art_cache_service()
+                if cache_service.delete_cached_covers(album_id):
+                    logger.info(f"Deleted cached cover art for album {album_id}")
+            except Exception as e:
+                logger.warning(f"Failed to delete cached cover art for album {album_id}: {e}")
+                # Continue with deletion even if cache cleanup fails
             
             # Delete all tracks (ratings will be cascade deleted due to foreign key constraints)
             db.query(Track).filter(Track.album_id == album_id).delete()
@@ -626,25 +656,29 @@ class RatingService:
         Update cover art for all albums that don't have it
         
         Fetches cover art from MusicBrainz Cover Art Archive API
-        for albums with missing artwork.
+        for albums with missing artwork and caches them locally.
         
         Returns:
             Dictionary with update statistics
         """
         from .services.cover_art_service import get_cover_art_service
+        from .services.cover_art_cache_service import get_cover_art_cache_service
         
         logger.info("Starting cover art update process")
         
         try:
-            # Get all albums without cover art
+            # Get all albums without cover art (either URL or local cache)
             albums_without_art = db.query(Album).filter(
-                (Album.cover_art_url == None) | (Album.cover_art_url == "")
+                ((Album.cover_art_url == None) | (Album.cover_art_url == "")) &
+                ((Album.cover_art_local_path == None) | (Album.cover_art_local_path == ""))
             ).all()
             
             logger.info(f"Found {len(albums_without_art)} albums without cover art")
             
             cover_art_service = get_cover_art_service()
+            cover_art_cache_service = get_cover_art_cache_service()
             updated_count = 0
+            cached_count = 0
             failed_count = 0
             
             for album in albums_without_art:
@@ -654,6 +688,15 @@ class RatingService:
                     
                     if cover_art_url:
                         album.cover_art_url = cover_art_url
+                        
+                        # Cache the cover art locally
+                        cached_paths = await cover_art_cache_service.download_and_cache(
+                            album.id, cover_art_url
+                        )
+                        if cached_paths and 'medium' in cached_paths:
+                            album.cover_art_local_path = cached_paths['medium']
+                            cached_count += 1
+                        
                         db.add(album)
                         updated_count += 1
                         logger.info(f"Updated cover art for album '{album.name}'")
@@ -667,14 +710,15 @@ class RatingService:
             # Commit all updates
             db.commit()
             
-            logger.info(f"Cover art update completed: {updated_count} updated, {failed_count} failed")
+            logger.info(f"Cover art update completed: {updated_count} updated, {cached_count} cached, {failed_count} failed")
             
             return {
                 "success": True,
                 "total_albums": len(albums_without_art),
                 "updated": updated_count,
+                "cached": cached_count,
                 "failed": failed_count,
-                "message": f"Successfully updated cover art for {updated_count} albums"
+                "message": f"Successfully updated cover art for {updated_count} albums ({cached_count} cached locally)"
             }
             
         except Exception as e:
