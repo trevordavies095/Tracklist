@@ -60,12 +60,12 @@ async def create_album_for_rating(
         if hx_request:
             # Return HTML button for HTMX
             return HTMLResponse(
-                f'''<button class="flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 cursor-default transition-colors">
+                f'''<a href="/albums/{result['id']}/rate" class="flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 transition-colors">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                     </svg>
-                    Added - <a href="/albums/{result['id']}/rate" class="underline">Rate Now</a>
-                </button>'''
+                    Rate Now
+                </a>'''
             )
         
         # Return JSON for API calls
