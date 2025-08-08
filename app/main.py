@@ -4,6 +4,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.staticfiles import StaticFiles
 import logging
 import os
+import asyncio
 from .database import create_tables, init_db
 from .exceptions import TracklistException, NotFoundError, ValidationError, ConflictError
 from .logging_config import setup_logging
@@ -82,6 +83,21 @@ async def startup_event():
         create_tables()
         init_db()
         logger.info("Database initialized successfully")
+        
+        # Start background cover art caching task
+        from .startup_tasks import cache_cover_art_on_startup
+        
+        # Check if cover art caching is enabled (default: enabled)
+        cache_on_startup = os.getenv("CACHE_COVER_ART_ON_STARTUP", "true").lower() == "true"
+        max_albums_to_cache = int(os.getenv("MAX_ALBUMS_TO_CACHE_ON_STARTUP", "50"))
+        
+        if cache_on_startup:
+            logger.info(f"Starting background cover art caching (max {max_albums_to_cache} albums)...")
+            # Run as background task so it doesn't block startup
+            asyncio.create_task(cache_cover_art_on_startup(limit=max_albums_to_cache))
+        else:
+            logger.info("Cover art caching on startup is disabled")
+            
     except Exception as e:
         logger.error(f"Failed to initialize database: {e}")
         raise

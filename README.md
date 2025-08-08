@@ -9,6 +9,7 @@ A personal music album rating system built with FastAPI and SQLite. Rate and tra
 - **Album Scoring**: Automatic score calculation out of 100 based on track ratings
 - **Album Management**: View, organize, and manage your rated albums
 - **Cover Art**: Automatic cover art fetching from Cover Art Archive
+- **Local Cover Art Caching**: Automatically caches album artwork locally for faster loading
 - **MusicBrainz Integration**: Full integration with MusicBrainz for accurate metadata
 - **Responsive Design**: Works on desktop and mobile devices
 
@@ -65,6 +66,8 @@ services:
       - TRACKLIST_DB_PATH=/app/data/tracklist.db
       - ENVIRONMENT=production
       - LOG_LEVEL=ERROR  # Options: DEBUG, INFO, WARNING, ERROR
+      - CACHE_COVER_ART_ON_STARTUP=true  # Auto-cache cover art on startup (default: true)
+      - MAX_ALBUMS_TO_CACHE_ON_STARTUP=50  # Max albums to cache per startup (default: 50)
     restart: unless-stopped
 
 volumes:
