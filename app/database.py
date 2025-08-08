@@ -86,7 +86,7 @@ def get_db():
 
 def init_db():
     """Initialize database with default data"""
-    from .models import UserSettings
+    from .models import UserSettings, Album
     from .migrations import run_migrations
     
     # First create all tables
