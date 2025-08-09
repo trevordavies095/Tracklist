@@ -34,6 +34,20 @@ A personal music album rating system built with FastAPI and SQLite. Rate and tra
 ![Artist Albums View](https://i.imgur.com/5AyhlEf.png)
 *View all rated albums from a specific artist with scores and completion status*
 
+### Statistics - Track Your Progress
+![Statistics Page](https://i.imgur.com/H17DPjZ.png)
+*Comprehensive statistics showing your rating patterns, top artists, and album insights*
+
+## Statistics & Insights
+
+Track your music rating journey with detailed statistics:
+
+- **Overview Cards**: Total albums, completion rate, and average scores
+- **Most Rated Artist**: Discover which artist dominates your collection
+- **Distribution Charts**: Visual breakdown of your track and album ratings
+- **Top & Bottom Albums**: Quick access to your favorites and least favorites
+- **No-Skip Albums**: Special recognition for perfect albums with no weak tracks
+
 ## Rating System
 
 - **Skip (0.0)**: Never want to hear this track
