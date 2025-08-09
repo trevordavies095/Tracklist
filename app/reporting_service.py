@@ -259,6 +259,93 @@ class ReportingService:
             logger.error(f"Failed to get top albums: {e}")
             raise TracklistException(f"Failed to get top albums: {str(e)}")
     
+    def get_score_distribution(self, db: Session) -> Dict[str, Any]:
+        """
+        Get distribution of album scores across different ranges
+        
+        Args:
+            db: Database session
+            
+        Returns:
+            Dict with score distribution data, total rated albums, and statistics
+        """
+        try:
+            # Get all fully rated albums
+            rated_albums = (
+                db.query(Album)
+                .filter(
+                    Album.is_rated == True,
+                    Album.rating_score.isnot(None)
+                )
+                .all()
+            )
+            
+            if not rated_albums:
+                return {
+                    "distribution": [
+                        {"range": "0-20", "label": "Very Poor", "count": 0, "percentage": 0, "color": "#dc2626"},
+                        {"range": "21-40", "label": "Poor", "count": 0, "percentage": 0, "color": "#f97316"},
+                        {"range": "41-60", "label": "Average", "count": 0, "percentage": 0, "color": "#eab308"},
+                        {"range": "61-80", "label": "Good", "count": 0, "percentage": 0, "color": "#84cc16"},
+                        {"range": "81-100", "label": "Excellent", "count": 0, "percentage": 0, "color": "#22c55e"}
+                    ],
+                    "total_rated": 0,
+                    "average_score": None,
+                    "median_score": None
+                }
+            
+            # Define score ranges with colors (red to green gradient)
+            ranges = [
+                {"range": "0-20", "label": "Very Poor", "min": 0, "max": 20, "color": "#dc2626"},
+                {"range": "21-40", "label": "Poor", "min": 21, "max": 40, "color": "#f97316"},
+                {"range": "41-60", "label": "Average", "min": 41, "max": 60, "color": "#eab308"},
+                {"range": "61-80", "label": "Good", "min": 61, "max": 80, "color": "#84cc16"},
+                {"range": "81-100", "label": "Excellent", "min": 81, "max": 100, "color": "#22c55e"}
+            ]
+            
+            # Count albums in each range
+            distribution = []
+            scores = []
+            
+            for album in rated_albums:
+                if album.rating_score is not None:
+                    scores.append(album.rating_score)
+            
+            total_rated = len(scores)
+            
+            for range_def in ranges:
+                count = sum(
+                    1 for score in scores 
+                    if range_def["min"] <= score <= range_def["max"]
+                )
+                percentage = round((count / total_rated) * 100, 1) if total_rated > 0 else 0
+                
+                distribution.append({
+                    "range": range_def["range"],
+                    "label": range_def["label"],
+                    "count": count,
+                    "percentage": percentage,
+                    "color": range_def["color"]
+                })
+            
+            # Calculate average and median
+            average_score = round(sum(scores) / len(scores), 1) if scores else None
+            median_score = round(sorted(scores)[len(scores) // 2], 1) if scores else None
+            
+            result = {
+                "distribution": distribution,
+                "total_rated": total_rated,
+                "average_score": average_score,
+                "median_score": median_score
+            }
+            
+            logger.info(f"Generated score distribution for {total_rated} albums")
+            return result
+            
+        except Exception as e:
+            logger.error(f"Failed to get score distribution: {e}")
+            raise TracklistException(f"Failed to get score distribution: {str(e)}")
+    
     def get_no_skip_albums(
         self, 
         db: Session, 

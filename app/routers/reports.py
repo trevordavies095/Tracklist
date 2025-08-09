@@ -209,6 +209,93 @@ async def get_top_albums(
         )
 
 
+@router.get("/distribution")
+async def get_score_distribution(
+    service: ReportingService = Depends(get_reporting_service),
+    db: Session = Depends(get_db)
+):
+    """
+    Get distribution of album scores
+    
+    Returns the count and percentage of albums in different score ranges.
+    Score ranges:
+    - 0-20: Very Poor
+    - 21-40: Poor  
+    - 41-60: Average
+    - 61-80: Good
+    - 81-100: Excellent
+    
+    Example response:
+    ```json
+    {
+        "distribution": [
+            {
+                "range": "0-20",
+                "label": "Very Poor",
+                "count": 2,
+                "percentage": 2.3,
+                "color": "#dc2626"
+            },
+            {
+                "range": "21-40",
+                "label": "Poor",
+                "count": 8,
+                "percentage": 9.2,
+                "color": "#f97316"
+            },
+            {
+                "range": "41-60",
+                "label": "Average",
+                "count": 25,
+                "percentage": 28.7,
+                "color": "#eab308"
+            },
+            {
+                "range": "61-80",
+                "label": "Good",
+                "count": 35,
+                "percentage": 40.2,
+                "color": "#84cc16"
+            },
+            {
+                "range": "81-100",
+                "label": "Excellent",
+                "count": 17,
+                "percentage": 19.5,
+                "color": "#22c55e"
+            }
+        ],
+        "total_rated": 87,
+        "average_score": 62.5,
+        "median_score": 65
+    }
+    ```
+    """
+    try:
+        logger.info("Fetching score distribution")
+        distribution = service.get_score_distribution(db)
+        return distribution
+        
+    except TracklistException as e:
+        logger.error(f"Failed to get score distribution: {e.message}")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Failed to get score distribution",
+                "message": str(e)
+            }
+        )
+    except Exception as e:
+        logger.error(f"Unexpected error getting score distribution: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Internal server error",
+                "message": "Failed to retrieve score distribution"
+            }
+        )
+
+
 @router.get("/no-skips")
 async def get_no_skip_albums(
     limit: Optional[int] = Query(default=None, ge=1, le=100, description="Optional limit on number of albums to return"),

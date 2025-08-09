@@ -49,7 +49,7 @@
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             <!-- Rating Distribution Card -->
             <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <h2 class="text-lg font-semibold text-gray-900 mb-4">Rating Distribution</h2>
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Track Rating Distribution</h2>
                 <div id="rating-distribution" class="space-y-3">
                     <!-- Distribution bars will be inserted here -->
                 </div>
@@ -60,6 +60,16 @@
                 <h2 class="text-lg font-semibold text-gray-900 mb-4">Collection Overview</h2>
                 <div id="collection-overview">
                     <!-- Overview content will be inserted here -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- Album Score Distribution -->
+        <div class="mb-8">
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Album Score Distribution</h2>
+                <div id="score-distribution-chart">
+                    <!-- Score distribution chart will be inserted here -->
                 </div>
             </div>
         </div>
@@ -191,6 +201,7 @@ async function loadStatistics() {
         showSectionLoading('in-progress-list');
         showSectionLoading('no-skips-list');
         showSectionLoading('top-albums-list');
+        showSectionLoading('score-distribution-chart');
         
         // Fetch activity data and render when ready
         fetch('/api/v1/reports/activity?limit=5')
@@ -207,6 +218,14 @@ async function loadStatistics() {
                 renderTopAlbums(topAlbums);
             })
             .catch(error => console.error('Error loading top albums:', error));
+        
+        // Fetch score distribution and render when ready
+        fetch('/api/v1/reports/distribution')
+            .then(response => response.json())
+            .then(distribution => {
+                renderScoreDistribution(distribution);
+            })
+            .catch(error => console.error('Error loading score distribution:', error));
         
         // Fetch no-skips data (this is the slow one) and update when ready
         fetch('/api/v1/reports/no-skips?limit=12')
@@ -558,6 +577,101 @@ function renderTopAlbums(albums) {
             <p class="text-center text-gray-500 py-8">No rated albums yet</p>
         `;
     }
+}
+
+function renderScoreDistribution(data) {
+    if (!data || !data.distribution || data.total_rated === 0) {
+        document.getElementById('score-distribution-chart').innerHTML = `
+            <div class="text-center py-8 text-gray-500">
+                <svg class="w-16 h-16 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                </svg>
+                <p class="text-lg font-medium mb-2">No Album Scores Yet</p>
+                <p class="text-sm">Start rating albums to see your score distribution</p>
+            </div>
+        `;
+        return;
+    }
+
+    // Find the maximum count for scaling
+    const maxCount = Math.max(...data.distribution.map(d => d.count));
+    const maxHeight = 200; // Maximum height in pixels
+
+    // Create the chart HTML with bars and hover tooltips
+    const chartHtml = `
+        <div class="space-y-6">
+            <!-- Chart area -->
+            <div class="relative">
+                <!-- Bar chart -->
+                <div class="flex items-end justify-between space-x-2" style="height: ${maxHeight}px;">
+                    ${data.distribution.map((range, index) => {
+                        const height = maxCount > 0 ? (range.count / maxCount) * maxHeight : 0;
+                        return `
+                            <div class="flex-1 relative group">
+                                <!-- Bar -->
+                                <div class="absolute bottom-0 w-full rounded-t-lg transition-all duration-300 hover:opacity-80 cursor-pointer"
+                                     style="background-color: ${range.color}; height: ${height}px;"
+                                     title="${range.label}: ${range.count} albums (${range.percentage}%)">
+                                    
+                                    <!-- Hover tooltip -->
+                                    <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block z-10">
+                                        <div class="bg-gray-900 text-white text-xs rounded-lg py-2 px-3 whitespace-nowrap">
+                                            <div class="font-semibold">${range.label}</div>
+                                            <div>${range.count} ${range.count === 1 ? 'album' : 'albums'}</div>
+                                            <div>${range.percentage}%</div>
+                                        </div>
+                                        <div class="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                                    </div>
+                                    
+                                    <!-- Count label on bar (if there's room) -->
+                                    ${height > 30 ? `
+                                        <div class="absolute top-2 left-0 right-0 text-center">
+                                            <span class="text-white font-semibold text-sm">${range.count}</span>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                                
+                                <!-- Count label below bar (if bar is too small) -->
+                                ${height <= 30 && range.count > 0 ? `
+                                    <div class="absolute -bottom-6 left-0 right-0 text-center">
+                                        <span class="text-gray-600 font-semibold text-xs">${range.count}</span>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+                
+                <!-- X-axis labels -->
+                <div class="flex justify-between mt-8">
+                    ${data.distribution.map(range => `
+                        <div class="flex-1 text-center">
+                            <div class="text-xs font-medium text-gray-700">${range.label}</div>
+                            <div class="text-xs text-gray-500">${range.range}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+            
+            <!-- Statistics summary -->
+            <div class="border-t pt-4 grid grid-cols-3 gap-4 text-center">
+                <div>
+                    <div class="text-sm text-gray-600">Total Rated</div>
+                    <div class="text-lg font-semibold text-gray-900">${data.total_rated}</div>
+                </div>
+                <div>
+                    <div class="text-sm text-gray-600">Average Score</div>
+                    <div class="text-lg font-semibold ${getScoreColor(data.average_score)}">${data.average_score || '—'}</div>
+                </div>
+                <div>
+                    <div class="text-sm text-gray-600">Median Score</div>
+                    <div class="text-lg font-semibold ${getScoreColor(data.median_score)}">${data.median_score || '—'}</div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('score-distribution-chart').innerHTML = chartHtml;
 }
 
 // Load statistics when page loads
