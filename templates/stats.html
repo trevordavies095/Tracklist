@@ -120,6 +120,19 @@
             </div>
         </div>
         
+        <!-- Top Artist -->
+        <div class="mb-8">
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold text-gray-900">Most Rated Artist</h2>
+                <p class="text-sm text-gray-600 mt-1">The artist you've rated the most albums from</p>
+            </div>
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div id="top-artist-section">
+                    <!-- Top artist will be inserted here -->
+                </div>
+            </div>
+        </div>
+        
         <!-- Top Albums -->
         <div class="mb-8">
             <div class="mb-6">
@@ -203,6 +216,7 @@ async function loadStatistics() {
         showSectionLoading('recently-rated-list');
         showSectionLoading('in-progress-list');
         showSectionLoading('no-skips-list');
+        showSectionLoading('top-artist-section');
         showSectionLoading('top-albums-list');
         showSectionLoading('score-distribution-chart');
         
@@ -213,6 +227,14 @@ async function loadStatistics() {
                 renderRecentActivity(activity);
             })
             .catch(error => console.error('Error loading activity:', error));
+        
+        // Fetch top artist and render when ready
+        fetch('/api/v1/reports/top-artist')
+            .then(response => response.json())
+            .then(topArtist => {
+                renderTopArtist(topArtist);
+            })
+            .catch(error => console.error('Error loading top artist:', error));
         
         // Fetch top albums and render when ready (random selection from top 25)
         fetch('/api/v1/reports/top-albums?limit=5&randomize=true&pool_size=25')
@@ -556,6 +578,114 @@ function renderRecentActivity(activity) {
             <p class="text-sm text-gray-500 text-center py-4">No albums in progress</p>
         `;
     }
+}
+
+function renderTopArtist(topArtist) {
+    if (!topArtist || !topArtist.artist_name) {
+        document.getElementById('top-artist-section').innerHTML = `
+            <div class="text-center py-8 text-gray-500">
+                <svg class="w-16 h-16 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                </svg>
+                <p class="text-lg font-medium mb-2">No Artist Data Yet</p>
+                <p class="text-sm">Start rating albums to see your most rated artist</p>
+            </div>
+        `;
+        return;
+    }
+    
+    const avgScoreColor = getScoreColor(topArtist.average_score);
+    
+    let topArtistHtml = `
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Artist Info Card -->
+            <div class="lg:col-span-1">
+                <div class="flex items-center space-x-4 mb-4">
+                    <div class="flex items-center justify-center w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-gray-900">${topArtist.artist_name}</h3>
+                        <p class="text-sm text-gray-600">Most Rated Artist</p>
+                    </div>
+                </div>
+                
+                <div class="space-y-3 bg-gray-50 rounded-lg p-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600">Albums Rated</span>
+                        <span class="text-lg font-bold text-gray-900">${topArtist.album_count}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600">Average Score</span>
+                        <span class="text-lg font-bold ${avgScoreColor}">${topArtist.average_score || '—'}</span>
+                    </div>
+                </div>
+                
+                ${topArtist.tied_with && topArtist.tied_with.length > 0 ? `
+                    <div class="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                        <p class="text-xs font-medium text-amber-800 mb-2">Tied with:</p>
+                        <div class="space-y-1">
+                            ${topArtist.tied_with.map(artist => `
+                                <div class="text-sm text-amber-700">
+                                    <span class="font-medium">${artist.name}</span>
+                                    <span class="text-xs">(avg: ${artist.average_score || '—'})</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                ` : ''}
+            </div>
+            
+            <!-- Top Albums from Artist -->
+            <div class="lg:col-span-2">
+                <h4 class="text-sm font-semibold text-gray-700 mb-3">Top Albums by ${topArtist.artist_name}</h4>
+                ${topArtist.top_albums && topArtist.top_albums.length > 0 ? `
+                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+                        ${topArtist.top_albums.map(album => `
+                            <div class="group">
+                                <a href="/albums/${album.id}/completed" class="block">
+                                    <div class="aspect-square overflow-hidden rounded-lg bg-gray-100 mb-2 shadow-sm group-hover:shadow-md transition-shadow">
+                                        ${album.cover_art_url ? `
+                                            <img src="${album.cover_art_url}" 
+                                                 alt="${album.name}" 
+                                                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                            <div class="w-full h-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center" style="display:none;">
+                                                <svg class="w-8 h-8 text-white opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+                                                </svg>
+                                            </div>
+                                        ` : `
+                                            <div class="w-full h-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center">
+                                                <svg class="w-8 h-8 text-white opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+                                                </svg>
+                                            </div>
+                                        `}
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-medium text-gray-900 truncate group-hover:text-blue-600 transition-colors">
+                                            ${album.name}
+                                        </p>
+                                        <div class="flex items-center justify-between mt-1">
+                                            <span class="text-sm font-bold ${getScoreColor(album.score)}">${album.score}</span>
+                                            ${album.year ? `<span class="text-xs text-gray-500">${album.year}</span>` : ''}
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                        `).join('')}
+                    </div>
+                ` : `
+                    <p class="text-sm text-gray-500">No albums rated yet</p>
+                `}
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('top-artist-section').innerHTML = topArtistHtml;
 }
 
 function renderTopAlbums(albums) {
