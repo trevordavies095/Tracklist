@@ -488,6 +488,62 @@ class ReportingService:
             "musicbrainz_id": album.musicbrainz_id
         }
     
+    def get_worst_albums(
+        self, 
+        db: Session, 
+        limit: int = 5,
+        randomize: bool = True,
+        pool_size: int = 20
+    ) -> List[Dict[str, Any]]:
+        """
+        Get the lowest rated albums
+        
+        Args:
+            db: Database session
+            limit: Maximum number of albums to return
+            randomize: Whether to randomly select from worst albums
+            pool_size: Size of worst album pool to select from when randomizing
+            
+        Returns:
+            List of worst rated albums with scores
+        """
+        try:
+            if randomize:
+                # Get a larger pool of worst albums
+                worst_album_pool = (
+                    db.query(Album)
+                    .filter(Album.is_rated == True)
+                    .order_by(Album.rating_score.asc())
+                    .limit(pool_size)
+                    .all()
+                )
+                
+                # Randomly select from the pool
+                if len(worst_album_pool) <= limit:
+                    selected_albums = worst_album_pool
+                else:
+                    selected_albums = random.sample(worst_album_pool, limit)
+                    # Sort selected albums by score ascending for display
+                    selected_albums.sort(key=lambda x: x.rating_score or 100)
+            else:
+                # Get worst albums in order
+                selected_albums = (
+                    db.query(Album)
+                    .filter(Album.is_rated == True)
+                    .order_by(Album.rating_score.asc())
+                    .limit(limit)
+                    .all()
+                )
+            
+            return [
+                self._format_album_summary(album)
+                for album in selected_albums
+            ]
+            
+        except Exception as e:
+            logger.error(f"Failed to get worst albums: {e}")
+            raise TracklistException(f"Failed to get worst albums: {str(e)}")
+    
     def get_top_artist(self, db: Session) -> Dict[str, Any]:
         """
         Get the artist with the most rated albums and their statistics
