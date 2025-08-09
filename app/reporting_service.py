@@ -229,7 +229,9 @@ class ReportingService:
     def get_top_albums(
         self, 
         db: Session, 
-        limit: int = 10
+        limit: int = 10,
+        randomize: bool = False,
+        pool_size: int = 20
     ) -> List[Dict[str, Any]]:
         """
         Get top rated albums
@@ -237,22 +239,43 @@ class ReportingService:
         Args:
             db: Database session
             limit: Maximum number of albums to return
+            randomize: Whether to randomly select from top albums
+            pool_size: Size of top album pool to select from when randomizing
             
         Returns:
             List of top rated albums with scores
         """
         try:
-            top_albums = (
-                db.query(Album)
-                .filter(Album.is_rated == True)
-                .order_by(Album.rating_score.desc())
-                .limit(limit)
-                .all()
-            )
+            if randomize:
+                # Get a larger pool of top albums
+                top_album_pool = (
+                    db.query(Album)
+                    .filter(Album.is_rated == True)
+                    .order_by(Album.rating_score.desc())
+                    .limit(pool_size)
+                    .all()
+                )
+                
+                # Randomly select from the pool
+                if len(top_album_pool) <= limit:
+                    selected_albums = top_album_pool
+                else:
+                    selected_albums = random.sample(top_album_pool, limit)
+                    # Sort selected albums by score for display
+                    selected_albums.sort(key=lambda x: x.rating_score or 0, reverse=True)
+            else:
+                # Get top albums in order
+                selected_albums = (
+                    db.query(Album)
+                    .filter(Album.is_rated == True)
+                    .order_by(Album.rating_score.desc())
+                    .limit(limit)
+                    .all()
+                )
             
             return [
                 self._format_album_summary(album)
-                for album in top_albums
+                for album in selected_albums
             ]
             
         except Exception as e:

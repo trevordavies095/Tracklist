@@ -149,6 +149,8 @@ async def get_recent_activity(
 @router.get("/top-albums")
 async def get_top_albums(
     limit: int = Query(default=10, ge=1, le=100, description="Maximum number of albums to return"),
+    randomize: bool = Query(default=False, description="Randomly select from top-rated albums"),
+    pool_size: int = Query(default=20, ge=5, le=100, description="Size of top album pool to select from when randomizing"),
     service: ReportingService = Depends(get_reporting_service),
     db: Session = Depends(get_db)
 ):
@@ -159,6 +161,8 @@ async def get_top_albums(
     
     Query Parameters:
     - limit: Maximum number of albums to return (1-100, default: 10)
+    - randomize: Whether to randomly select from top albums (default: false)
+    - pool_size: When randomizing, size of top album pool to select from (5-100, default: 20)
     
     Example response:
     ```json
@@ -185,8 +189,8 @@ async def get_top_albums(
     ```
     """
     try:
-        logger.info(f"Fetching top {limit} albums")
-        top_albums = service.get_top_albums(db, limit=limit)
+        logger.info(f"Fetching top {limit} albums (randomize={randomize}, pool_size={pool_size})")
+        top_albums = service.get_top_albums(db, limit=limit, randomize=randomize, pool_size=pool_size)
         return top_albums
         
     except TracklistException as e:
