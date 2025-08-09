@@ -72,7 +72,7 @@
             <!-- Filter Tabs and Controls -->
             <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
                 <!-- Filter Tabs -->
-                <div class="flex space-x-1" x-data="{ activeFilter: 'all' }">
+                <div class="flex space-x-1" x-data="{ activeFilter: new URLSearchParams(window.location.search).get('filter') || 'all' }" x-init="$watch('activeFilter', value => loadAlbums(value))">
                     <button @click="activeFilter = 'all'; loadAlbums('all')"
                             :class="activeFilter === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
                             class="px-4 py-2 rounded-md text-sm font-medium transition-colors">
@@ -83,8 +83,8 @@
                             class="px-4 py-2 rounded-md text-sm font-medium transition-colors">
                         Completed
                     </button>
-                    <button @click="activeFilter = 'drafts'; loadAlbums('drafts')"
-                            :class="activeFilter === 'drafts' ? 'bg-amber-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                    <button @click="activeFilter = 'in-progress'; loadAlbums('in-progress')"
+                            :class="activeFilter === 'in-progress' ? 'bg-amber-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
                             class="px-4 py-2 rounded-md text-sm font-medium transition-colors">
                         In Progress
                     </button>
@@ -288,7 +288,7 @@ async function loadAlbums(filter) {
     
     if (filter === 'completed') {
         url += '&rated=true';
-    } else if (filter === 'drafts') {
+    } else if (filter === 'drafts' || filter === 'in-progress') {
         url += '&rated=false';
     }
     // 'all' uses default (no filter)
@@ -329,8 +329,10 @@ async function loadAlbums(filter) {
 document.addEventListener('DOMContentLoaded', function() {
     // Show loading state initially
     document.getElementById('albums-loading').style.display = 'grid';
-    // Load initial albums
-    loadAlbums('all');
+    // Load initial albums based on URL parameter or default to 'all'
+    const urlParams = new URLSearchParams(window.location.search);
+    const filter = urlParams.get('filter') || 'all';
+    loadAlbums(filter);
 });
 
 function renderAlbums(data) {
@@ -508,7 +510,7 @@ async function loadMoreAlbums(offset) {
     
     if (activeFilter === 'completed') {
         url += '&rated=true';
-    } else if (activeFilter === 'drafts') {
+    } else if (activeFilter === 'drafts' || activeFilter === 'in-progress') {
         url += '&rated=false';
     }
     
@@ -553,7 +555,7 @@ function getCurrentFilter() {
         if (button.classList.contains('bg-blue-600') || button.classList.contains('bg-green-600') || button.classList.contains('bg-amber-600')) {
             const text = button.textContent.trim();
             if (text === 'Completed') return 'completed';
-            if (text === 'In Progress') return 'drafts';
+            if (text === 'In Progress') return 'in-progress';
         }
     }
     return 'all'; // Default
