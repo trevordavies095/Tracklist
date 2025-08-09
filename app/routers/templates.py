@@ -42,6 +42,14 @@ async def albums_page(request: Request):
     })
 
 
+@router.get("/stats", response_class=HTMLResponse)
+async def stats_page(request: Request):
+    """User statistics dashboard page"""
+    return templates.TemplateResponse("stats.html", {
+        "request": request
+    })
+
+
 @router.get("/artists/{artist_id}/albums", response_class=HTMLResponse)
 async def artist_albums_page(
     request: Request,
