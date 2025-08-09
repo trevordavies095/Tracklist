@@ -487,6 +487,110 @@ class ReportingService:
             "average_track_rating": round(sum(track_ratings) / len(track_ratings), 2) if track_ratings else 0,
             "musicbrainz_id": album.musicbrainz_id
         }
+    
+    def get_top_artist(self, db: Session) -> Dict[str, Any]:
+        """
+        Get the artist with the most rated albums and their statistics
+        
+        Args:
+            db: Database session
+            
+        Returns:
+            Dict with top artist information including:
+            - artist_name: Name of the artist
+            - artist_id: Database ID of the artist
+            - album_count: Number of rated albums
+            - average_score: Average score across all their albums
+            - top_albums: List of their top rated albums (up to 5)
+        """
+        try:
+            # Query to get artists with their rated album counts and scores
+            from sqlalchemy import func, desc
+            
+            # Get all fully rated albums with their artists
+            artist_stats = (
+                db.query(
+                    Artist.id,
+                    Artist.name,
+                    func.count(Album.id).label('album_count'),
+                    func.avg(Album.rating_score).label('avg_score')
+                )
+                .join(Album, Artist.id == Album.artist_id)
+                .filter(Album.is_rated == True)
+                .group_by(Artist.id, Artist.name)
+                .order_by(desc('album_count'), desc('avg_score'))
+                .all()
+            )
+            
+            if not artist_stats:
+                return {
+                    "artist_name": None,
+                    "artist_id": None,
+                    "album_count": 0,
+                    "average_score": None,
+                    "top_albums": [],
+                    "message": "No rated albums yet"
+                }
+            
+            # Get the top artist(s) - handle ties
+            top_count = artist_stats[0].album_count
+            top_artists = [
+                artist for artist in artist_stats 
+                if artist.album_count == top_count
+            ]
+            
+            # If there's a tie, pick the one with higher average score
+            if len(top_artists) > 1:
+                top_artists.sort(key=lambda x: x.avg_score or 0, reverse=True)
+            
+            top_artist = top_artists[0]
+            
+            # Get the top albums for this artist
+            top_albums = (
+                db.query(Album)
+                .filter(
+                    Album.artist_id == top_artist.id,
+                    Album.is_rated == True
+                )
+                .order_by(Album.rating_score.desc())
+                .limit(5)
+                .all()
+            )
+            
+            result = {
+                "artist_name": top_artist.name,
+                "artist_id": top_artist.id,
+                "album_count": top_artist.album_count,
+                "average_score": round(top_artist.avg_score, 1) if top_artist.avg_score else None,
+                "top_albums": [
+                    {
+                        "id": album.id,
+                        "name": album.name,
+                        "year": album.release_year,
+                        "score": album.rating_score,
+                        "cover_art_url": album.cover_art_url,
+                        "rated_at": album.rated_at.isoformat() if album.rated_at else None
+                    }
+                    for album in top_albums
+                ]
+            }
+            
+            # Check if there are other artists with the same count (ties)
+            tied_artists = [
+                {"name": artist.name, "id": artist.id, "average_score": round(artist.avg_score, 1) if artist.avg_score else None}
+                for artist in artist_stats[1:]
+                if artist.album_count == top_count
+            ]
+            
+            if tied_artists:
+                result["tied_with"] = tied_artists
+            
+            logger.info(f"Top artist: {top_artist.name} with {top_artist.album_count} rated albums")
+            return result
+            
+        except Exception as e:
+            logger.error(f"Failed to get top artist: {e}")
+            raise TracklistException(f"Failed to get top artist: {str(e)}")
 
 
 # Singleton instance

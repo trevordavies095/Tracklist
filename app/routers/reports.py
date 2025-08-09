@@ -300,6 +300,81 @@ async def get_score_distribution(
         )
 
 
+@router.get("/top-artist")
+async def get_top_artist(
+    service: ReportingService = Depends(get_reporting_service),
+    db: Session = Depends(get_db)
+):
+    """
+    Get the artist with the most rated albums
+    
+    Returns information about the artist you've rated the most, including:
+    - Artist name and ID
+    - Number of albums rated
+    - Average score across their albums
+    - Their top 5 highest-rated albums
+    - Any artists tied with the same album count
+    
+    Example response:
+    ```json
+    {
+        "artist_name": "Radiohead",
+        "artist_id": 123,
+        "album_count": 8,
+        "average_score": 82.5,
+        "top_albums": [
+            {
+                "id": 45,
+                "name": "OK Computer",
+                "year": 1997,
+                "score": 95,
+                "cover_art_url": "https://...",
+                "rated_at": "2024-01-10T14:22:00"
+            },
+            {
+                "id": 67,
+                "name": "In Rainbows", 
+                "year": 2007,
+                "score": 93,
+                "cover_art_url": "https://...",
+                "rated_at": "2024-01-12T16:45:00"
+            }
+        ],
+        "tied_with": [
+            {
+                "name": "Pink Floyd",
+                "id": 124,
+                "average_score": 79.3
+            }
+        ]
+    }
+    ```
+    """
+    try:
+        logger.info("Fetching top artist statistics")
+        top_artist = service.get_top_artist(db)
+        return top_artist
+        
+    except TracklistException as e:
+        logger.error(f"Failed to get top artist: {e.message}")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Failed to get top artist",
+                "message": str(e)
+            }
+        )
+    except Exception as e:
+        logger.error(f"Unexpected error getting top artist: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Internal server error",
+                "message": "Failed to retrieve top artist"
+            }
+        )
+
+
 @router.get("/no-skips")
 async def get_no_skip_albums(
     limit: Optional[int] = Query(default=None, ge=1, le=100, description="Optional limit on number of albums to return"),
