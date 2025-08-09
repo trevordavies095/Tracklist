@@ -63,6 +63,61 @@ class MusicBrainzService:
                     {"query": query, "error": e.details}
                 )
     
+    async def search_albums_structured(
+        self,
+        artist: Optional[str] = None,
+        album: Optional[str] = None,
+        year: Optional[int] = None,
+        limit: int = 25,
+        offset: int = 0
+    ) -> Dict[str, Any]:
+        """
+        Search for albums using structured Lucene query with caching
+        
+        Args:
+            artist: Artist name to search for
+            album: Album title to search for
+            year: Release year to filter by
+            limit: Maximum number of results
+            offset: Offset for pagination
+            
+        Returns:
+            Dict with formatted search results
+        """
+        # Build cache key from parameters
+        cache_key = f"structured:{artist or ''}:{album or ''}:{year or ''}:{limit}:{offset}"
+        
+        # Check cache first
+        cached_result = self.cache.get(cache_key)
+        if cached_result:
+            logger.info(f"Returning cached structured search results for: artist={artist}, album={album}, year={year}")
+            return cached_result
+        
+        # Make API call
+        async with MusicBrainzClient() as client:
+            try:
+                raw_data = await client.search_releases_structured(
+                    artist=artist,
+                    album=album,
+                    year=year,
+                    limit=limit,
+                    offset=offset
+                )
+                result = self._format_search_results(raw_data)
+                
+                # Cache the result for 30 minutes
+                self.cache.set(result, 1800, cache_key)
+                
+                logger.info(f"Structured search completed: {len(result.get('releases', []))} results")
+                return result
+                
+            except MusicBrainzAPIError as e:
+                logger.error(f"MusicBrainz structured search failed: {e.message}")
+                raise TracklistException(
+                    f"Structured album search failed: {e.message}",
+                    {"artist": artist, "album": album, "year": year, "error": e.details}
+                )
+    
     async def get_album_details(self, release_id: str) -> Dict[str, Any]:
         """
         Get detailed album information with caching

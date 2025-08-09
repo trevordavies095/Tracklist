@@ -151,6 +151,64 @@ class MusicBrainzClient:
         
         return await self._make_request("release", params)
     
+    async def search_releases_structured(
+        self,
+        artist: Optional[str] = None,
+        album: Optional[str] = None,
+        year: Optional[int] = None,
+        limit: int = 25,
+        offset: int = 0
+    ) -> Dict[str, Any]:
+        """
+        Search for releases using structured Lucene query
+        
+        Args:
+            artist: Artist name to search for
+            album: Album title to search for
+            year: Release year to filter by
+            limit: Maximum number of results (default 25, max 100)
+            offset: Offset for pagination
+            
+        Returns:
+            Dict containing search results with releases
+        """
+        limit = min(limit, 100)  # MusicBrainz API limit
+        
+        # Build Lucene query
+        query_parts = []
+        
+        if artist:
+            # Escape special characters and quote the artist name
+            escaped_artist = artist.replace('"', '\\"')
+            query_parts.append(f'artist:"{escaped_artist}"')
+        
+        if album:
+            # Escape special characters and quote the album title
+            escaped_album = album.replace('"', '\\"')
+            query_parts.append(f'release:"{escaped_album}"')
+        
+        if year:
+            # Use date field for year filtering
+            # MusicBrainz accepts date:YYYY or date:[YYYY-01-01 TO YYYY-12-31]
+            query_parts.append(f'date:{year}')
+        
+        # Join query parts with AND operator
+        query = " AND ".join(query_parts)
+        
+        # Fallback to empty query if no parts
+        if not query:
+            query = "*"
+        
+        logger.debug(f"Structured Lucene query: {query}")
+        
+        params = {
+            "query": query,
+            "limit": limit,
+            "offset": offset
+        }
+        
+        return await self._make_request("release", params)
+    
     async def search_releases_by_release_group(
         self, 
         release_group_id: str, 

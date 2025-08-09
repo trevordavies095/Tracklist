@@ -3,6 +3,24 @@
 
 {% if albums and albums|length > 0 %}
 <div class="space-y-4">
+    <!-- Search Context Display -->
+    {% if search_context %}
+    <div class="bg-blue-50 border border-blue-200 rounded-lg px-4 py-2 text-sm">
+        {% if search_context.type == 'direct_lookup' %}
+            <span class="text-blue-800">Direct album lookup via MusicBrainz ID</span>
+        {% elif search_context.type == 'structured' %}
+            <span class="text-blue-800">Showing results for: 
+                {% if search_context.artist %}<strong>Artist:</strong> {{ search_context.artist }}{% endif %}
+                {% if search_context.artist and search_context.album %}, {% endif %}
+                {% if search_context.album %}<strong>Album:</strong> {{ search_context.album }}{% endif %}
+                {% if search_context.year %}{% if search_context.artist or search_context.album %}, {% endif %}<strong>Year:</strong> {{ search_context.year }}{% endif %}
+            </span>
+        {% else %}
+            <span class="text-blue-800">General search for: <strong>{{ search_context.query }}</strong></span>
+        {% endif %}
+    </div>
+    {% endif %}
+    
     <!-- Results Header -->
     <div class="flex justify-between items-center">
         <h3 class="text-lg font-semibold text-gray-900">
@@ -36,7 +54,12 @@
                 
                 <!-- Album Details -->
                 <div class="flex-1 min-w-0">
-                    <h4 class="text-lg font-semibold text-gray-900 mb-1">{{ album.title }}</h4>
+                    <h4 class="text-lg font-semibold text-gray-900 mb-1">
+                        {{ album.title }}
+                        {% if album.year %}
+                        <span class="text-sm font-normal text-gray-500">({{ album.year }})</span>
+                        {% endif %}
+                    </h4>
                     <p class="text-md text-gray-600 mb-3">by {{ album.artist }}</p>
                     
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-500 mb-4">
@@ -141,7 +164,7 @@
     <div class="flex justify-between items-center pt-6 border-t border-gray-200">
         <div class="text-sm text-gray-500">
             {% if offset > 0 %}
-            <button hx-get="/api/v1/search/albums?query={{ query }}&offset={{ offset - limit }}&limit={{ limit }}"
+            <button hx-get="/api/v1/search/albums?{% if query %}q={{ query }}&{% endif %}{% if artist %}artist={{ artist }}&{% endif %}{% if album %}album={{ album }}&{% endif %}{% if year %}year={{ year }}&{% endif %}{% if mbid %}mbid={{ mbid }}&{% endif %}offset={{ offset - limit }}&limit={{ limit }}"
                     hx-target="#search-results" 
                     hx-indicator="#search-loading"
                     class="text-blue-600 hover:text-blue-800 font-medium">
@@ -156,7 +179,7 @@
         
         <div class="text-sm text-gray-500">
             {% if has_more %}
-            <button hx-get="/api/v1/search/albums?query={{ query }}&offset={{ offset + limit }}&limit={{ limit }}"
+            <button hx-get="/api/v1/search/albums?{% if query %}q={{ query }}&{% endif %}{% if artist %}artist={{ artist }}&{% endif %}{% if album %}album={{ album }}&{% endif %}{% if year %}year={{ year }}&{% endif %}{% if mbid %}mbid={{ mbid }}&{% endif %}offset={{ offset + limit }}&limit={{ limit }}"
                     hx-target="#search-results" 
                     hx-indicator="#search-loading"
                     class="text-blue-600 hover:text-blue-800 font-medium">
