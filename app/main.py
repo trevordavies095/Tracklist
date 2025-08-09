@@ -7,7 +7,7 @@ import os
 from .database import create_tables, init_db
 from .exceptions import TracklistException, NotFoundError, ValidationError, ConflictError
 from .logging_config import setup_logging
-from .routers import search, albums, templates
+from .routers import search, albums, templates, reports
 
 # Setup logging
 log_level = os.getenv("LOG_LEVEL", "INFO")
@@ -61,6 +61,10 @@ This API currently does not require authentication as it's designed for personal
         {
             "name": "search", 
             "description": "Search for albums in the MusicBrainz database"
+        },
+        {
+            "name": "reports",
+            "description": "User statistics and analytics - get insights into your album collection"
         }
     ]
 )
@@ -72,6 +76,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 app.include_router(templates.router)  # Template routes (no prefix)
 app.include_router(search.router)     # API routes
 app.include_router(albums.router)     # API routes
+app.include_router(reports.router)    # API routes for reporting
 
 
 @app.on_event("startup")
