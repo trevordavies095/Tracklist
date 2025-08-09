@@ -207,3 +207,69 @@ async def get_top_albums(
                 "message": "Failed to retrieve top albums"
             }
         )
+
+
+@router.get("/no-skips")
+async def get_no_skip_albums(
+    limit: Optional[int] = Query(default=None, ge=1, le=100, description="Optional limit on number of albums to return"),
+    randomize: bool = Query(default=True, description="Randomize album selection (default: true)"),
+    service: ReportingService = Depends(get_reporting_service),
+    db: Session = Depends(get_db)
+):
+    """
+    Get albums with no skip-worthy tracks
+    
+    Returns albums where all tracks are rated Good (0.67) or Standout (1.0).
+    These are albums with no Skip (0.0) or Filler (0.33) tracks.
+    
+    Query Parameters:
+    - limit: Optional maximum number of albums to return (1-100, default: all)
+    - randomize: Whether to randomize selection (default: true)
+    
+    Example response:
+    ```json
+    {
+        "albums": [
+            {
+                "id": 45,
+                "name": "OK Computer",
+                "artist": "Radiohead",
+                "artist_id": 12,
+                "year": 1997,
+                "score": 95,
+                "cover_art_url": "https://...",
+                "rated_at": "2024-01-10T14:22:00",
+                "total_tracks": 12,
+                "average_track_rating": 0.89,
+                "musicbrainz_id": "..."
+            }
+        ],
+        "total_count": 15,
+        "percentage": 12.5,
+        "total_rated_albums": 120
+    }
+    ```
+    """
+    try:
+        logger.info(f"Fetching no-skip albums (limit={limit}, randomize={randomize})")
+        no_skip_data = service.get_no_skip_albums(db, limit=limit, randomize=randomize)
+        return no_skip_data
+        
+    except TracklistException as e:
+        logger.error(f"Failed to get no-skip albums: {e.message}")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Failed to get no-skip albums",
+                "message": str(e)
+            }
+        )
+    except Exception as e:
+        logger.error(f"Unexpected error getting no-skip albums: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Internal server error",
+                "message": "Failed to retrieve no-skip albums"
+            }
+        )
