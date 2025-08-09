@@ -20,7 +20,11 @@ templates = Jinja2Templates(directory="templates")
 @router.get("/search/albums")
 async def search_albums(
     request: Request,
-    q: str = Query(..., description="Search query for albums", min_length=1, max_length=200),
+    q: Optional[str] = Query(None, description="General search query for albums", min_length=1, max_length=200),
+    artist: Optional[str] = Query(None, description="Artist name for structured search", max_length=200),
+    album: Optional[str] = Query(None, description="Album title for structured search", max_length=200),
+    year: Optional[int] = Query(None, description="Release year for structured search", ge=1900, le=2100),
+    mbid: Optional[str] = Query(None, description="MusicBrainz Release ID for direct lookup", regex="^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$"),
     limit: int = Query(25, description="Maximum number of results", ge=1, le=100),
     offset: int = Query(0, description="Offset for pagination", ge=0),
     service: MusicBrainzService = Depends(get_musicbrainz_service)
@@ -28,21 +32,91 @@ async def search_albums(
     """
     Search for albums using MusicBrainz
     
+    Supports multiple search methods:
+    1. General search: Uses the 'q' parameter for full-text search
+    2. Structured search: Uses artist, album, and/or year fields for precise queries
+    3. Direct lookup: Uses mbid for immediate album fetch
+    
     Returns paginated search results with album information including:
     - Album title and artist
     - Release year and country
     - Track count and media format
     - MusicBrainz ID for detailed lookup
-    
-    Query examples:
-    - Artist and album: "radiohead ok computer"
-    - Album only: "ok computer"
-    - Artist only: "radiohead"
     """
     try:
-        logger.info(f"Album search request: '{q}' (limit={limit}, offset={offset})")
+        # Validate that at least one search method is provided
+        if not any([q, artist, album, mbid]):
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "error": "Missing search parameters",
+                    "message": "Please provide at least one search parameter (q, artist, album, or mbid)"
+                }
+            )
         
-        results = await service.search_albums(q, limit, offset)
+        # Handle direct MusicBrainz ID lookup
+        if mbid:
+            logger.info(f"Direct album lookup request: {mbid}")
+            
+            # Use the existing album details endpoint internally
+            album_details = await service.get_album_details(mbid)
+            
+            # Format as search results for consistency
+            results = {
+                "releases": [{
+                    "musicbrainz_id": album_details["musicbrainz_id"],
+                    "title": album_details["title"],
+                    "artist": album_details["artist"]["name"],
+                    "date": album_details["date"],
+                    "year": album_details["year"],
+                    "country": album_details["country"],
+                    "status": album_details["status"],
+                    "packaging": album_details["packaging"],
+                    "track_count": album_details["total_tracks"],
+                    "media": []
+                }],
+                "count": 1,
+                "offset": 0,
+                "search_context": {
+                    "type": "direct_lookup",
+                    "mbid": mbid
+                }
+            }
+        
+        # Handle structured search
+        elif artist or album:
+            search_params = {
+                "artist": artist,
+                "album": album,
+                "year": year
+            }
+            logger.info(f"Structured album search request: {search_params}")
+            
+            results = await service.search_albums_structured(
+                artist=artist,
+                album=album,
+                year=year,
+                limit=limit,
+                offset=offset
+            )
+            
+            results["search_context"] = {
+                "type": "structured",
+                "artist": artist,
+                "album": album,
+                "year": year
+            }
+        
+        # Handle general search
+        else:
+            logger.info(f"General album search request: '{q}' (limit={limit}, offset={offset})")
+            
+            results = await service.search_albums(q, limit, offset)
+            
+            results["search_context"] = {
+                "type": "general",
+                "query": q
+            }
         
         # Add pagination metadata
         results["pagination"] = {
@@ -57,18 +131,26 @@ async def search_albums(
         # Check if this is an HTMX request
         hx_request = request.headers.get("HX-Request")
         if hx_request:
+            # Prepare template context
+            template_context = {
+                "request": request,
+                "albums": results.get("releases", []),
+                "total": results.get("count", 0),
+                "offset": offset,
+                "limit": limit,
+                "has_more": (offset + limit) < results.get("count", 0),
+                "search_context": results.get("search_context"),
+                "query": q,
+                "artist": artist,
+                "album": album,
+                "year": year,
+                "mbid": mbid
+            }
+            
             # Return HTML template for HTMX
             return templates.TemplateResponse(
                 "components/search_results.html",
-                {
-                    "request": request,
-                    "albums": results.get("releases", []),
-                    "total": results.get("count", 0),
-                    "offset": offset,
-                    "limit": limit,
-                    "has_more": (offset + limit) < results.get("count", 0),
-                    "query": q
-                }
+                template_context
             )
         
         # Return JSON for API calls
