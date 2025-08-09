@@ -5,18 +5,24 @@ Provides endpoints for retrieving album statistics and analytics
 
 from typing import Dict, Any, Optional, List
 from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy import func, and_
 import logging
+import random
 from datetime import datetime
 
 from .models import Album, Track, Artist
 from .exceptions import TracklistException
+from .cache import SimpleCache
 
 logger = logging.getLogger(__name__)
 
 
 class ReportingService:
     """Service for generating user statistics and reports"""
+    
+    def __init__(self):
+        """Initialize reporting service with cache"""
+        self.cache = SimpleCache(default_ttl=300, max_size=100)  # 5 minute cache for reports
     
     def get_overview_statistics(self, db: Session) -> Dict[str, Any]:
         """
@@ -252,6 +258,125 @@ class ReportingService:
         except Exception as e:
             logger.error(f"Failed to get top albums: {e}")
             raise TracklistException(f"Failed to get top albums: {str(e)}")
+    
+    def get_no_skip_albums(
+        self, 
+        db: Session, 
+        limit: Optional[int] = None,
+        randomize: bool = True
+    ) -> Dict[str, Any]:
+        """
+        Get albums with no skip-worthy tracks (all tracks rated >= 0.67)
+        
+        Args:
+            db: Database session
+            limit: Optional limit on number of albums to return
+            randomize: Whether to randomize the selection (default: True)
+            
+        Returns:
+            Dict with no-skip albums list, count, and percentage
+        """
+        # Don't cache randomized results
+        if not randomize:
+            cache_key = f"no_skips_{limit}"
+            cached_result = self.cache.get(cache_key)
+            if cached_result is not None:
+                logger.debug(f"Returning cached no-skip albums (limit={limit})")
+                return cached_result
+        
+        try:
+            # Get fully rated albums with their tracks eagerly loaded to avoid N+1 queries
+            from sqlalchemy.orm import joinedload
+            
+            fully_rated_albums = (
+                db.query(Album)
+                .filter(Album.is_rated == True)
+                .options(joinedload(Album.tracks))
+                .options(joinedload(Album.artist))
+                .all()
+            )
+            
+            no_skip_albums = []
+            
+            for album in fully_rated_albums:
+                # Check if all tracks have rating >= 0.67 (Good or Standout)
+                has_skips = any(
+                    track.track_rating is not None and track.track_rating < 0.67 
+                    for track in album.tracks
+                )
+                
+                if not has_skips and album.tracks:  # Ensure album has tracks
+                    no_skip_albums.append(album)
+            
+            # Store total count before limiting
+            total_no_skip_count = len(no_skip_albums)
+            
+            # Randomize or sort by score
+            if randomize and limit and len(no_skip_albums) > limit:
+                # Randomly select albums when limit is specified
+                no_skip_albums = random.sample(no_skip_albums, limit)
+                # Then sort the random selection by score for display
+                no_skip_albums.sort(key=lambda x: x.rating_score or 0, reverse=True)
+            else:
+                # Sort by rating score descending
+                no_skip_albums.sort(key=lambda x: x.rating_score or 0, reverse=True)
+                # Apply limit if specified
+                if limit:
+                    no_skip_albums = no_skip_albums[:limit]
+            
+            # Calculate percentage
+            total_rated = len(fully_rated_albums)
+            percentage = (
+                round((total_no_skip_count / total_rated) * 100, 1) 
+                if total_rated > 0 else 0
+            )
+            
+            result = {
+                "albums": [
+                    self._format_album_with_details(album, db)
+                    for album in no_skip_albums
+                ],
+                "total_count": total_no_skip_count,
+                "percentage": percentage,
+                "total_rated_albums": total_rated
+            }
+            
+            # Only cache non-randomized results
+            if not randomize:
+                self.cache.set(result, None, cache_key)
+            
+            logger.info(f"Found {total_no_skip_count} no-skip albums ({percentage}% of rated) - returning {len(no_skip_albums)} {'random' if randomize else 'top'} albums")
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"Failed to get no-skip albums: {e}")
+            raise TracklistException(f"Failed to get no-skip albums: {str(e)}")
+    
+    def _format_album_with_details(
+        self, 
+        album: Album, 
+        db: Session
+    ) -> Dict[str, Any]:
+        """Format album data with additional details for no-skip display"""
+        track_ratings = [
+            track.track_rating for track in album.tracks 
+            if track.track_rating is not None
+        ]
+        
+        return {
+            "id": album.id,
+            "name": album.name,
+            "artist": album.artist.name if album.artist else "Unknown Artist",
+            "artist_id": album.artist_id,
+            "year": album.release_year,
+            "score": album.rating_score,
+            "cover_art_url": album.cover_art_url,
+            "rated_at": album.rated_at.isoformat() if album.rated_at else None,
+            "total_tracks": len(album.tracks),
+            "average_track_rating": round(sum(track_ratings) / len(track_ratings), 2) if track_ratings else 0,
+            "musicbrainz_id": album.musicbrainz_id
+        }
 
 
 # Singleton instance
