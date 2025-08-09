@@ -45,6 +45,19 @@
             <!-- Cards will be inserted here by JavaScript -->
         </div>
         
+        <!-- Top Artist -->
+        <div class="mb-8">
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold text-gray-900">Most Rated Artist</h2>
+                <p class="text-sm text-gray-600 mt-1">The artist you've rated the most albums from</p>
+            </div>
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div id="top-artist-section">
+                    <!-- Top artist will be inserted here -->
+                </div>
+            </div>
+        </div>
+        
         <!-- Rating Distribution & Average Score -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             <!-- Rating Distribution Card -->
@@ -74,30 +87,15 @@
             </div>
         </div>
         
-        <!-- Recent Activity -->
+        <!-- Top Albums -->
         <div class="mb-8">
-            <h2 class="text-2xl font-bold text-gray-900 mb-6">Recent Activity</h2>
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <!-- Recently Rated Albums -->
-                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-lg font-semibold text-gray-900">Recently Rated</h3>
-                        <a href="/albums?filter=completed" class="text-blue-600 hover:text-blue-800 text-sm">View all →</a>
-                    </div>
-                    <div id="recently-rated-list" class="space-y-3">
-                        <!-- Albums will be inserted here -->
-                    </div>
-                </div>
-                
-                <!-- In Progress Albums -->
-                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-lg font-semibold text-gray-900">In Progress</h3>
-                        <a href="/albums?filter=in-progress" class="text-blue-600 hover:text-blue-800 text-sm">View all →</a>
-                    </div>
-                    <div id="in-progress-list" class="space-y-3">
-                        <!-- Albums will be inserted here -->
-                    </div>
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold text-gray-900">Top Rated Albums</h2>
+                <p class="text-sm text-gray-600 mt-1">Your highest-rated favorites</p>
+            </div>
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div id="top-albums-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+                    <!-- Top albums will be inserted here -->
                 </div>
             </div>
         </div>
@@ -116,32 +114,6 @@
             <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                 <div id="no-skips-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     <!-- No skip albums will be inserted here -->
-                </div>
-            </div>
-        </div>
-        
-        <!-- Top Artist -->
-        <div class="mb-8">
-            <div class="mb-6">
-                <h2 class="text-2xl font-bold text-gray-900">Most Rated Artist</h2>
-                <p class="text-sm text-gray-600 mt-1">The artist you've rated the most albums from</p>
-            </div>
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <div id="top-artist-section">
-                    <!-- Top artist will be inserted here -->
-                </div>
-            </div>
-        </div>
-        
-        <!-- Top Albums -->
-        <div class="mb-8">
-            <div class="mb-6">
-                <h2 class="text-2xl font-bold text-gray-900">Top Rated Albums</h2>
-                <p class="text-sm text-gray-600 mt-1">Your highest-rated favorites</p>
-            </div>
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <div id="top-albums-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-                    <!-- Top albums will be inserted here -->
                 </div>
             </div>
         </div>
@@ -226,21 +198,11 @@ async function loadStatistics() {
         renderCollectionOverview(overview);
         
         // Show loading placeholders for other sections
-        showSectionLoading('recently-rated-list');
-        showSectionLoading('in-progress-list');
         showSectionLoading('no-skips-list');
         showSectionLoading('top-artist-section');
         showSectionLoading('top-albums-list');
         showSectionLoading('worst-albums-list');
         showSectionLoading('score-distribution-chart');
-        
-        // Fetch activity data and render when ready
-        fetch('/api/v1/reports/activity?limit=5')
-            .then(response => response.json())
-            .then(activity => {
-                renderRecentActivity(activity);
-            })
-            .catch(error => console.error('Error loading activity:', error));
         
         // Fetch top artist and render when ready
         fetch('/api/v1/reports/top-artist')
@@ -535,73 +497,6 @@ function renderCollectionOverview(data) {
     document.getElementById('collection-overview').innerHTML = overviewHtml;
 }
 
-function renderRecentActivity(activity) {
-    // Render recently rated albums
-    if (activity.recently_rated && activity.recently_rated.length > 0) {
-        const recentlyRatedHtml = activity.recently_rated.map(album => `
-            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                <div class="flex items-center space-x-3 flex-1 min-w-0">
-                    ${album.cover_art_url ? `
-                        <img src="${album.cover_art_url}" alt="${album.name}" class="w-10 h-10 rounded object-cover flex-shrink-0">
-                    ` : `
-                        <div class="w-10 h-10 bg-gray-300 rounded flex items-center justify-center flex-shrink-0">
-                            <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
-                            </svg>
-                        </div>
-                    `}
-                    <div class="min-w-0 flex-1">
-                        <p class="text-sm font-medium text-gray-900 truncate">${album.name}</p>
-                        <p class="text-xs text-gray-600 truncate">${album.artist}</p>
-                    </div>
-                </div>
-                <div class="text-right ml-3 flex-shrink-0">
-                    <span class="text-lg font-bold ${getScoreColor(album.score)}">${album.score}</span>
-                </div>
-            </div>
-        `).join('');
-        document.getElementById('recently-rated-list').innerHTML = recentlyRatedHtml;
-    } else {
-        document.getElementById('recently-rated-list').innerHTML = `
-            <p class="text-sm text-gray-500 text-center py-4">No recently rated albums</p>
-        `;
-    }
-    
-    // Render in-progress albums
-    if (activity.in_progress && activity.in_progress.length > 0) {
-        const inProgressHtml = activity.in_progress.map(album => `
-            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                <div class="flex items-center space-x-3 flex-1 min-w-0">
-                    ${album.cover_art_url ? `
-                        <img src="${album.cover_art_url}" alt="${album.name}" class="w-10 h-10 rounded object-cover flex-shrink-0">
-                    ` : `
-                        <div class="w-10 h-10 bg-gray-300 rounded flex items-center justify-center flex-shrink-0">
-                            <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
-                            </svg>
-                        </div>
-                    `}
-                    <div class="min-w-0 flex-1">
-                        <p class="text-sm font-medium text-gray-900 truncate">${album.name}</p>
-                        <p class="text-xs text-gray-600 truncate">${album.artist}</p>
-                    </div>
-                </div>
-                <div class="text-right ml-3 flex-shrink-0">
-                    <div class="text-xs text-gray-600">${album.progress.percentage}%</div>
-                    <div class="w-16 bg-gray-200 rounded-full h-1.5 mt-1">
-                        <div class="bg-blue-600 h-1.5 rounded-full" style="width: ${album.progress.percentage}%"></div>
-                    </div>
-                </div>
-            </div>
-        `).join('');
-        document.getElementById('in-progress-list').innerHTML = inProgressHtml;
-    } else {
-        document.getElementById('in-progress-list').innerHTML = `
-            <p class="text-sm text-gray-500 text-center py-4">No albums in progress</p>
-        `;
-    }
-}
-
 function renderTopArtist(topArtist) {
     if (!topArtist || !topArtist.artist_name) {
         document.getElementById('top-artist-section').innerHTML = `
@@ -629,7 +524,11 @@ function renderTopArtist(topArtist) {
                         </svg>
                     </div>
                     <div>
-                        <h3 class="text-xl font-bold text-gray-900">${topArtist.artist_name}</h3>
+                        <h3 class="text-xl font-bold">
+                            <a href="/artists/${topArtist.artist_id}/albums" class="text-gray-900 hover:text-blue-600 transition-colors">
+                                ${topArtist.artist_name}
+                            </a>
+                        </h3>
                         <p class="text-sm text-gray-600">Most Rated Artist</p>
                     </div>
                 </div>
@@ -651,7 +550,9 @@ function renderTopArtist(topArtist) {
                         <div class="space-y-1">
                             ${topArtist.tied_with.map(artist => `
                                 <div class="text-sm text-amber-700">
-                                    <span class="font-medium">${artist.name}</span>
+                                    <a href="/artists/${artist.id}/albums" class="font-medium hover:text-amber-900 transition-colors">
+                                        ${artist.name}
+                                    </a>
                                     <span class="text-xs">(avg: ${artist.average_score || '—'})</span>
                                 </div>
                             `).join('')}
