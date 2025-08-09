@@ -1,0 +1,428 @@
+{% extends "base.html" %}
+
+{% block title %}Statistics - Tracklist{% endblock %}
+
+{% block nav_stats %}text-blue-600 border-b-2 border-blue-600{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <!-- Page Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Your Statistics</h1>
+        <p class="text-gray-600">Track your album rating progress and discover insights about your music taste</p>
+    </div>
+    
+    <!-- Loading State -->
+    <div id="stats-loading" class="space-y-6">
+        <!-- Overview Cards Loading -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {% for i in range(4) %}
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div class="loading-skeleton h-4 w-24 mb-2"></div>
+                <div class="loading-skeleton h-8 w-16 mb-1"></div>
+                <div class="loading-skeleton h-3 w-32"></div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Charts Loading -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div class="loading-skeleton h-6 w-32 mb-4"></div>
+                <div class="loading-skeleton h-64 w-full"></div>
+            </div>
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div class="loading-skeleton h-6 w-32 mb-4"></div>
+                <div class="loading-skeleton h-64 w-full"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Stats Content (Hidden initially, shown after data loads) -->
+    <div id="stats-content" style="display: none;">
+        <!-- Overview Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8" id="overview-cards">
+            <!-- Cards will be inserted here by JavaScript -->
+        </div>
+        
+        <!-- Rating Distribution & Average Score -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <!-- Rating Distribution Card -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Rating Distribution</h2>
+                <div id="rating-distribution" class="space-y-3">
+                    <!-- Distribution bars will be inserted here -->
+                </div>
+            </div>
+            
+            <!-- Average Score Card -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Collection Overview</h2>
+                <div id="collection-overview">
+                    <!-- Overview content will be inserted here -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Activity -->
+        <div class="mb-8">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">Recent Activity</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Recently Rated Albums -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900">Recently Rated</h3>
+                        <a href="/albums?filter=completed" class="text-blue-600 hover:text-blue-800 text-sm">View all →</a>
+                    </div>
+                    <div id="recently-rated-list" class="space-y-3">
+                        <!-- Albums will be inserted here -->
+                    </div>
+                </div>
+                
+                <!-- In Progress Albums -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900">In Progress</h3>
+                        <a href="/albums?filter=in-progress" class="text-blue-600 hover:text-blue-800 text-sm">View all →</a>
+                    </div>
+                    <div id="in-progress-list" class="space-y-3">
+                        <!-- Albums will be inserted here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Top Albums -->
+        <div class="mb-8">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">Top Rated Albums</h2>
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div id="top-albums-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Top albums will be inserted here -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Empty State (shown when no albums) -->
+    <div id="empty-state" style="display: none;" class="text-center py-16">
+        <div class="max-w-md mx-auto">
+            <svg class="w-24 h-24 mx-auto mb-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+            </svg>
+            <h2 class="text-2xl font-semibold text-gray-900 mb-3">No Statistics Yet</h2>
+            <p class="text-gray-600 mb-8">Start rating albums to see your statistics and insights</p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="/search" class="inline-flex items-center justify-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                    Search Albums
+                </a>
+                <a href="/" class="inline-flex items-center justify-center px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                    </svg>
+                    Go to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Utility function to get score color
+function getScoreColor(score) {
+    if (score === null || score === undefined) return 'text-gray-500';
+    if (score === 100) return 'text-green-800';
+    if (score >= 67) return 'text-green-600';
+    if (score >= 33) return 'text-amber-600';
+    return 'text-red-600';
+}
+
+// Utility function to format numbers
+function formatNumber(num) {
+    if (num === null || num === undefined) return '0';
+    return num.toLocaleString();
+}
+
+// Load all statistics
+async function loadStatistics() {
+    try {
+        // Fetch overview statistics
+        const overviewResponse = await fetch('/api/v1/reports/overview');
+        const overview = await overviewResponse.json();
+        
+        // Check if empty (no albums)
+        if (overview.total_albums === 0) {
+            document.getElementById('stats-loading').style.display = 'none';
+            document.getElementById('empty-state').style.display = 'block';
+            return;
+        }
+        
+        // Fetch additional data in parallel
+        const [activityResponse, topAlbumsResponse] = await Promise.all([
+            fetch('/api/v1/reports/activity?limit=5'),
+            fetch('/api/v1/reports/top-albums?limit=6')
+        ]);
+        
+        const activity = await activityResponse.json();
+        const topAlbums = await topAlbumsResponse.json();
+        
+        // Render overview cards
+        renderOverviewCards(overview);
+        
+        // Render rating distribution
+        renderRatingDistribution(overview.rating_distribution);
+        
+        // Render collection overview
+        renderCollectionOverview(overview);
+        
+        // Render recent activity
+        renderRecentActivity(activity);
+        
+        // Render top albums
+        renderTopAlbums(topAlbums);
+        
+        // Hide loading, show content
+        document.getElementById('stats-loading').style.display = 'none';
+        document.getElementById('stats-content').style.display = 'block';
+        
+    } catch (error) {
+        console.error('Error loading statistics:', error);
+        document.getElementById('stats-loading').innerHTML = `
+            <div class="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+                <svg class="w-12 h-12 mx-auto mb-3 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+                <h3 class="text-lg font-semibold text-red-800 mb-2">Error Loading Statistics</h3>
+                <p class="text-red-600">Unable to load your statistics. Please try again later.</p>
+            </div>
+        `;
+    }
+}
+
+function renderOverviewCards(data) {
+    const cards = [
+        {
+            title: 'Total Albums',
+            value: data.total_albums,
+            subtitle: 'In your collection',
+            icon: 'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10',
+            color: 'blue'
+        },
+        {
+            title: 'Fully Rated',
+            value: data.fully_rated_count,
+            subtitle: `${Math.round((data.fully_rated_count / data.total_albums) * 100)}% complete`,
+            icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z',
+            color: 'green'
+        },
+        {
+            title: 'Average Score',
+            value: data.average_album_score !== null ? Math.round(data.average_album_score) : '-',
+            subtitle: 'Out of 100',
+            icon: 'M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z',
+            color: 'purple'
+        },
+        {
+            title: 'Tracks Rated',
+            value: formatNumber(data.total_tracks_rated),
+            subtitle: 'Individual tracks',
+            icon: 'M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3',
+            color: 'indigo'
+        }
+    ];
+    
+    const cardsHtml = cards.map(card => `
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center justify-center w-10 h-10 bg-${card.color}-100 rounded-lg">
+                    <svg class="w-6 h-6 text-${card.color}-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${card.icon}"></path>
+                    </svg>
+                </div>
+            </div>
+            <p class="text-sm font-medium text-gray-600 mb-1">${card.title}</p>
+            <p class="text-2xl font-bold text-gray-900">${card.value}</p>
+            <p class="text-xs text-gray-500 mt-1">${card.subtitle}</p>
+        </div>
+    `).join('');
+    
+    document.getElementById('overview-cards').innerHTML = cardsHtml;
+}
+
+function renderRatingDistribution(distribution) {
+    const total = Object.values(distribution).reduce((sum, count) => sum + count, 0);
+    const ratings = [
+        { name: 'Standout', count: distribution.standout, color: 'bg-green-600', percent: 0 },
+        { name: 'Good', count: distribution.good, color: 'bg-green-400', percent: 0 },
+        { name: 'Filler', count: distribution.filler, color: 'bg-amber-500', percent: 0 },
+        { name: 'Skip', count: distribution.skip, color: 'bg-red-500', percent: 0 }
+    ];
+    
+    // Calculate percentages
+    ratings.forEach(rating => {
+        rating.percent = total > 0 ? Math.round((rating.count / total) * 100) : 0;
+    });
+    
+    const distributionHtml = ratings.map(rating => `
+        <div>
+            <div class="flex justify-between items-center mb-1">
+                <span class="text-sm font-medium text-gray-700">${rating.name}</span>
+                <span class="text-sm text-gray-600">${rating.count} tracks (${rating.percent}%)</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-2">
+                <div class="${rating.color} h-2 rounded-full transition-all duration-500" style="width: ${rating.percent}%"></div>
+            </div>
+        </div>
+    `).join('');
+    
+    document.getElementById('rating-distribution').innerHTML = distributionHtml;
+}
+
+function renderCollectionOverview(data) {
+    const avgScore = data.average_album_score !== null ? Math.round(data.average_album_score) : null;
+    const scoreColor = getScoreColor(avgScore);
+    const completionRate = data.total_albums > 0 ? Math.round((data.fully_rated_count / data.total_albums) * 100) : 0;
+    
+    const overviewHtml = `
+        <div class="space-y-4">
+            <!-- Average Score Display -->
+            ${avgScore !== null ? `
+                <div class="text-center py-4">
+                    <div class="text-5xl font-bold ${scoreColor} mb-2">${avgScore}</div>
+                    <div class="text-sm text-gray-600">Average Album Score</div>
+                </div>
+            ` : `
+                <div class="text-center py-4">
+                    <div class="text-3xl text-gray-400 mb-2">—</div>
+                    <div class="text-sm text-gray-600">No rated albums yet</div>
+                </div>
+            `}
+            
+            <!-- Collection Stats -->
+            <div class="border-t pt-4 space-y-3">
+                <div class="flex justify-between items-center">
+                    <span class="text-sm text-gray-600">Completion Rate</span>
+                    <span class="text-sm font-semibold text-gray-900">${completionRate}%</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div class="bg-blue-600 h-2 rounded-full transition-all duration-500" style="width: ${completionRate}%"></div>
+                </div>
+                
+                <div class="grid grid-cols-3 gap-2 pt-2">
+                    <div class="text-center">
+                        <div class="text-lg font-semibold text-gray-900">${data.fully_rated_count}</div>
+                        <div class="text-xs text-gray-600">Completed</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-lg font-semibold text-gray-900">${data.in_progress_count}</div>
+                        <div class="text-xs text-gray-600">In Progress</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-lg font-semibold text-gray-900">${data.unrated_albums_count}</div>
+                        <div class="text-xs text-gray-600">Not Started</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('collection-overview').innerHTML = overviewHtml;
+}
+
+function renderRecentActivity(activity) {
+    // Render recently rated albums
+    if (activity.recently_rated && activity.recently_rated.length > 0) {
+        const recentlyRatedHtml = activity.recently_rated.map(album => `
+            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                <div class="flex items-center space-x-3 flex-1 min-w-0">
+                    ${album.cover_art_url ? `
+                        <img src="${album.cover_art_url}" alt="${album.name}" class="w-10 h-10 rounded object-cover flex-shrink-0">
+                    ` : `
+                        <div class="w-10 h-10 bg-gray-300 rounded flex items-center justify-center flex-shrink-0">
+                            <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+                            </svg>
+                        </div>
+                    `}
+                    <div class="min-w-0 flex-1">
+                        <p class="text-sm font-medium text-gray-900 truncate">${album.name}</p>
+                        <p class="text-xs text-gray-600 truncate">${album.artist}</p>
+                    </div>
+                </div>
+                <div class="text-right ml-3 flex-shrink-0">
+                    <span class="text-lg font-bold ${getScoreColor(album.score)}">${album.score}</span>
+                </div>
+            </div>
+        `).join('');
+        document.getElementById('recently-rated-list').innerHTML = recentlyRatedHtml;
+    } else {
+        document.getElementById('recently-rated-list').innerHTML = `
+            <p class="text-sm text-gray-500 text-center py-4">No recently rated albums</p>
+        `;
+    }
+    
+    // Render in-progress albums
+    if (activity.in_progress && activity.in_progress.length > 0) {
+        const inProgressHtml = activity.in_progress.map(album => `
+            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                <div class="flex items-center space-x-3 flex-1 min-w-0">
+                    ${album.cover_art_url ? `
+                        <img src="${album.cover_art_url}" alt="${album.name}" class="w-10 h-10 rounded object-cover flex-shrink-0">
+                    ` : `
+                        <div class="w-10 h-10 bg-gray-300 rounded flex items-center justify-center flex-shrink-0">
+                            <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+                            </svg>
+                        </div>
+                    `}
+                    <div class="min-w-0 flex-1">
+                        <p class="text-sm font-medium text-gray-900 truncate">${album.name}</p>
+                        <p class="text-xs text-gray-600 truncate">${album.artist}</p>
+                    </div>
+                </div>
+                <div class="text-right ml-3 flex-shrink-0">
+                    <div class="text-xs text-gray-600">${album.progress.percentage}%</div>
+                    <div class="w-16 bg-gray-200 rounded-full h-1.5 mt-1">
+                        <div class="bg-blue-600 h-1.5 rounded-full" style="width: ${album.progress.percentage}%"></div>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+        document.getElementById('in-progress-list').innerHTML = inProgressHtml;
+    } else {
+        document.getElementById('in-progress-list').innerHTML = `
+            <p class="text-sm text-gray-500 text-center py-4">No albums in progress</p>
+        `;
+    }
+}
+
+function renderTopAlbums(albums) {
+    if (albums && albums.length > 0) {
+        const topAlbumsHtml = albums.map((album, index) => `
+            <div class="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                <div class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${index < 3 ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-200 text-gray-600'} font-bold text-sm">
+                    ${index + 1}
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-gray-900 truncate">${album.name}</p>
+                    <p class="text-xs text-gray-600 truncate">${album.artist}</p>
+                </div>
+                <div class="flex-shrink-0">
+                    <span class="text-lg font-bold ${getScoreColor(album.score)}">${album.score}</span>
+                </div>
+            </div>
+        `).join('');
+        document.getElementById('top-albums-list').innerHTML = topAlbumsHtml;
+    } else {
+        document.getElementById('top-albums-list').innerHTML = `
+            <p class="text-center text-gray-500 py-8">No rated albums yet</p>
+        `;
+    }
+}
+
+// Load statistics when page loads
+document.addEventListener('DOMContentLoaded', loadStatistics);
+</script>
+{% endblock %}
