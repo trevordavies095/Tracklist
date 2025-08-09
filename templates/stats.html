@@ -92,6 +92,24 @@
             </div>
         </div>
         
+        <!-- No Skips Albums -->
+        <div class="mb-8">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-900">No Skips Albums</h2>
+                    <p class="text-sm text-gray-600 mt-1">Albums with only Good and Standout tracks</p>
+                </div>
+                <div id="no-skips-stats" class="text-right">
+                    <!-- Stats will be inserted here -->
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div id="no-skips-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    <!-- No skip albums will be inserted here -->
+                </div>
+            </div>
+        </div>
+        
         <!-- Top Albums -->
         <div class="mb-8">
             <h2 class="text-2xl font-bold text-gray-900 mb-6">Top Rated Albums</h2>
@@ -145,50 +163,74 @@ function formatNumber(num) {
     return num.toLocaleString();
 }
 
-// Load all statistics
+// Load all statistics progressively
 async function loadStatistics() {
+    // Show content container immediately and hide loading skeleton
+    document.getElementById('stats-loading').style.display = 'none';
+    document.getElementById('stats-content').style.display = 'block';
+    
     try {
-        // Fetch overview statistics
+        // First, fetch and render overview statistics (fastest query)
         const overviewResponse = await fetch('/api/v1/reports/overview');
         const overview = await overviewResponse.json();
         
         // Check if empty (no albums)
         if (overview.total_albums === 0) {
-            document.getElementById('stats-loading').style.display = 'none';
             document.getElementById('empty-state').style.display = 'block';
+            document.getElementById('stats-content').style.display = 'none';
             return;
         }
         
-        // Fetch additional data in parallel
-        const [activityResponse, topAlbumsResponse] = await Promise.all([
-            fetch('/api/v1/reports/activity?limit=5'),
-            fetch('/api/v1/reports/top-albums?limit=6')
-        ]);
-        
-        const activity = await activityResponse.json();
-        const topAlbums = await topAlbumsResponse.json();
-        
-        // Render overview cards
-        renderOverviewCards(overview);
-        
-        // Render rating distribution
+        // Immediately render overview cards with placeholder for no-skips
+        renderOverviewCards(overview, null);
         renderRatingDistribution(overview.rating_distribution);
-        
-        // Render collection overview
         renderCollectionOverview(overview);
         
-        // Render recent activity
-        renderRecentActivity(activity);
+        // Show loading placeholders for other sections
+        showSectionLoading('recently-rated-list');
+        showSectionLoading('in-progress-list');
+        showSectionLoading('no-skips-list');
+        showSectionLoading('top-albums-list');
         
-        // Render top albums
-        renderTopAlbums(topAlbums);
+        // Fetch activity data and render when ready
+        fetch('/api/v1/reports/activity?limit=5')
+            .then(response => response.json())
+            .then(activity => {
+                renderRecentActivity(activity);
+            })
+            .catch(error => console.error('Error loading activity:', error));
         
-        // Hide loading, show content
-        document.getElementById('stats-loading').style.display = 'none';
-        document.getElementById('stats-content').style.display = 'block';
+        // Fetch top albums and render when ready
+        fetch('/api/v1/reports/top-albums?limit=6')
+            .then(response => response.json())
+            .then(topAlbums => {
+                renderTopAlbums(topAlbums);
+            })
+            .catch(error => console.error('Error loading top albums:', error));
+        
+        // Fetch no-skips data (this is the slow one) and update when ready
+        fetch('/api/v1/reports/no-skips?limit=12')
+            .then(response => response.json())
+            .then(noSkips => {
+                // Update the overview card with actual no-skips data
+                updateNoSkipsCard(noSkips);
+                // Render the no-skip albums grid
+                renderNoSkipAlbums(noSkips);
+            })
+            .catch(error => {
+                console.error('Error loading no-skip albums:', error);
+                // Show error state in no-skips section
+                document.getElementById('no-skips-list').innerHTML = `
+                    <div class="col-span-full text-center py-8 text-red-600">
+                        <p>Failed to load no-skip albums</p>
+                    </div>
+                `;
+            });
         
     } catch (error) {
-        console.error('Error loading statistics:', error);
+        console.error('Error loading initial statistics:', error);
+        document.getElementById('stats-content').style.display = 'none';
+        document.getElementById('stats-loading').style.display = 'block';
         document.getElementById('stats-loading').innerHTML = `
             <div class="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
                 <svg class="w-12 h-12 mx-auto mb-3 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -201,7 +243,33 @@ async function loadStatistics() {
     }
 }
 
-function renderOverviewCards(data) {
+// Show loading state for a section
+function showSectionLoading(elementId) {
+    const element = document.getElementById(elementId);
+    if (element) {
+        element.innerHTML = `
+            <div class="flex justify-center py-4">
+                <svg class="animate-spin h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+            </div>
+        `;
+    }
+}
+
+// Update the no-skips card after data loads
+function updateNoSkipsCard(noSkipsData) {
+    const cards = document.querySelectorAll('#overview-cards > div');
+    if (cards.length >= 3 && noSkipsData) {
+        // Update the third card (No Skips)
+        const noSkipsCard = cards[2];
+        noSkipsCard.querySelector('.text-2xl').textContent = noSkipsData.total_count;
+        noSkipsCard.querySelector('.text-xs').textContent = `${noSkipsData.percentage}% of rated`;
+    }
+}
+
+function renderOverviewCards(data, noSkipsData) {
     const cards = [
         {
             title: 'Total Albums',
@@ -218,18 +286,18 @@ function renderOverviewCards(data) {
             color: 'green'
         },
         {
+            title: 'No Skips',
+            value: noSkipsData ? noSkipsData.total_count : '...',
+            subtitle: noSkipsData ? `${noSkipsData.percentage}% of rated` : 'Loading...',
+            icon: 'M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z',
+            color: 'red'
+        },
+        {
             title: 'Average Score',
             value: data.average_album_score !== null ? Math.round(data.average_album_score) : '-',
             subtitle: 'Out of 100',
             icon: 'M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z',
             color: 'purple'
-        },
-        {
-            title: 'Tracks Rated',
-            value: formatNumber(data.total_tracks_rated),
-            subtitle: 'Individual tracks',
-            icon: 'M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3',
-            color: 'indigo'
         }
     ];
     
@@ -249,6 +317,76 @@ function renderOverviewCards(data) {
     `).join('');
     
     document.getElementById('overview-cards').innerHTML = cardsHtml;
+}
+
+function renderNoSkipAlbums(noSkipsData) {
+    // Update stats header
+    if (noSkipsData && noSkipsData.total_count > 0) {
+        document.getElementById('no-skips-stats').innerHTML = `
+            <div class="text-sm text-gray-600">
+                <span class="text-2xl font-bold text-gray-900">${noSkipsData.total_count}</span> albums
+            </div>
+            <div class="text-sm text-gray-600">
+                ${noSkipsData.percentage}% of rated albums
+            </div>
+        `;
+        
+        // Render album grid
+        const albumsHtml = noSkipsData.albums.map(album => `
+            <div class="group relative">
+                <a href="/albums/${album.id}/completed" class="block">
+                    <div class="aspect-square overflow-hidden rounded-lg bg-gray-100 mb-3">
+                        ${album.cover_art_url ? `
+                            <img src="${album.cover_art_url}" 
+                                 alt="${album.name}" 
+                                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            <div class="w-full h-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center" style="display:none;">
+                                <svg class="w-12 h-12 text-white opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+                                </svg>
+                            </div>
+                        ` : `
+                            <div class="w-full h-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center">
+                                <svg class="w-12 h-12 text-white opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+                                </svg>
+                            </div>
+                        `}
+                    </div>
+                    <div class="space-y-1">
+                        <h3 class="text-sm font-medium text-gray-900 truncate group-hover:text-blue-600 transition-colors">
+                            ${album.name}
+                        </h3>
+                        <p class="text-xs text-gray-600 truncate">${album.artist}</p>
+                        <div class="flex items-center justify-between">
+                            <span class="text-lg font-bold ${getScoreColor(album.score)}">${album.score}</span>
+                            <span class="text-xs text-gray-500">${album.total_tracks} tracks</span>
+                        </div>
+                    </div>
+                </a>
+                <!-- No Skip Badge -->
+                <div class="absolute top-2 right-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
+                    NO SKIPS
+                </div>
+            </div>
+        `).join('');
+        
+        document.getElementById('no-skips-list').innerHTML = albumsHtml;
+    } else {
+        document.getElementById('no-skips-stats').innerHTML = `
+            <div class="text-sm text-gray-500">No albums yet</div>
+        `;
+        document.getElementById('no-skips-list').innerHTML = `
+            <div class="col-span-full text-center py-8 text-gray-500">
+                <svg class="w-16 h-16 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                </svg>
+                <p class="text-lg font-medium mb-2">No Perfect Albums Yet</p>
+                <p class="text-sm">Albums with only Good and Standout tracks will appear here</p>
+            </div>
+        `;
+    }
 }
 
 function renderRatingDistribution(distribution) {
