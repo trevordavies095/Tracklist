@@ -69,21 +69,48 @@
         </div>
     </div>
     
-    <!-- Recent Activity -->
-    <div class="mb-12">
+    <!-- In Progress Albums -->
+    <div class="mb-12" id="in-progress-section">
         <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl font-bold text-gray-900">Recent Activity</h2>
-            <a href="/albums" class="text-blue-600 hover:text-blue-800 text-sm font-medium">View all →</a>
+            <h2 class="text-2xl font-bold text-gray-900">In Progress</h2>
+            <a href="/albums?filter=in-progress" class="text-blue-600 hover:text-blue-800 text-sm font-medium">View all →</a>
         </div>
         
-        <div id="recent-albums" 
-             hx-get="/api/v1/albums?limit=6" 
+        <div id="in-progress-albums" 
+             hx-get="/api/v1/albums?limit=6&rated=false&sort=created_desc" 
              hx-trigger="load"
              hx-target="this"
-             hx-indicator="#recent-loading">
+             hx-indicator="#in-progress-loading">
             
             <!-- Loading State -->
-            <div id="recent-loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div id="in-progress-loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for i in range(6) %}
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                    <div class="loading-skeleton h-20 w-20 rounded-lg mb-4"></div>
+                    <div class="loading-skeleton h-4 w-full mb-2"></div>
+                    <div class="loading-skeleton h-4 w-3/4 mb-4"></div>
+                    <div class="loading-skeleton h-2 w-full"></div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recently Rated Albums -->
+    <div class="mb-12" id="recently-rated-section">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-gray-900">Recently Rated</h2>
+            <a href="/albums?filter=completed" class="text-blue-600 hover:text-blue-800 text-sm font-medium">View all →</a>
+        </div>
+        
+        <div id="recently-rated-albums" 
+             hx-get="/api/v1/albums?limit=6&rated=true&sort=rated_desc" 
+             hx-trigger="load"
+             hx-target="this"
+             hx-indicator="#recently-rated-loading">
+            
+            <!-- Loading State -->
+            <div id="recently-rated-loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {% for i in range(6) %}
                 <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                     <div class="loading-skeleton h-20 w-20 rounded-lg mb-4"></div>
@@ -246,48 +273,73 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// Handle HTMX responses for recent albums
+// Handle HTMX responses for album sections
 document.body.addEventListener('htmx:afterRequest', function(evt) {
-    if (evt.detail.target.id === 'recent-albums') {
+    const targetId = evt.detail.target.id;
+    
+    if (targetId === 'in-progress-albums') {
         const response = JSON.parse(evt.detail.xhr.responseText);
-        renderRecentAlbums(response);
+        renderAlbumSection(response, 'in-progress-albums', 'in-progress');
         
-        // Show/hide Getting Started based on album count
-        const albumCount = (response.albums || []).length;
-        const gettingStartedGuide = document.getElementById('getting-started-guide');
-        if (gettingStartedGuide) {
-            if (albumCount < 6 && localStorage.getItem('guide-dismissed') !== 'true') {
-                gettingStartedGuide.style.display = 'block';
-            } else {
-                gettingStartedGuide.style.display = 'none';
-            }
+        // Hide section if no in-progress albums
+        const section = document.getElementById('in-progress-section');
+        if (response.albums && response.albums.length === 0) {
+            section.style.display = 'none';
         }
+    } else if (targetId === 'recently-rated-albums') {
+        const response = JSON.parse(evt.detail.xhr.responseText);
+        renderAlbumSection(response, 'recently-rated-albums', 'recently-rated');
+        
+        // Show/hide Getting Started based on total album count
+        checkAndShowGettingStarted();
     }
 });
 
-function renderRecentAlbums(data) {
-    const container = document.getElementById('recent-albums');
+function checkAndShowGettingStarted() {
+    // Check if we have any albums at all
+    const inProgressSection = document.getElementById('in-progress-section');
+    const recentlyRatedSection = document.getElementById('recently-rated-section');
+    const hasInProgress = inProgressSection && inProgressSection.style.display !== 'none';
+    const hasRecentlyRated = recentlyRatedSection && recentlyRatedSection.querySelector('.grid');
+    
+    const gettingStartedGuide = document.getElementById('getting-started-guide');
+    if (gettingStartedGuide) {
+        if (!hasInProgress && !hasRecentlyRated && localStorage.getItem('guide-dismissed') !== 'true') {
+            gettingStartedGuide.style.display = 'block';
+        } else {
+            gettingStartedGuide.style.display = 'none';
+        }
+    }
+}
+
+function renderAlbumSection(data, containerId, sectionType) {
+    const container = document.getElementById(containerId);
     const albums = data.albums || [];
     
     if (albums.length === 0) {
-        container.innerHTML = `
-            <div class="text-center py-12">
-                <div class="max-w-sm mx-auto">
-                    <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
-                    </svg>
-                    <h3 class="text-lg font-medium text-gray-900 mb-2">No recent activity</h3>
-                    <p class="text-gray-600 mb-6">Start rating albums to see your recent activity here</p>
-                    <a href="/search" 
-                       class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition-colors">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+        if (sectionType === 'recently-rated') {
+            container.innerHTML = `
+                <div class="text-center py-12">
+                    <div class="max-w-sm mx-auto">
+                        <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
                         </svg>
-                        Search Albums
-                    </a>
+                        <h3 class="text-lg font-medium text-gray-900 mb-2">No recently rated albums</h3>
+                        <p class="text-gray-600 mb-6">Complete rating some albums to see them here</p>
+                        <a href="/search" 
+                           class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition-colors">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                            Search Albums
+                        </a>
+                    </div>
                 </div>
-            </div>
-        `;
+            `;
+        } else {
+            // For in-progress section, we'll hide it entirely if empty (handled in event listener)
+            container.innerHTML = '';
+        }
         return;
     }
     
