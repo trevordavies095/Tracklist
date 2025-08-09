@@ -145,6 +145,19 @@
                 </div>
             </div>
         </div>
+        
+        <!-- Worst Albums -->
+        <div class="mb-8">
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold text-gray-900">Lowest Rated Albums</h2>
+                <p class="text-sm text-gray-600 mt-1">Your least favorite albums</p>
+            </div>
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div id="worst-albums-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+                    <!-- Worst albums will be inserted here -->
+                </div>
+            </div>
+        </div>
     </div>
     
     <!-- Empty State (shown when no albums) -->
@@ -218,6 +231,7 @@ async function loadStatistics() {
         showSectionLoading('no-skips-list');
         showSectionLoading('top-artist-section');
         showSectionLoading('top-albums-list');
+        showSectionLoading('worst-albums-list');
         showSectionLoading('score-distribution-chart');
         
         // Fetch activity data and render when ready
@@ -243,6 +257,14 @@ async function loadStatistics() {
                 renderTopAlbums(topAlbums);
             })
             .catch(error => console.error('Error loading top albums:', error));
+        
+        // Fetch worst albums and render when ready (random selection from worst 20)
+        fetch('/api/v1/reports/worst-albums?limit=5&randomize=true&pool_size=20')
+            .then(response => response.json())
+            .then(worstAlbums => {
+                renderWorstAlbums(worstAlbums);
+            })
+            .catch(error => console.error('Error loading worst albums:', error));
         
         // Fetch score distribution and render when ready
         fetch('/api/v1/reports/distribution')
@@ -739,6 +761,66 @@ function renderTopAlbums(albums) {
                 </svg>
                 <p class="text-lg font-medium mb-2">No Top Albums Yet</p>
                 <p class="text-sm">Start rating albums to see your favorites here</p>
+            </div>
+        `;
+    }
+}
+
+function renderWorstAlbums(albums) {
+    if (albums && albums.length > 0) {
+        const worstAlbumsHtml = albums.map((album, index) => `
+            <div class="group">
+                <a href="/albums/${album.id}/completed" class="block">
+                    <div class="relative">
+                        <!-- Album cover -->
+                        <div class="aspect-square overflow-hidden rounded-lg bg-gray-100 mb-3 shadow-md group-hover:shadow-xl transition-shadow duration-300">
+                            ${album.cover_art_url ? `
+                                <img src="${album.cover_art_url}" 
+                                     alt="${album.name}" 
+                                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                <div class="w-full h-full bg-gradient-to-br from-gray-500 to-gray-700 flex items-center justify-center" style="display:none;">
+                                    <svg class="w-16 h-16 text-white opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+                                    </svg>
+                                </div>
+                            ` : `
+                                <div class="w-full h-full bg-gradient-to-br from-gray-500 to-gray-700 flex items-center justify-center">
+                                    <svg class="w-16 h-16 text-white opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+                                    </svg>
+                                </div>
+                            `}
+                        </div>
+                        <!-- Low score indicator -->
+                        <div class="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-md">
+                            LOW
+                        </div>
+                    </div>
+                    
+                    <!-- Album info -->
+                    <div class="space-y-1">
+                        <h3 class="text-sm font-semibold text-gray-900 truncate group-hover:text-blue-600 transition-colors">
+                            ${album.name}
+                        </h3>
+                        <p class="text-xs text-gray-600 truncate">${album.artist}</p>
+                        <div class="flex items-center justify-between">
+                            <span class="text-xl font-bold ${getScoreColor(album.score)}">${album.score}</span>
+                            ${album.year ? `<span class="text-xs text-gray-500">${album.year}</span>` : ''}
+                        </div>
+                    </div>
+                </a>
+            </div>
+        `).join('');
+        document.getElementById('worst-albums-list').innerHTML = worstAlbumsHtml;
+    } else {
+        document.getElementById('worst-albums-list').innerHTML = `
+            <div class="col-span-full text-center py-12 text-gray-500">
+                <svg class="w-16 h-16 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <p class="text-lg font-medium mb-2">No Albums Rated Yet</p>
+                <p class="text-sm">Start rating albums to see your least favorites here</p>
             </div>
         `;
     }

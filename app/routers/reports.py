@@ -300,6 +300,73 @@ async def get_score_distribution(
         )
 
 
+@router.get("/worst-albums")
+async def get_worst_albums(
+    limit: int = Query(default=5, ge=1, le=100, description="Maximum number of albums to return"),
+    randomize: bool = Query(default=True, description="Randomly select from worst-rated albums"),
+    pool_size: int = Query(default=20, ge=5, le=100, description="Size of worst album pool to select from when randomizing"),
+    service: ReportingService = Depends(get_reporting_service),
+    db: Session = Depends(get_db)
+):
+    """
+    Get lowest rated albums
+    
+    Returns the lowest scored albums in the collection.
+    
+    Query Parameters:
+    - limit: Maximum number of albums to return (1-100, default: 5)
+    - randomize: Whether to randomly select from worst albums (default: true)
+    - pool_size: When randomizing, size of worst album pool to select from (5-100, default: 20)
+    
+    Example response:
+    ```json
+    [
+        {
+            "id": 45,
+            "name": "Bad Album",
+            "artist": "Some Artist",
+            "year": 2010,
+            "score": 15,
+            "cover_art_url": "https://...",
+            "rated_at": "2024-01-10T14:22:00"
+        },
+        {
+            "id": 67,
+            "name": "Another Bad Album",
+            "artist": "Another Artist",
+            "year": 2005,
+            "score": 22,
+            "cover_art_url": "https://...",
+            "rated_at": "2024-01-12T16:45:00"
+        }
+    ]
+    ```
+    """
+    try:
+        logger.info(f"Fetching worst {limit} albums (randomize={randomize}, pool_size={pool_size})")
+        worst_albums = service.get_worst_albums(db, limit=limit, randomize=randomize, pool_size=pool_size)
+        return worst_albums
+        
+    except TracklistException as e:
+        logger.error(f"Failed to get worst albums: {e.message}")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Failed to get worst albums",
+                "message": str(e)
+            }
+        )
+    except Exception as e:
+        logger.error(f"Unexpected error getting worst albums: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Internal server error",
+                "message": "Failed to retrieve worst albums"
+            }
+        )
+
+
 @router.get("/top-artist")
 async def get_top_artist(
     service: ReportingService = Depends(get_reporting_service),
