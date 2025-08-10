@@ -255,6 +255,13 @@ document.addEventListener('DOMContentLoaded', function() {
 const retagModalHTML = `
 <div id="retagModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full z-50">
     <div class="relative top-20 mx-auto p-5 border w-11/12 max-w-2xl shadow-lg rounded-md bg-white">
+        <!-- Close button -->
+        <button onclick="closeRetagModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+        
         <div class="mb-4">
             <h3 class="text-lg font-bold text-gray-900">Change Release Version</h3>
             <p class="text-sm text-gray-600 mt-2">Select a different release from the same release group. Only releases with {{ album.total_tracks }} tracks are shown.</p>
@@ -408,9 +415,15 @@ function displayReleases(releases) {
                 
                 <!-- Selection Indicator -->
                 <div class="ml-4 flex-shrink-0">
-                    <svg class="w-5 h-5 ${release.musicbrainz_id === currentMbid ? 'text-blue-500' : 'text-gray-400'}" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-                    </svg>
+                    ${release.musicbrainz_id === currentMbid ? `
+                        <svg class="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                        </svg>
+                    ` : `
+                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 20 20">
+                            <circle cx="10" cy="10" r="8" stroke-width="2"></circle>
+                        </svg>
+                    `}
                 </div>
             </div>
         </label>
@@ -430,17 +443,26 @@ function selectRelease(mbid) {
     const labels = document.querySelectorAll('#releasesList label');
     labels.forEach(label => {
         const input = label.querySelector('input');
+        const svgContainer = label.querySelector('.ml-4');
+        
         if (input.value === mbid) {
+            // Selected state
             label.classList.add('border-blue-500', 'bg-blue-50');
-            label.querySelector('svg').classList.remove('text-gray-400');
-            label.querySelector('svg').classList.add('text-blue-500');
+            label.classList.remove('border-gray-200');
+            svgContainer.innerHTML = `
+                <svg class="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                </svg>
+            `;
         } else {
+            // Unselected state
             label.classList.remove('border-blue-500', 'bg-blue-50');
             label.classList.add('border-gray-200');
-            if (input.value !== currentMbid) {
-                label.querySelector('svg').classList.add('text-gray-400');
-                label.querySelector('svg').classList.remove('text-blue-500');
-            }
+            svgContainer.innerHTML = `
+                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 20 20">
+                    <circle cx="10" cy="10" r="8" stroke-width="2"></circle>
+                </svg>
+            `;
         }
     });
 }
