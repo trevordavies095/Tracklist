@@ -20,6 +20,7 @@ from ..exceptions import TracklistException
 from .artwork_cache_utils import ArtworkCacheFileSystem, get_cache_filesystem
 from .cover_art_service import get_cover_art_service
 from .artwork_downloader import ArtworkDownloader, ArtworkDownloadError
+from .image_processor import ImageProcessor, get_image_processor, ImageProcessingError
 
 logger = logging.getLogger(__name__)
 
@@ -60,6 +61,7 @@ class ArtworkCacheService:
         """
         self.cache_fs = cache_fs or get_cache_filesystem()
         self.cover_art_service = get_cover_art_service()
+        self.image_processor = get_image_processor()
         
         # Use the enhanced downloader with retry and rate limiting
         if HTTPX_AVAILABLE:
@@ -196,16 +198,17 @@ class ArtworkCacheService:
             
             image_data, metadata = download_result
             
-            # Save original
-            original_path = await self._save_original(cache_key, image_data)
-            if not original_path:
+            # Generate all size variants (including original)
+            variants_metadata = await self._generate_all_variants_with_metadata(cache_key, image_data)
+            
+            if not variants_metadata:
+                logger.error(f"No variants could be created for album {album.id}")
                 return False
             
-            # Generate all size variants
-            variants_created = await self._generate_all_variants(cache_key, image_data)
-            
             # Update database records with metadata
-            await self._update_cache_records(album, cache_key, artwork_url, variants_created, db, metadata)
+            await self._update_cache_records_with_metadata(
+                album, cache_key, artwork_url, variants_metadata, db, metadata
+            )
             
             # Update album cache status
             album.artwork_cached = True
@@ -294,13 +297,90 @@ class ArtworkCacheService:
             logger.error(f"Failed to save original image: {e}")
             return None
     
+    async def _generate_all_variants_with_metadata(
+        self,
+        cache_key: str,
+        image_data: bytes
+    ) -> Dict[str, Dict[str, Any]]:
+        """
+        Generate all size variants and return with metadata
+        
+        Args:
+            cache_key: Cache key for the image
+            image_data: Original image data
+            
+        Returns:
+            Dictionary mapping variant names to their metadata
+        """
+        variants_metadata = {}
+        
+        try:
+            # Process all variants using the image processor
+            processed_variants = self.image_processor.process_all_variants(
+                image_data,
+                optimize=True
+            )
+            
+            # Save each processed variant and collect metadata
+            for variant_name, (variant_data, metadata) in processed_variants.items():
+                try:
+                    # Determine file extension based on format
+                    ext = metadata.get('format', 'JPEG').lower()
+                    if ext == 'jpeg':
+                        ext = 'jpg'
+                    
+                    # Get path for variant
+                    file_path = self.cache_fs.get_cache_path(cache_key, variant_name, ext)
+                    
+                    # Save asynchronously
+                    async with aiofiles.open(file_path, 'wb') as f:
+                        await f.write(variant_data)
+                    
+                    # Store metadata with file path
+                    metadata['file_path'] = str(file_path)
+                    variants_metadata[variant_name] = metadata
+                    
+                    logger.debug(
+                        f"Created {variant_name} variant: "
+                        f"{metadata['width']}x{metadata['height']}, "
+                        f"{metadata['file_size_bytes']} bytes, "
+                        f"compression: {metadata.get('compression_ratio', 'N/A')}"
+                    )
+                    
+                except Exception as e:
+                    logger.warning(f"Failed to save {variant_name} variant: {e}")
+            
+            # Log processing statistics
+            if variants_metadata:
+                stats = self.image_processor.get_processing_stats()
+                logger.info(
+                    f"Image processing complete: {len(variants_metadata)} variants, "
+                    f"{stats['mb_saved']}MB saved"
+                )
+            
+        except Exception as e:
+            logger.error(f"Failed to generate variants: {e}")
+            # Try to at least save the original
+            try:
+                file_path = self.cache_fs.get_cache_path(cache_key, 'original', 'jpg')
+                async with aiofiles.open(file_path, 'wb') as f:
+                    await f.write(image_data)
+                variants_metadata['original'] = {
+                    'file_path': str(file_path),
+                    'file_size_bytes': len(image_data)
+                }
+            except Exception as save_error:
+                logger.error(f"Failed to save original: {save_error}")
+        
+        return variants_metadata
+    
     async def _generate_all_variants(
         self, 
         cache_key: str, 
         image_data: bytes
     ) -> List[str]:
         """
-        Generate all size variants from original image
+        Generate all size variants from original image using enhanced image processor
         
         Args:
             cache_key: Cache key for the image
@@ -310,43 +390,66 @@ class ArtworkCacheService:
             List of successfully created variant names
         """
         variants_created = []
+        processing_errors = []
         
         try:
-            # Open original image
-            img = Image.open(BytesIO(image_data))
+            # Process all variants using the image processor
+            processed_variants = self.image_processor.process_all_variants(
+                image_data,
+                optimize=True
+            )
             
-            # Convert RGBA to RGB if needed
-            if img.mode in ('RGBA', 'LA', 'P'):
-                rgb_img = Image.new('RGB', img.size, (255, 255, 255))
-                rgb_img.paste(img, mask=img.split()[-1] if img.mode == 'RGBA' else None)
-                img = rgb_img
+            # Save each processed variant
+            for variant_name, (variant_data, metadata) in processed_variants.items():
+                try:
+                    # Determine file extension based on format
+                    ext = metadata.get('format', 'JPEG').lower()
+                    if ext == 'jpeg':
+                        ext = 'jpg'
+                    
+                    # Get path for variant
+                    file_path = self.cache_fs.get_cache_path(cache_key, variant_name, ext)
+                    
+                    # Save asynchronously
+                    async with aiofiles.open(file_path, 'wb') as f:
+                        await f.write(variant_data)
+                    
+                    variants_created.append(variant_name)
+                    logger.debug(
+                        f"Created {variant_name} variant at {file_path} "
+                        f"({metadata['width']}x{metadata['height']}, "
+                        f"{metadata['file_size_bytes']} bytes, "
+                        f"compression ratio: {metadata.get('compression_ratio', 'N/A')})"
+                    )
+                    
+                except Exception as e:
+                    processing_errors.append((variant_name, str(e)))
+                    logger.warning(f"Failed to save {variant_name} variant: {e}")
             
-            # Generate each size variant
-            for size_name, dimensions in self.cache_fs.SIZE_SPECS.items():
-                if size_name == "original":
-                    variants_created.append(size_name)
-                    continue
-                
-                if dimensions:
-                    try:
-                        # Resize image
-                        resized = img.copy()
-                        resized.thumbnail(dimensions, Image.Resampling.LANCZOS)
-                        
-                        # Save resized image
-                        file_path = self.cache_fs.get_cache_path(cache_key, size_name, "jpg")
-                        
-                        # Save synchronously (PIL doesn't support async)
-                        resized.save(str(file_path), self.DEFAULT_FORMAT, quality=self.DEFAULT_QUALITY)
-                        
-                        variants_created.append(size_name)
-                        logger.debug(f"Created {size_name} variant at {file_path}")
-                        
-                    except Exception as e:
-                        logger.warning(f"Failed to create {size_name} variant: {e}")
+            # Log processing statistics
+            stats = self.image_processor.get_processing_stats()
+            logger.info(
+                f"Image processing complete: {len(variants_created)} variants created, "
+                f"{stats['mb_saved']}MB saved through optimization"
+            )
             
+        except ImageProcessingError as e:
+            logger.error(f"Image processing failed: {e}")
+            # If we have at least the original, continue
+            if 'original' not in variants_created:
+                # Try to at least save the original
+                try:
+                    file_path = self.cache_fs.get_cache_path(cache_key, 'original', 'jpg')
+                    async with aiofiles.open(file_path, 'wb') as f:
+                        await f.write(image_data)
+                    variants_created.append('original')
+                except Exception as save_error:
+                    logger.error(f"Failed to save even original: {save_error}")
         except Exception as e:
-            logger.error(f"Failed to generate variants: {e}")
+            logger.error(f"Unexpected error generating variants: {e}")
+        
+        if processing_errors:
+            logger.warning(f"Some variants failed to process: {processing_errors}")
         
         return variants_created
     
@@ -356,7 +459,7 @@ class ArtworkCacheService:
         size_variant: str
     ) -> bool:
         """
-        Generate a specific size variant from cached original
+        Generate a specific size variant from cached original using enhanced processor
         
         Args:
             cache_key: Cache key for the image
@@ -378,34 +481,123 @@ class ArtworkCacheService:
                 logger.warning(f"Original not found for {cache_key}")
                 return False
             
-            # Load original
-            img = Image.open(original_path)
+            # Load original data
+            async with aiofiles.open(original_path, 'rb') as f:
+                original_data = await f.read()
             
-            # Get target dimensions
-            dimensions = self.cache_fs.SIZE_SPECS.get(size_variant)
-            if not dimensions:
-                logger.warning(f"Invalid size variant: {size_variant}")
+            # Process using image processor
+            try:
+                processed_data, metadata = self.image_processor.process_image(
+                    original_data,
+                    size_variant,
+                    optimize=True,
+                    maintain_aspect=True,
+                    smart_crop=True
+                )
+                
+                # Save processed variant
+                ext = metadata.get('format', 'JPEG').lower()
+                if ext == 'jpeg':
+                    ext = 'jpg'
+                    
+                file_path = self.cache_fs.get_cache_path(cache_key, size_variant, ext)
+                
+                async with aiofiles.open(file_path, 'wb') as f:
+                    await f.write(processed_data)
+                
+                logger.debug(
+                    f"Generated {size_variant} variant from original: "
+                    f"{metadata['width']}x{metadata['height']}, "
+                    f"{metadata['file_size_bytes']} bytes"
+                )
+                return True
+                
+            except ImageProcessingError as e:
+                logger.error(f"Failed to process variant {size_variant}: {e}")
                 return False
-            
-            # Convert RGBA to RGB if needed
-            if img.mode in ('RGBA', 'LA', 'P'):
-                rgb_img = Image.new('RGB', img.size, (255, 255, 255))
-                rgb_img.paste(img, mask=img.split()[-1] if img.mode == 'RGBA' else None)
-                img = rgb_img
-            
-            # Resize
-            img.thumbnail(dimensions, Image.Resampling.LANCZOS)
-            
-            # Save
-            file_path = self.cache_fs.get_cache_path(cache_key, size_variant, "jpg")
-            img.save(str(file_path), self.DEFAULT_FORMAT, quality=self.DEFAULT_QUALITY)
-            
-            logger.debug(f"Generated {size_variant} variant from original")
-            return True
             
         except Exception as e:
             logger.error(f"Failed to generate variant from original: {e}")
             return False
+    
+    async def _update_cache_records_with_metadata(
+        self,
+        album: Album,
+        cache_key: str,
+        original_url: str,
+        variants_metadata: Dict[str, Dict[str, Any]],
+        db: Session,
+        download_metadata: Optional[Dict[str, Any]] = None
+    ) -> None:
+        """
+        Update database cache records with detailed variant metadata
+        
+        Args:
+            album: Album model instance
+            cache_key: Cache key used
+            original_url: Original artwork URL
+            variants_metadata: Dictionary of variant metadata
+            db: Database session
+            download_metadata: Optional download metadata (etag, etc.)
+        """
+        try:
+            now = datetime.now(timezone.utc)
+            
+            for variant_name, variant_meta in variants_metadata.items():
+                # Check if record exists
+                cache_record = db.query(ArtworkCache).filter_by(
+                    album_id=album.id,
+                    size_variant=variant_name
+                ).first()
+                
+                if not cache_record:
+                    # Create new record
+                    cache_record = ArtworkCache(
+                        album_id=album.id,
+                        original_url=original_url,
+                        cache_key=f"{cache_key}_{variant_name}",
+                        size_variant=variant_name,
+                        last_fetched_at=now,
+                        last_accessed_at=now,
+                        access_count=1
+                    )
+                    db.add(cache_record)
+                else:
+                    # Update existing record
+                    cache_record.last_fetched_at = now
+                    cache_record.last_accessed_at = now
+                    cache_record.access_count += 1
+                
+                # Update with variant metadata
+                cache_record.file_path = variant_meta.get('file_path')
+                cache_record.file_size_bytes = variant_meta.get('file_size_bytes')
+                cache_record.width = variant_meta.get('width')
+                cache_record.height = variant_meta.get('height')
+                cache_record.content_type = f"image/{variant_meta.get('format', 'jpeg').lower()}"
+                
+                # Add download metadata if available
+                if download_metadata:
+                    cache_record.etag = download_metadata.get('etag')
+                
+                # Store checksum if available
+                if 'checksum' in variant_meta:
+                    # Store in etag field if not already used
+                    if not cache_record.etag:
+                        cache_record.etag = variant_meta['checksum']
+                
+                logger.debug(
+                    f"Updated cache record for {variant_name}: "
+                    f"{cache_record.width}x{cache_record.height}, "
+                    f"{cache_record.file_size_bytes} bytes"
+                )
+            
+            db.commit()
+            logger.info(f"Updated {len(variants_metadata)} cache records for album {album.id}")
+            
+        except SQLAlchemyError as e:
+            logger.error(f"Database error updating cache records: {e}")
+            db.rollback()
+            raise
     
     async def _update_cache_records(
         self,
