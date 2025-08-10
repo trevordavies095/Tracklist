@@ -81,14 +81,20 @@ app.include_router(reports.router)    # API routes for reporting
 
 @app.on_event("startup")
 async def startup_event():
-    """Initialize database on startup"""
+    """Initialize database and cache directories on startup"""
     logger.info("Starting Tracklist application...")
     try:
+        # Initialize database
         create_tables()
         init_db()
         logger.info("Database initialized successfully")
+        
+        # Initialize artwork cache directories
+        from .services.artwork_cache_utils import init_artwork_cache_directories
+        init_artwork_cache_directories()
+        
     except Exception as e:
-        logger.error(f"Failed to initialize database: {e}")
+        logger.error(f"Failed to initialize application: {e}")
         raise
 
 
