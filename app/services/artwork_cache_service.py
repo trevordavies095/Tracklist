@@ -787,6 +787,60 @@ class ArtworkCacheService:
             db.rollback()
             return False
     
+    def clear_album_cache_sync(self, album_id: int, db: Session) -> Dict[str, Any]:
+        """
+        Synchronously clear all cached artwork for a specific album
+        (for use in non-async contexts like delete_album)
+        
+        Args:
+            album_id: Album ID to clear cache for
+            db: Database session
+            
+        Returns:
+            Dict with deletion statistics
+        """
+        try:
+            # Get cache records before deletion
+            cache_records = db.query(ArtworkCache).filter_by(album_id=album_id).all()
+            
+            files_deleted = 0
+            bytes_freed = 0
+            
+            # Delete physical files
+            for record in cache_records:
+                if record.file_path:
+                    file_path = Path(record.file_path)
+                    if file_path.exists():
+                        try:
+                            file_size = file_path.stat().st_size
+                            file_path.unlink()
+                            files_deleted += 1
+                            bytes_freed += file_size
+                            logger.debug(f"Deleted cache file: {file_path}")
+                        except Exception as e:
+                            logger.warning(f"Failed to delete cache file {file_path}: {e}")
+            
+            # Database records will be cascade deleted automatically
+            # But we can track how many there were
+            records_count = len(cache_records)
+            
+            logger.info(f"Cleared cache for album {album_id}: {files_deleted} files, {bytes_freed / 1024:.2f} KB")
+            
+            return {
+                'files_deleted': files_deleted,
+                'records_deleted': records_count,
+                'bytes_freed': bytes_freed
+            }
+            
+        except Exception as e:
+            logger.error(f"Failed to clear album cache: {e}")
+            return {
+                'files_deleted': 0,
+                'records_deleted': 0,
+                'bytes_freed': 0,
+                'error': str(e)
+            }
+    
     async def get_cache_statistics(self, db: Session) -> Dict[str, Any]:
         """
         Get comprehensive cache statistics

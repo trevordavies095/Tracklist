@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 import os
@@ -60,6 +60,15 @@ engine = create_engine(
     poolclass=StaticPool if "sqlite" in DATABASE_URL else None,
     echo=False  # Set to True for SQL query logging
 )
+
+# Enable foreign key constraints for SQLite
+if "sqlite" in DATABASE_URL:
+    @event.listens_for(engine, "connect")
+    def set_sqlite_pragma(dbapi_conn, connection_record):
+        cursor = dbapi_conn.cursor()
+        cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.close()
+        logger.debug("SQLite foreign key constraints enabled")
 
 # Create sessionmaker
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

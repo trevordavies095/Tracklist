@@ -214,6 +214,18 @@ class ArtworkMemoryCache:
                 
                 return invalidated
     
+    def clear_album(self, album_id: int) -> int:
+        """
+        Clear all cache entries for a specific album (alias for invalidate)
+        
+        Args:
+            album_id: Album ID to clear from cache
+            
+        Returns:
+            Number of entries removed
+        """
+        return self.invalidate(album_id)
+    
     def warm_cache(self, entries: list[Tuple[int, str, str]]) -> int:
         """
         Pre-populate cache with frequently accessed URLs

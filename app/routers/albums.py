@@ -776,6 +776,94 @@ async def retag_album_musicbrainz_id(
         )
 
 
+@router.get("/system/cache-cleanup")
+async def get_cache_cleanup_status() -> Dict[str, Any]:
+    """
+    Get cache cleanup status and recommendations
+    
+    Returns information about:
+    - Total cache entries
+    - Old entries to clean
+    - Cache size
+    - Cleanup recommendations
+    """
+    try:
+        from ..services.cache_cleanup_service import get_cleanup_service
+        
+        cleanup_service = get_cleanup_service()
+        return cleanup_service.get_cleanup_status()
+        
+    except Exception as e:
+        logger.error(f"Error getting cache cleanup status: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Status unavailable",
+                "message": "Unable to retrieve cache cleanup status"
+            }
+        )
+
+
+@router.post("/system/cache-cleanup")
+async def trigger_cache_cleanup(
+    dry_run: bool = Query(False, description="If true, only simulate cleanup without deleting"),
+    retention_days: Optional[int] = Query(None, description="Override retention period in days")
+) -> Dict[str, Any]:
+    """
+    Manually trigger cache cleanup
+    
+    Runs the cache cleanup process immediately with optional parameters.
+    
+    Args:
+        dry_run: If true, only simulate cleanup without actually deleting files
+        retention_days: Override the default retention period
+    """
+    try:
+        from ..services.scheduled_tasks import get_scheduled_task_manager
+        
+        manager = get_scheduled_task_manager()
+        result = await manager.trigger_cleanup_now(dry_run=dry_run)
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error triggering cache cleanup: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Cleanup failed",
+                "message": f"Failed to trigger cache cleanup: {str(e)}"
+            }
+        )
+
+
+@router.get("/system/scheduled-tasks")
+async def get_scheduled_tasks_status() -> Dict[str, Any]:
+    """
+    Get scheduled tasks status
+    
+    Returns information about:
+    - Task configuration
+    - Last run times
+    - Next scheduled runs
+    """
+    try:
+        from ..services.scheduled_tasks import get_scheduled_task_manager
+        
+        manager = get_scheduled_task_manager()
+        return manager.get_status()
+        
+    except Exception as e:
+        logger.error(f"Error getting scheduled tasks status: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Status unavailable",
+                "message": "Unable to retrieve scheduled tasks status"
+            }
+        )
+
+
 @router.get("/system/memory-cache")
 async def get_memory_cache_status() -> Dict[str, Any]:
     """
