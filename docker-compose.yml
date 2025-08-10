@@ -32,6 +32,13 @@ services:
       - AUTO_MIGRATE_ARTWORK=true
       - MIGRATION_BATCH_SIZE=10
       - MIGRATION_MAX_ALBUMS=0
+      # Integrity check configuration
+      - INTEGRITY_CHECK_ENABLED=true
+      - INTEGRITY_CHECK_SCHEDULE=weekly
+      - INTEGRITY_CHECK_DAY=sunday
+      - INTEGRITY_CHECK_TIME=02:00
+      - INTEGRITY_AUTO_REPAIR=true
+      - INTEGRITY_QUICK_CHECK=true
     volumes:
       - ./data:/app/data
       - ./logs:/app/logs
