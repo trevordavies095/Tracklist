@@ -778,6 +778,123 @@ async def retag_album_musicbrainz_id(
         )
 
 
+@router.post("/albums/{album_id}/refresh-artwork")
+async def refresh_album_artwork(
+    request: Request,
+    album_id: int = Path(..., description="Album ID", gt=0),
+    db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    """
+    Manually refresh artwork cache for a specific album
+    
+    This endpoint clears the existing cached artwork and re-downloads
+    fresh images from the source. Rate limited to prevent abuse.
+    
+    Rate limits:
+    - 5 refreshes per hour per session
+    - 20 refreshes per day per session
+    
+    Args:
+        album_id: Album ID to refresh artwork for
+    """
+    try:
+        from ..services.user_rate_limiter import get_artwork_refresh_limiter
+        from ..services.artwork_cache_service import ArtworkCacheService
+        from ..services.artwork_memory_cache import get_artwork_memory_cache
+        from ..services.artwork_cache_background import get_artwork_cache_background_service
+        from ..models import Album
+        
+        # Get session ID for rate limiting (use IP address as fallback)
+        session_id = request.headers.get("X-Session-Id", request.client.host)
+        
+        # Check rate limit
+        refresh_limiter = get_artwork_refresh_limiter()
+        allowed, limit_info = refresh_limiter.check_limit(session_id)
+        
+        if not allowed:
+            logger.warning(f"Artwork refresh rate limit exceeded for session {session_id}")
+            raise HTTPException(
+                status_code=429,
+                detail={
+                    "error": "Rate limit exceeded",
+                    "message": limit_info.get("message", "Too many refresh requests"),
+                    "retry_after": limit_info.get("reset_in_seconds", 3600),
+                    "limit_info": limit_info
+                }
+            )
+        
+        # Get album
+        album = db.query(Album).filter(Album.id == album_id).first()
+        if not album:
+            raise HTTPException(
+                status_code=404,
+                detail={
+                    "error": "Album not found",
+                    "message": f"Album with ID {album_id} not found"
+                }
+            )
+        
+        if not album.cover_art_url:
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "error": "No artwork available",
+                    "message": "Album has no cover art URL to refresh"
+                }
+            )
+        
+        logger.info(f"Refreshing artwork for album {album_id}: {album.name}")
+        
+        # Clear existing cache
+        cache_service = ArtworkCacheService()
+        memory_cache = get_artwork_memory_cache()
+        
+        # Clear from database and filesystem
+        clear_result = cache_service.clear_album_cache_sync(album_id, db)
+        
+        # Clear from memory cache
+        memory_cache.clear_album(album_id)
+        
+        # Mark album as not cached
+        album.artwork_cached = False
+        db.commit()
+        
+        # Record the refresh request
+        refresh_limiter.record_refresh(session_id)
+        
+        # Queue for re-caching with high priority
+        background_service = get_artwork_cache_background_service()
+        task_id = background_service.trigger_album_cache(
+            album_id=album_id,
+            cover_art_url=album.cover_art_url,
+            priority=2  # High priority for manual refresh
+        )
+        
+        logger.info(f"Artwork refresh queued for album {album_id}, task: {task_id}")
+        
+        return {
+            "success": True,
+            "message": "Artwork refresh initiated",
+            "album_id": album_id,
+            "album_name": album.name,
+            "task_id": task_id,
+            "cleared": clear_result,
+            "rate_limit": limit_info
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error refreshing artwork for album {album_id}: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Refresh failed",
+                "message": f"Failed to refresh artwork: {str(e)}"
+            }
+        )
+
+
 @router.get("/system/cache-cleanup")
 async def get_cache_cleanup_status() -> Dict[str, Any]:
     """
