@@ -776,6 +776,34 @@ async def retag_album_musicbrainz_id(
         )
 
 
+@router.get("/system/memory-cache")
+async def get_memory_cache_status() -> Dict[str, Any]:
+    """
+    Get status of artwork memory cache
+    
+    Returns information about:
+    - Cache hit rate
+    - Memory usage
+    - Top accessed entries
+    - Performance metrics
+    """
+    try:
+        from ..services.artwork_memory_cache import get_artwork_memory_cache
+        
+        memory_cache = get_artwork_memory_cache()
+        return memory_cache.get_stats()
+        
+    except Exception as e:
+        logger.error(f"Error getting memory cache status: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Status unavailable",
+                "message": "Unable to retrieve memory cache status"
+            }
+        )
+
+
 @router.get("/system/background-tasks")
 async def get_background_tasks_status() -> Dict[str, Any]:
     """

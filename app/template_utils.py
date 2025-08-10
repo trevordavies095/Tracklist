@@ -77,12 +77,22 @@ class ArtworkURLResolver:
                 self.stats['errors'] += 1
                 return fallback or '/static/img/album-placeholder.svg'
             
-            # Check template cache first
+            # Check memory cache first (fastest)
+            from .services.artwork_memory_cache import get_artwork_memory_cache
+            memory_cache = get_artwork_memory_cache()
+            cached_url = memory_cache.get(album_id, size)
+            if cached_url:
+                self.stats['cache_hits'] += 1
+                return cached_url
+            
+            # Check template cache second (in-memory but with more overhead)
             cache_key = f"{album_id}_{size}"
             if cache_key in self._template_cache:
                 cached_entry = self._template_cache[cache_key]
                 if (datetime.now(timezone.utc) - cached_entry['time']).seconds < self._cache_ttl:
                     self.stats['cache_hits'] += 1
+                    # Also store in memory cache for next time
+                    memory_cache.set(album_id, size, cached_entry['url'])
                     return cached_entry['url']
             
             # Map size names to standard variants
@@ -111,11 +121,12 @@ class ArtworkURLResolver:
                     # Update stats
                     self.stats['cache_hits'] += 1
                     
-                    # Store in template cache
+                    # Store in both caches
                     self._template_cache[cache_key] = {
                         'url': web_path,
                         'time': datetime.now(timezone.utc)
                     }
+                    memory_cache.set(album_id, normalized_size, web_path)
                     
                     return web_path
             
@@ -123,11 +134,12 @@ class ArtworkURLResolver:
             self.stats['cache_misses'] += 1
             
             if cover_art_url:
-                # Store external URL in template cache too
+                # Store external URL in both caches
                 self._template_cache[cache_key] = {
                     'url': cover_art_url,
                     'time': datetime.now(timezone.utc)
                 }
+                memory_cache.set(album_id, normalized_size, cover_art_url)
                 # Optionally trigger async caching in background
                 self._trigger_background_cache_for_dict(album_id, cover_art_url, artwork_cached)
                 return cover_art_url
