@@ -6,6 +6,9 @@ echo "Starting Tracklist application..."
 # Run database migrations
 echo "Running database migrations..."
 
+# Note: The application will automatically run SQL migrations from the migrations/ directory
+# on startup via init_db(). This happens in addition to any Alembic migrations.
+
 # First check if alembic_version table exists and has invalid revision
 if [ -f "./data/tracklist.db" ]; then
     # Check if alembic_version table exists
