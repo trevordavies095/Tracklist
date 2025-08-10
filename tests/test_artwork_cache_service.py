@@ -66,6 +66,8 @@ class TestArtworkCacheService:
             service = ArtworkCacheService(cache_fs=mock_cache_fs)
             # Mock the HTTP client
             service.client = AsyncMock()
+            # Set downloader to None so it uses the fallback path
+            service.downloader = None
             return service
     
     @pytest.fixture
@@ -106,12 +108,16 @@ class TestArtworkCacheService:
         mock_response.status_code = 200
         mock_response.headers = {"content-length": str(len(sample_image_data))}
         mock_response.content = sample_image_data
+        mock_response.url = "https://example.com/image.jpg"
         
         service.client.get = AsyncMock(return_value=mock_response)
         
         result = await service._download_image("https://example.com/image.jpg")
         
-        assert result == sample_image_data
+        # Now returns tuple (image_data, metadata)
+        assert result is not None
+        assert result[0] == sample_image_data
+        assert result[1]['content_length'] == len(sample_image_data)
         service.client.get.assert_called_once()
     
     @pytest.mark.asyncio
@@ -242,8 +248,9 @@ class TestArtworkCacheService:
     @pytest.mark.asyncio
     async def test_cache_artwork_success(self, service, mock_album, mock_db_session, sample_image_data):
         """Test successful artwork caching"""
-        # Mock download
-        service._download_image = AsyncMock(return_value=sample_image_data)
+        # Mock download - now returns tuple
+        metadata = {'content_type': 'image/jpeg', 'content_length': len(sample_image_data)}
+        service._download_image = AsyncMock(return_value=(sample_image_data, metadata))
         service._save_original = AsyncMock(return_value=Path("/tmp/test.jpg"))
         service._generate_all_variants = AsyncMock(return_value=["original", "medium"])
         service._update_cache_records = AsyncMock()

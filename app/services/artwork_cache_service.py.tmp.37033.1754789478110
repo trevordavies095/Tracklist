@@ -413,11 +413,10 @@ class ArtworkCacheService:
         cache_key: str,
         original_url: str,
         variants_created: List[str],
-        db: Session,
-        metadata: Optional[Dict[str, Any]] = None
+        db: Session
     ) -> None:
         """
-        Update database cache records for an album with metadata
+        Update database cache records for an album
         
         Args:
             album: Album model instance
@@ -425,7 +424,6 @@ class ArtworkCacheService:
             original_url: Original artwork URL
             variants_created: List of variant names created
             db: Database session
-            metadata: Optional download metadata (etag, checksum, etc.)
         """
         try:
             now = datetime.now(timezone.utc)
@@ -466,17 +464,7 @@ class ArtworkCacheService:
                     cache_record.width = self.cache_fs.SIZE_SPECS[variant][0]
                     cache_record.height = self.cache_fs.SIZE_SPECS[variant][1]
                 
-                # Add metadata if available
-                if metadata:
-                    cache_record.etag = metadata.get('etag')
-                    cache_record.content_type = metadata.get('content_type', 'image/jpeg')
-                    
-                    # Store original image dimensions for the original variant
-                    if variant == 'original' and 'width' in metadata:
-                        cache_record.width = metadata.get('width')
-                        cache_record.height = metadata.get('height')
-                else:
-                    cache_record.content_type = "image/jpeg"
+                cache_record.content_type = "image/jpeg"
             
             db.commit()
             logger.debug(f"Updated cache records for album {album.id}")
