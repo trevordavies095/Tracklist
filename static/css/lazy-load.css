@@ -29,6 +29,12 @@ img[data-src],
     animation: shimmer 1.5s infinite;
 }
 
+/* No shimmer effect for placeholders with no artwork */
+.artwork-no-shimmer::before {
+    display: none !important;
+    animation: none !important;
+}
+
 @keyframes shimmer {
     to {
         left: 100%;

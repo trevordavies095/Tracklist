@@ -43,12 +43,18 @@
              data-album-artist="{{ album.artist }}">
             
             <div class="flex flex-col md:flex-row md:items-start space-y-4 md:space-y-0 md:space-x-6">
-                <!-- Album Artwork Placeholder -->
+                <!-- Album Artwork (Lazy Loaded) -->
                 <div class="flex-shrink-0">
-                    <div class="w-20 h-20 md:w-24 md:h-24 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg flex items-center justify-center">
-                        <svg class="w-8 h-8 md:w-10 md:h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
-                        </svg>
+                    <div class="album-artwork w-20 h-20 md:w-24 md:h-24 rounded-lg overflow-hidden" data-mbid="{{ album.musicbrainz_id }}">
+                        <img class="w-full h-full object-cover hidden" 
+                             alt="{{ album.title }} cover" 
+                             loading="lazy"
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <div class="artwork-placeholder w-20 h-20 md:w-24 md:h-24 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg flex items-center justify-center">
+                            <svg class="w-8 h-8 md:w-10 md:h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+                            </svg>
+                        </div>
                     </div>
                 </div>
                 
@@ -58,35 +64,37 @@
                         {{ album.title }}
                         {% if album.year %}
                         <span class="text-sm font-normal text-gray-500">({{ album.year }})</span>
+                        {% elif album.date %}
+                        <span class="text-sm font-normal text-gray-500">({{ album.date[:4] }})</span>
                         {% endif %}
                     </h4>
-                    <p class="text-md text-gray-600 mb-3">by {{ album.artist }}</p>
+                    <p class="text-md text-gray-600 mb-2">{{ album.artist }} • {{ album.track_count if album.track_count else '?' }} tracks</p>
                     
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-500 mb-4">
-                        {% if album.date %}
-                        <div>
-                            <span class="font-medium">Released:</span> {{ album.date[:4] }}
-                        </div>
+                    <!-- Format and Country in a compact line like the retag modal -->
+                    {% if album.media or album.format or album.country %}
+                    <p class="text-sm text-gray-500 mb-3">
+                        {% if album.media and album.media|length > 0 %}
+                            {% set formats = [] %}
+                            {% for medium in album.media %}
+                                {% if medium.format and medium.format not in formats %}
+                                    {% set _ = formats.append(medium.format) %}
+                                {% endif %}
+                            {% endfor %}
+                            {% if formats %}Format: {{ formats|join(', ') }}{% endif %}
+                        {% elif album.format %}
+                            Format: {{ album.format }}
                         {% endif %}
-                        
-                        {% if album.country %}
-                        <div>
-                            <span class="font-medium">Country:</span> {{ album.country }}
-                        </div>
-                        {% endif %}
-                        
-                        {% if album.track_count %}
-                        <div>
-                            <span class="font-medium">Tracks:</span> {{ album.track_count }}
-                        </div>
-                        {% endif %}
-                        
-                        {% if album.label %}
-                        <div>
-                            <span class="font-medium">Label:</span> {{ album.label[:20] }}{% if album.label|length > 20 %}...{% endif %}
-                        </div>
-                        {% endif %}
+                        {% if (album.media or album.format) and album.country %} • {% endif %}
+                        {% if album.country %}Country: {{ album.country }}{% endif %}
+                    </p>
+                    {% endif %}
+                    
+                    <!-- Additional metadata in a more compact format -->
+                    {% if album.label %}
+                    <div class="text-sm text-gray-500 mb-4">
+                        <span>Label: {{ album.label[:30] }}{% if album.label|length > 30 %}...{% endif %}</span>
                     </div>
+                    {% endif %}
                     
                     <!-- Tags/Genres -->
                     {% if album.tags and album.tags|length > 0 %}

@@ -329,7 +329,102 @@ document.body.addEventListener('htmx:afterRequest', function(evt) {
             behavior: 'smooth', 
             block: 'start' 
         });
+        
+        // Load artwork lazily after search results are displayed
+        loadArtworkLazily();
     }
 });
+
+// Lazy load artwork for search results
+async function loadArtworkLazily() {
+    const artworkContainers = document.querySelectorAll('.album-artwork[data-mbid]');
+    
+    // Load artwork with a slight delay between each request to avoid overwhelming the server
+    for (let i = 0; i < artworkContainers.length; i++) {
+        const container = artworkContainers[i];
+        const mbid = container.dataset.mbid;
+        const img = container.querySelector('img');
+        const placeholder = container.querySelector('.artwork-placeholder');
+        
+        try {
+            // Slight delay to stagger requests
+            if (i > 0) await new Promise(resolve => setTimeout(resolve, 100));
+            
+            const response = await fetch(`/api/v1/releases/${mbid}/artwork-url`);
+            if (response.ok) {
+                const data = await response.json();
+                console.debug(`Artwork response for ${mbid}:`, data); // Debug log
+                
+                if (data.url && data.url !== null && data.url !== '') {
+                    console.debug(`Loading artwork for ${mbid}: ${data.url}`); // Debug log
+                    
+                    // Set up image loading with proper error handling
+                    img.onload = function() {
+                        console.debug(`Image loaded successfully for ${mbid}`); // Debug log
+                        // Only apply transition when we know the image loaded successfully
+                        this.style.opacity = '0';
+                        this.style.transition = 'opacity 0.3s ease-in-out';
+                        this.classList.remove('hidden');
+                        // Trigger fade-in
+                        setTimeout(() => {
+                            this.style.opacity = '1';
+                            placeholder.style.display = 'none';
+                        }, 10); // Small delay to ensure transition applies
+                    };
+                    
+                    img.onerror = function() {
+                        console.debug(`Image failed to load for ${mbid}`); // Debug log
+                        // Keep placeholder if image fails to load - no transition needed
+                        this.classList.add('hidden');
+                        this.style.transition = '';
+                        this.style.opacity = '';
+                        placeholder.style.display = 'flex';
+                    };
+                    
+                    // Start loading the image
+                    img.src = data.url;
+                } else {
+                    console.debug(`No artwork URL for ${mbid}, keeping placeholder`); // Debug log
+                    // No artwork available - ensure placeholder stays visible and no loading effect
+                    // Clear any existing event handlers
+                    img.onload = null;
+                    img.onerror = null;
+                    // Ensure clean state
+                    img.style.transition = '';
+                    img.style.opacity = '';
+                    img.classList.add('hidden');
+                    placeholder.style.display = 'flex';
+                    // IMPORTANT: Stop the shimmer animation by removing the placeholder class
+                    placeholder.classList.remove('artwork-placeholder');
+                    placeholder.classList.add('artwork-no-shimmer');
+                }
+            } else {
+                console.debug(`API call failed for ${mbid}`); // Debug log
+                // API call failed - ensure placeholder stays visible and no loading effect
+                img.onload = null;
+                img.onerror = null;
+                img.style.transition = '';
+                img.style.opacity = '';
+                img.classList.add('hidden');
+                placeholder.style.display = 'flex';
+                // IMPORTANT: Stop the shimmer animation
+                placeholder.classList.remove('artwork-placeholder');
+                placeholder.classList.add('artwork-no-shimmer');
+            }
+        } catch (error) {
+            console.debug(`Exception loading artwork for ${mbid}:`, error);
+            // Keep placeholder on error and clear any transition
+            img.onload = null;
+            img.onerror = null;
+            img.style.transition = '';
+            img.style.opacity = '';
+            img.classList.add('hidden');
+            placeholder.style.display = 'flex';
+            // IMPORTANT: Stop the shimmer animation
+            placeholder.classList.remove('artwork-placeholder');
+            placeholder.classList.add('artwork-no-shimmer');
+        }
+    }
+}
 </script>
 {% endblock %}
