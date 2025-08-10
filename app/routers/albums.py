@@ -7,11 +7,13 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Path, Request, For
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
+from sqlalchemy import or_
 from pydantic import BaseModel, Field
 import logging
 import json
+import asyncio
 
-from ..database import get_db, get_db_info
+from ..database import get_db, get_db_info, SessionLocal
 from ..rating_service import get_rating_service, RatingService
 from ..exceptions import TracklistException, NotFoundError, ValidationError, ServiceNotFoundError, ServiceValidationError
 
@@ -888,6 +890,153 @@ async def get_memory_cache_status() -> Dict[str, Any]:
             detail={
                 "error": "Status unavailable",
                 "message": "Unable to retrieve memory cache status"
+            }
+        )
+
+
+@router.post("/system/migrate-artwork")
+async def trigger_artwork_migration(
+    batch_size: int = Query(10, description="Number of albums per batch", ge=1, le=50),
+    limit: Optional[int] = Query(None, description="Limit total albums to process")
+) -> Dict[str, Any]:
+    """
+    Trigger artwork migration for existing albums
+    
+    Processes existing albums that don't have cached artwork.
+    The migration runs in the background and can be resumed if interrupted.
+    
+    Args:
+        batch_size: Number of albums to process per batch (default 10)
+        limit: Optional limit on total albums to process
+    """
+    try:
+        from ..services.artwork_cache_background import get_artwork_cache_background_service
+        from ..models import Album, ArtworkCache
+        
+        db = SessionLocal()
+        
+        try:
+            # Get albums that need caching
+            query = db.query(Album).filter(
+                or_(
+                    Album.artwork_cached == False,
+                    Album.artwork_cached == None
+                )
+            )
+            
+            if limit:
+                query = query.limit(limit)
+            
+            albums_to_process = query.all()
+            
+            if not albums_to_process:
+                return {
+                    'status': 'complete',
+                    'message': 'All albums already have cached artwork',
+                    'albums_to_process': 0
+                }
+            
+            # Queue albums for background processing
+            cache_service = get_artwork_cache_background_service()
+            task_ids = []
+            
+            for i, album in enumerate(albums_to_process):
+                if album.cover_art_url:
+                    # Add to background queue with lower priority
+                    task_id = cache_service.trigger_album_cache(
+                        album_id=album.id,
+                        cover_art_url=album.cover_art_url,
+                        priority=8  # Lower priority for migration
+                    )
+                    task_ids.append(task_id)
+                    
+                    # Add small delay between queueing to avoid overwhelming
+                    if (i + 1) % batch_size == 0:
+                        await asyncio.sleep(0.1)
+            
+            return {
+                'status': 'started',
+                'message': f'Migration started for {len(albums_to_process)} albums',
+                'albums_queued': len(task_ids),
+                'batch_size': batch_size,
+                'task_ids': task_ids[:10]  # Return first 10 task IDs as sample
+            }
+            
+        finally:
+            db.close()
+            
+    except Exception as e:
+        logger.error(f"Error starting artwork migration: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Migration failed",
+                "message": f"Failed to start artwork migration: {str(e)}"
+            }
+        )
+
+
+@router.get("/system/migration-status")
+async def get_migration_status() -> Dict[str, Any]:
+    """
+    Get artwork migration status
+    
+    Returns information about ongoing or completed migration
+    """
+    try:
+        from pathlib import Path
+        import json
+        
+        progress_file = Path("logs/artwork_migration_progress.json")
+        report_file = Path("logs/artwork_migration_report.json")
+        
+        status = {
+            'in_progress': False,
+            'progress': None,
+            'last_report': None
+        }
+        
+        # Check progress file
+        if progress_file.exists():
+            try:
+                with open(progress_file, 'r') as f:
+                    progress = json.load(f)
+                    status['progress'] = {
+                        'processed': progress.get('processed', 0),
+                        'total': progress.get('total', 0),
+                        'percentage': round(
+                            progress.get('processed', 0) / progress.get('total', 1) * 100, 1
+                        ),
+                        'failed': len(progress.get('failed_album_ids', {}))
+                    }
+                    status['in_progress'] = progress.get('processed', 0) < progress.get('total', 0)
+            except Exception as e:
+                logger.warning(f"Could not read progress file: {e}")
+        
+        # Check report file
+        if report_file.exists():
+            try:
+                with open(report_file, 'r') as f:
+                    report = json.load(f)
+                    status['last_report'] = {
+                        'completed_at': report.get('completed_at'),
+                        'albums_cached': report.get('cached', 0),
+                        'failed': report.get('failed', 0),
+                        'bytes_cached': report.get('bytes_cached', 0),
+                        'processing_time_seconds': report.get('processing_time_seconds', 0)
+                    }
+            except Exception as e:
+                logger.warning(f"Could not read report file: {e}")
+        
+        return status
+        
+    except Exception as e:
+        logger.error(f"Error getting migration status: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Status unavailable",
+                "message": "Unable to retrieve migration status"
             }
         )
 

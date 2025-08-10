@@ -28,6 +28,10 @@ services:
       - REPORTS_SCHEDULE=weekly
       - REPORTS_DAY=monday
       - REPORTS_TIME=09:00
+      # Artwork migration configuration
+      - AUTO_MIGRATE_ARTWORK=true
+      - MIGRATION_BATCH_SIZE=10
+      - MIGRATION_MAX_ALBUMS=0
     volumes:
       - ./data:/app/data
       - ./logs:/app/logs

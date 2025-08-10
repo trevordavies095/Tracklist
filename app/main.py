@@ -4,6 +4,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.staticfiles import StaticFiles
 import logging
 import os
+import asyncio
 from .database import create_tables, init_db
 from .exceptions import TracklistException, NotFoundError, ValidationError, ConflictError
 from .logging_config import setup_logging
@@ -79,6 +80,98 @@ app.include_router(albums.router)     # API routes
 app.include_router(reports.router)    # API routes for reporting
 
 
+async def auto_migrate_artwork_cache():
+    """
+    Automatically migrate existing albums to cached artwork in the background
+    This runs on startup to ensure all albums have cached artwork
+    """
+    try:
+        # Wait a bit for the application to fully start
+        await asyncio.sleep(5)
+        
+        logger.info("Checking for albums that need artwork caching...")
+        
+        from .database import SessionLocal
+        from .models import Album
+        from .services.artwork_cache_background import get_artwork_cache_background_service
+        
+        db = SessionLocal()
+        
+        try:
+            # Check how many albums need caching
+            uncached_count = db.query(Album).filter(
+                Album.artwork_cached == False
+            ).count()
+            
+            if uncached_count == 0:
+                logger.info("All albums already have cached artwork")
+                return
+            
+            logger.info(f"Found {uncached_count} albums without cached artwork")
+            
+            # Check if auto-migration is enabled (default: true)
+            auto_migrate = os.getenv("AUTO_MIGRATE_ARTWORK", "true").lower() == "true"
+            
+            if not auto_migrate:
+                logger.info("Auto-migration is disabled (set AUTO_MIGRATE_ARTWORK=true to enable)")
+                return
+            
+            logger.info(f"Starting automatic artwork migration for {uncached_count} albums...")
+            
+            # Get the background cache service
+            cache_service = get_artwork_cache_background_service()
+            
+            # Process albums in batches to avoid overwhelming the system
+            batch_size = int(os.getenv("MIGRATION_BATCH_SIZE", "10"))
+            max_albums = int(os.getenv("MIGRATION_MAX_ALBUMS", "0"))  # 0 = no limit
+            
+            # Get albums to process
+            query = db.query(Album).filter(
+                Album.artwork_cached == False,
+                Album.cover_art_url.isnot(None)  # Only process albums with URLs
+            )
+            
+            if max_albums > 0:
+                query = query.limit(max_albums)
+            
+            albums = query.all()
+            
+            if not albums:
+                logger.info("No albums with cover art URLs to migrate")
+                return
+            
+            # Queue albums for background processing
+            queued = 0
+            for i, album in enumerate(albums):
+                try:
+                    # Add to background queue with low priority
+                    task_id = cache_service.trigger_album_cache(
+                        album_id=album.id,
+                        cover_art_url=album.cover_art_url,
+                        priority=9  # Very low priority for auto-migration
+                    )
+                    queued += 1
+                    
+                    # Add delay between batches to avoid overwhelming
+                    if (i + 1) % batch_size == 0:
+                        await asyncio.sleep(2)  # Wait 2 seconds between batches
+                        logger.info(f"Queued {queued}/{len(albums)} albums for caching...")
+                        
+                except Exception as e:
+                    logger.warning(f"Failed to queue album {album.id} for caching: {e}")
+            
+            logger.info(f"✓ Auto-migration started: {queued} albums queued for background caching")
+            logger.info("Artwork will be cached gradually in the background without affecting performance")
+            
+        finally:
+            db.close()
+            
+    except Exception as e:
+        logger.error(f"Auto-migration failed: {e}")
+        # Don't crash the application if migration fails
+        pass
+
+
 @app.on_event("startup")
 async def startup_event():
     """Initialize database, cache directories, and background tasks on startup"""
@@ -102,6 +195,9 @@ async def startup_event():
         from .services.scheduled_tasks import start_scheduled_tasks
         await start_scheduled_tasks()
         logger.info("Scheduled task manager started")
+        
+        # Auto-migrate existing albums to cached artwork
+        asyncio.create_task(auto_migrate_artwork_cache())
         
         # Warm artwork memory cache with frequently accessed albums
         try:
