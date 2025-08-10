@@ -855,6 +855,11 @@ async def refresh_album_artwork(
         # Clear from memory cache
         memory_cache.clear_album(album_id)
         
+        # Clear from template cache
+        from ..template_utils import get_artwork_resolver
+        template_resolver = get_artwork_resolver()
+        template_resolver.clear_template_cache()
+        
         # Mark album as not cached
         album.artwork_cached = False
         db.commit()
