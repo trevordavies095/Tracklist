@@ -92,19 +92,37 @@ async def auto_migrate_artwork_cache():
         logger.info("Checking for albums that need artwork caching...")
         
         from .database import SessionLocal
-        from .models import Album
+        from .models import Album, ArtworkCache
         from .services.artwork_cache_background import get_artwork_cache_background_service
         
         db = SessionLocal()
         
         try:
-            # Check how many albums need caching
+            # More robust check: Look for albums without actual cache entries
+            # This handles cases where artwork_cached might be incorrectly set
+            from sqlalchemy import or_, and_, exists
+            
+            # Subquery to check if album has any artwork cache entries
+            has_cache = exists().where(
+                ArtworkCache.album_id == Album.id
+            )
+            
+            # Count albums that don't have cache entries
             uncached_count = db.query(Album).filter(
-                Album.artwork_cached == False
+                ~has_cache,
+                Album.cover_art_url.isnot(None)  # Only count albums with URLs
             ).count()
             
+            # Also log total albums for context
+            total_albums = db.query(Album).count()
+            albums_with_urls = db.query(Album).filter(
+                Album.cover_art_url.isnot(None)
+            ).count()
+            
+            logger.info(f"Album cache status: {total_albums} total albums, {albums_with_urls} with artwork URLs")
+            
             if uncached_count == 0:
-                logger.info("All albums already have cached artwork")
+                logger.info("All albums with artwork URLs already have cached entries")
                 return
             
             logger.info(f"Found {uncached_count} albums without cached artwork")
@@ -125,9 +143,9 @@ async def auto_migrate_artwork_cache():
             batch_size = int(os.getenv("MIGRATION_BATCH_SIZE", "10"))
             max_albums = int(os.getenv("MIGRATION_MAX_ALBUMS", "0"))  # 0 = no limit
             
-            # Get albums to process
+            # Get albums to process - those without cache entries
             query = db.query(Album).filter(
-                Album.artwork_cached == False,
+                ~has_cache,
                 Album.cover_art_url.isnot(None)  # Only process albums with URLs
             )
             
