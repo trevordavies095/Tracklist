@@ -215,7 +215,7 @@ class ArtworkCacheService:
             album.artwork_cache_date = datetime.now(timezone.utc)
             db.commit()
             
-            logger.info(f"Successfully cached artwork for album {album.id} with {len(variants_created)} variants")
+            logger.info(f"Successfully cached artwork for album {album.id} with {len(variants_metadata)} variants")
             return True
             
         except Exception as e:
