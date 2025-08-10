@@ -245,7 +245,7 @@ class MusicBrainzService:
             raw_data: Raw MusicBrainz API response
             
         Returns:
-            Formatted search results
+            Formatted search results (artwork loaded lazily via JavaScript)
         """
         releases = []
         

@@ -321,6 +321,8 @@ async function fetchReleaseGroupReleases() {
         if (data.releases && data.releases.length > 0) {
             displayReleases(data.releases);
             document.getElementById('retagContent').classList.remove('hidden');
+            // Load artwork lazily after modal content is displayed
+            loadModalArtworkLazily();
         } else {
             showRetagError('No alternative releases found with the same track count.');
         }
@@ -345,27 +347,18 @@ function displayReleases(releases) {
                    class="sr-only">
             <div class="flex items-center justify-between">
                 <div class="flex items-start space-x-3 flex-1">
-                    <!-- Album Artwork -->
+                    <!-- Album Artwork (Lazy Loaded) -->
                     <div class="flex-shrink-0">
-                        ${release.cover_art_url ? `
-                            <div class="w-16 h-16 rounded-md overflow-hidden">
-                                <img src="${release.cover_art_url}" 
-                                     alt="${release.title} cover" 
-                                     class="w-full h-full object-cover"
-                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                                <div class="w-16 h-16 bg-gradient-to-br from-gray-200 to-gray-300 rounded-md flex items-center justify-center" style="display:none;">
-                                    <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
-                                    </svg>
-                                </div>
-                            </div>
-                        ` : `
-                            <div class="w-16 h-16 bg-gradient-to-br from-gray-200 to-gray-300 rounded-md flex items-center justify-center">
+                        <div class="modal-artwork w-16 h-16 rounded-md overflow-hidden" data-mbid="${release.musicbrainz_id}">
+                            <img class="w-full h-full object-cover hidden" 
+                                 alt="${release.title} cover" 
+                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            <div class="artwork-placeholder w-16 h-16 bg-gradient-to-br from-gray-200 to-gray-300 rounded-md flex items-center justify-center">
                                 <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
                                 </svg>
                             </div>
-                        `}
+                        </div>
                     </div>
                     
                     <!-- Release Info -->
@@ -492,6 +485,82 @@ window.onclick = function(event) {
     const modal = document.getElementById('retagModal');
     if (event.target === modal) {
         closeRetagModal();
+    }
+}
+
+// Lazy load artwork for retag modal
+async function loadModalArtworkLazily() {
+    const artworkContainers = document.querySelectorAll('.modal-artwork[data-mbid]');
+    
+    // Load artwork with a slight delay between each request to avoid overwhelming the server
+    for (let i = 0; i < artworkContainers.length; i++) {
+        const container = artworkContainers[i];
+        const mbid = container.dataset.mbid;
+        const img = container.querySelector('img');
+        const placeholder = container.querySelector('.artwork-placeholder');
+        
+        try {
+            // Slight delay to stagger requests (shorter for modal since usually fewer items)
+            if (i > 0) await new Promise(resolve => setTimeout(resolve, 50));
+            
+            const response = await fetch(`/api/v1/releases/${mbid}/artwork-url`);
+            if (response.ok) {
+                const data = await response.json();
+                if (data.url) {
+                    // Set up image loading with proper error handling
+                    img.onload = function() {
+                        // Only apply transition when we know the image loaded successfully
+                        this.style.opacity = '0';
+                        this.style.transition = 'opacity 0.3s ease-in-out';
+                        this.classList.remove('hidden');
+                        // Trigger fade-in
+                        setTimeout(() => {
+                            this.style.opacity = '1';
+                            placeholder.style.display = 'none';
+                        }, 10); // Small delay to ensure transition applies
+                    };
+                    
+                    img.onerror = function() {
+                        // Keep placeholder if image fails to load - no transition needed
+                        this.classList.add('hidden');
+                        this.style.transition = '';
+                        this.style.opacity = '';
+                        placeholder.style.display = 'flex';
+                    };
+                    
+                    // Start loading the image
+                    img.src = data.url;
+                } else {
+                    // No artwork available - ensure placeholder stays visible and no loading effect
+                    img.style.transition = ''; // Clear any transition
+                    img.style.opacity = ''; // Clear any opacity
+                    img.classList.add('hidden'); // Ensure image stays hidden
+                    placeholder.style.display = 'flex'; // Ensure placeholder is visible
+                    // IMPORTANT: Stop the shimmer animation
+                    placeholder.classList.remove('artwork-placeholder');
+                    placeholder.classList.add('artwork-no-shimmer');
+                }
+            } else {
+                // API call failed - ensure placeholder stays visible and no loading effect
+                img.style.transition = ''; // Clear any transition
+                img.style.opacity = ''; // Clear any opacity
+                img.classList.add('hidden'); // Ensure image stays hidden
+                placeholder.style.display = 'flex'; // Ensure placeholder is visible
+                // IMPORTANT: Stop the shimmer animation
+                placeholder.classList.remove('artwork-placeholder');
+                placeholder.classList.add('artwork-no-shimmer');
+            }
+        } catch (error) {
+            console.debug(`Could not load artwork for ${mbid}:`, error);
+            // Keep placeholder on error and clear any transition
+            img.style.transition = ''; // Clear any transition
+            img.style.opacity = ''; // Clear any opacity
+            img.classList.add('hidden'); // Ensure image stays hidden
+            placeholder.style.display = 'flex'; // Ensure placeholder is visible
+            // IMPORTANT: Stop the shimmer animation
+            placeholder.classList.remove('artwork-placeholder');
+            placeholder.classList.add('artwork-no-shimmer');
+        }
     }
 }
 

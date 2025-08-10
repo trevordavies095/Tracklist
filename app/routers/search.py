@@ -3,7 +3,7 @@ Search API endpoints for MusicBrainz integration
 """
 
 from typing import Dict, Any, Optional
-from fastapi import APIRouter, Query, HTTPException, Depends, Request
+from fastapi import APIRouter, Query, HTTPException, Depends, Request, Path
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 import logging
@@ -248,6 +248,46 @@ async def get_album_details(
                 "message": "An unexpected error occurred while fetching album details"
             }
         )
+
+
+@router.get("/releases/{musicbrainz_id}/artwork-url")
+async def get_release_artwork_url(
+    musicbrainz_id: str = Path(..., description="MusicBrainz release ID", min_length=36, max_length=36)
+) -> Dict[str, Any]:
+    """
+    Get cover art URL for a MusicBrainz release ID
+    
+    This endpoint is used for lazy loading artwork in search results.
+    Returns the cover art URL from Cover Art Archive if available.
+    """
+    try:
+        from ..services.cover_art_service import get_cover_art_service
+        
+        # Validate MusicBrainz ID format
+        if len(musicbrainz_id) != 36 or musicbrainz_id.count('-') != 4:
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "error": "Invalid MusicBrainz ID",
+                    "message": "MusicBrainz ID must be a valid UUID format"
+                }
+            )
+        
+        cover_art_service = get_cover_art_service()
+        cover_art_url = await cover_art_service.get_cover_art_url(musicbrainz_id)
+        
+        return {
+            "url": cover_art_url,
+            "musicbrainz_id": musicbrainz_id
+        }
+        
+    except Exception as e:
+        logger.debug(f"Could not fetch cover art for {musicbrainz_id}: {e}")
+        return {
+            "url": None,
+            "musicbrainz_id": musicbrainz_id,
+            "error": "Cover art not available"
+        }
 
 
 @router.get("/cache/stats")
