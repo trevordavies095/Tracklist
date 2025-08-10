@@ -499,7 +499,7 @@ async function refreshArtwork(event) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-Session-Id': sessionStorage.getItem('sessionId') || crypto.randomUUID()
+                'X-Session-Id': sessionStorage.getItem('sessionId') || generateUUID()
             }
         });
         
