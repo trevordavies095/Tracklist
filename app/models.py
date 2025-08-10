@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, Text, REAL, Boolean, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, Text, REAL, Boolean, DateTime, ForeignKey, Index, CheckConstraint
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -39,10 +39,14 @@ class Album(Base):
     created_at = Column(DateTime, default=func.current_timestamp())
     updated_at = Column(DateTime, default=func.current_timestamp(), onupdate=func.current_timestamp())
     rated_at = Column(DateTime)
+    # Artwork cache columns
+    artwork_cached = Column(Boolean, default=False)
+    artwork_cache_date = Column(DateTime)
     
     # Relationships
     artist = relationship("Artist", back_populates="albums")
     tracks = relationship("Track", back_populates="album", cascade="all, delete-orphan")
+    artwork_cache = relationship("ArtworkCache", back_populates="album", cascade="all, delete-orphan")
 
 
 class Track(Base):
@@ -71,3 +75,44 @@ class UserSettings(Base):
     theme = Column(Text, default='light')
     created_at = Column(DateTime, default=func.current_timestamp())
     updated_at = Column(DateTime, default=func.current_timestamp(), onupdate=func.current_timestamp())
+
+
+class ArtworkCache(Base):
+    __tablename__ = "artwork_cache"
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    album_id = Column(Integer, ForeignKey("albums.id", ondelete="CASCADE"), nullable=False)
+    original_url = Column(Text)
+    cache_key = Column(Text, unique=True, nullable=False)
+    file_path = Column(Text)
+    size_variant = Column(
+        Text, 
+        nullable=False,
+        # SQLAlchemy will create CHECK constraint from this
+    )
+    width = Column(Integer)
+    height = Column(Integer)
+    file_size_bytes = Column(Integer)
+    content_type = Column(Text)
+    etag = Column(Text)
+    last_fetched_at = Column(DateTime)
+    last_accessed_at = Column(DateTime)
+    access_count = Column(Integer, default=0)
+    is_placeholder = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=func.current_timestamp())
+    updated_at = Column(DateTime, default=func.current_timestamp(), onupdate=func.current_timestamp())
+    
+    # Relationships
+    album = relationship("Album", back_populates="artwork_cache")
+    
+    # Table arguments for constraints and indexes
+    __table_args__ = (
+        CheckConstraint(
+            "size_variant IN ('original', 'large', 'medium', 'small', 'thumbnail')",
+            name="check_size_variant"
+        ),
+        Index('idx_artwork_cache_album_size', 'album_id', 'size_variant'),
+        Index('idx_artwork_cache_key', 'cache_key'),
+        Index('idx_artwork_cache_last_accessed', 'last_accessed_at'),
+        Index('idx_artwork_cache_album_id', 'album_id'),
+    )

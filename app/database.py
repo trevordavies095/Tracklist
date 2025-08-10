@@ -91,6 +91,8 @@ def init_db():
     # First create all tables
     create_tables()
     
+    # Note: Database migrations are handled by Alembic in entrypoint.sh
+    
     db = SessionLocal()
     try:
         # Create default user settings if they don't exist
