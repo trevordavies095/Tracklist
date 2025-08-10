@@ -159,6 +159,7 @@ def setup_template_filters(template_env):
     # Import template utilities
     from ..template_utils import (
         get_artwork_url,
+        get_lazy_image_html,
         get_cache_stats,
         format_file_size,
         format_cache_age
@@ -209,6 +210,7 @@ def setup_template_filters(template_env):
     
     # Add global functions for templates
     template_env.globals["get_artwork_url"] = get_artwork_url
+    template_env.globals["get_lazy_image_html"] = get_lazy_image_html
     template_env.globals["get_cache_stats"] = get_cache_stats
 
 
