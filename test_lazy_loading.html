@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lazy Loading Test</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lazy Loading Assets -->
+    <link rel="stylesheet" href="/static/css/lazy-load.css">
+    <script src="/static/js/lazy-load.js" defer></script>
+    <script src="/static/js/lazy-load-progress.js" defer></script>
+    
+    <style>
+        .test-image {
+            width: 200px;
+            height: 200px;
+            margin: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .stats {
+            position: fixed;
+            top: 60px;
+            right: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-8">
+    <noscript>
+        <div class="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded mb-4">
+            JavaScript is disabled. Images will load normally without lazy loading.
+        </div>
+    </noscript>
+    
+    <div class="max-w-7xl mx-auto">
+        <h1 class="text-3xl font-bold mb-8">Lazy Loading Test Page</h1>
+        
+        <div class="bg-white rounded-lg shadow p-6 mb-8">
+            <h2 class="text-xl font-semibold mb-4">Test Controls</h2>
+            <div class="flex gap-4">
+                <button onclick="addMoreImages()" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                    Add More Images
+                </button>
+                <button onclick="forceLoadAll()" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
+                    Force Load All
+                </button>
+                <button onclick="clearImages()" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">
+                    Clear Images
+                </button>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-xl font-semibold mb-4">Images Grid</h2>
+            <div id="image-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                <!-- Initial skeleton screens -->
+                <div class="album-skeleton">
+                    <div class="album-skeleton-image"></div>
+                    <div class="album-skeleton-content">
+                        <div class="skeleton-text title"></div>
+                        <div class="skeleton-text artist"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Spacer to enable scrolling -->
+        <div style="height: 1000px;"></div>
+    </div>
+    
+    <!-- Stats Display -->
+    <div class="stats" id="stats">
+        <h3 class="font-bold mb-2">Loading Stats</h3>
+        <div id="stats-content">
+            <div>Total: <span id="stat-total">0</span></div>
+            <div>Loaded: <span id="stat-loaded">0</span></div>
+            <div>Loading: <span id="stat-loading">0</span></div>
+            <div>Errors: <span id="stat-errors">0</span></div>
+            <div>Cached: <span id="stat-cached">0</span></div>
+            <div>Progress: <span id="stat-progress">0%</span></div>
+        </div>
+    </div>
+    
+    <script>
+        // Sample images for testing
+        const sampleImages = [
+            'https://picsum.photos/200/200?random=',
+            'https://via.placeholder.com/200/',
+            'https://source.unsplash.com/200x200/?album,music&sig='
+        ];
+        
+        let imageCounter = 0;
+        
+        // Initialize with some images
+        function initImages() {
+            const grid = document.getElementById('image-grid');
+            grid.innerHTML = ''; // Clear skeleton
+            
+            // Add 20 initial images
+            for (let i = 0; i < 20; i++) {
+                addImage();
+            }
+        }
+        
+        // Add a single image
+        function addImage() {
+            const grid = document.getElementById('image-grid');
+            const container = document.createElement('div');
+            container.className = 'relative';
+            
+            const img = document.createElement('img');
+            img.className = 'test-image w-full h-48 object-cover rounded';
+            img.src = '/static/img/album-placeholder.svg';
+            img.dataset.src = sampleImages[imageCounter % sampleImages.length] + (imageCounter++);
+            img.alt = `Test image ${imageCounter}`;
+            
+            // Add loading indicator
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'absolute inset-0 flex items-center justify-center';
+            loadingDiv.innerHTML = '<div class="text-gray-400">Loading...</div>';
+            
+            // Listen for load events
+            img.addEventListener('lazyload:loaded', () => {
+                loadingDiv.style.display = 'none';
+                updateStats();
+            });
+            
+            img.addEventListener('lazyload:error', () => {
+                loadingDiv.innerHTML = '<div class="text-red-500">Error</div>';
+                updateStats();
+            });
+            
+            container.appendChild(img);
+            container.appendChild(loadingDiv);
+            grid.appendChild(container);
+        }
+        
+        // Add more images
+        function addMoreImages() {
+            for (let i = 0; i < 10; i++) {
+                addImage();
+            }
+            // Reinitialize lazy loading for new images
+            if (window.LazyLoad) {
+                window.LazyLoad.init();
+            }
+            updateStats();
+        }
+        
+        // Force load all images
+        function forceLoadAll() {
+            if (window.LazyLoad) {
+                window.LazyLoad.forceLoad('img[data-src]');
+            }
+        }
+        
+        // Clear all images
+        function clearImages() {
+            const grid = document.getElementById('image-grid');
+            grid.innerHTML = '';
+            imageCounter = 0;
+            updateStats();
+        }
+        
+        // Update statistics display
+        function updateStats() {
+            if (!window.LazyLoad) return;
+            
+            const stats = window.LazyLoad.getStats();
+            document.getElementById('stat-total').textContent = stats.total;
+            document.getElementById('stat-loaded').textContent = stats.loaded;
+            document.getElementById('stat-loading').textContent = stats.loading;
+            document.getElementById('stat-errors').textContent = stats.errors;
+            document.getElementById('stat-cached').textContent = stats.cached;
+            document.getElementById('stat-progress').textContent = stats.percentage + '%';
+        }
+        
+        // Initialize when page loads
+        window.addEventListener('DOMContentLoaded', () => {
+            initImages();
+            
+            // Update stats periodically
+            setInterval(updateStats, 500);
+        });
+        
+        // Listen for lazy load events
+        document.addEventListener('lazyload:loaded', updateStats);
+        document.addEventListener('lazyload:error', updateStats);
+    </script>
+</body>
+</html>

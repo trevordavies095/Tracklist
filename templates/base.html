@@ -34,12 +34,24 @@
     <!-- Artwork Helper Functions -->
     <script src="/static/js/artwork-helper.js"></script>
     
+    <!-- Lazy Loading -->
+    <link rel="stylesheet" href="/static/css/lazy-load.css">
+    <script src="/static/js/lazy-load.js" defer></script>
+    <script src="/static/js/lazy-load-progress.js" defer></script>
+    
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/static/css/styles.css">
     
     {% block head %}{% endblock %}
 </head>
 <body class="h-full flex flex-col bg-gray-50">
+    <noscript>
+        <style>
+            /* Show all images immediately when JS is disabled */
+            img[data-src] { display: none !important; }
+            .noscript-img { display: block !important; }
+        </style>
+    </noscript>
     <!-- Navigation Header -->
     <header class="bg-white shadow-sm border-b border-gray-200">
         <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
