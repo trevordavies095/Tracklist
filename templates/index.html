@@ -82,6 +82,7 @@
              hx-get="/api/v1/albums?limit=6&rated=false&sort=created_desc" 
              hx-trigger="load"
              hx-target="this"
+             hx-swap="none"
              hx-indicator="#in-progress-loading">
             
             <!-- Loading State -->
@@ -109,6 +110,7 @@
              hx-get="/api/v1/albums?limit=6&rated=true&sort=rated_desc" 
              hx-trigger="load"
              hx-target="this"
+             hx-swap="none"
              hx-indicator="#recently-rated-loading">
             
             <!-- Loading State -->
@@ -256,14 +258,16 @@ function getScoreColorClass(score) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Load user statistics
-    htmx.ajax('GET', '/api/v1/albums?limit=1', {
-        target: '#user-stats',
-        swap: 'innerHTML',
-        handler: function(xhr) {
-            if (xhr.status === 200) {
-                const data = JSON.parse(xhr.responseText);
-                document.getElementById('user-stats').innerHTML = `
+    // Load user statistics (removed since user-stats element doesn't exist in the page)
+    // This was causing the HTMX error - commenting out for now
+    /*
+    // If you want to add user stats, create a proper element for it and use fetch instead:
+    fetch('/api/v1/albums?limit=1')
+        .then(response => response.json())
+        .then(data => {
+            const userStatsEl = document.getElementById('user-stats');
+            if (userStatsEl) {
+                userStatsEl.innerHTML = `
                     <div class="text-sm space-y-1">
                         <div><span class="font-medium">${data.total || 0}</span> albums total</div>
                         <div><span class="font-medium">${data.albums ? data.albums.filter(a => a.is_rated).length : 0}</span> completed</div>
@@ -271,30 +275,68 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 `;
             }
-        }
-    });
+        })
+        .catch(error => console.error('Error loading user stats:', error));
+    */
 });
 
 // Handle HTMX responses for album sections
 document.body.addEventListener('htmx:afterRequest', function(evt) {
     const targetId = evt.detail.target.id;
     
+    // Check if the request was successful
+    if (evt.detail.xhr.status !== 200) {
+        console.error(`HTMX request failed for ${targetId}:`, evt.detail.xhr.status, evt.detail.xhr.statusText);
+        return;
+    }
+    
     if (targetId === 'in-progress-albums') {
-        const response = JSON.parse(evt.detail.xhr.responseText);
-        renderAlbumSection(response, 'in-progress-albums', 'in-progress');
-        
-        // Hide section if no in-progress albums
-        const section = document.getElementById('in-progress-section');
-        if (response.albums && response.albums.length === 0) {
-            section.style.display = 'none';
+        try {
+            const response = JSON.parse(evt.detail.xhr.responseText);
+            renderAlbumSection(response, 'in-progress-albums', 'in-progress');
+            
+            // Hide loading indicator
+            const loadingEl = document.getElementById('in-progress-loading');
+            if (loadingEl) {
+                loadingEl.style.display = 'none';
+            }
+            
+            // Hide section if no in-progress albums
+            const section = document.getElementById('in-progress-section');
+            if (response.albums && response.albums.length === 0) {
+                section.style.display = 'none';
+            }
+        } catch (error) {
+            console.error('Error parsing in-progress albums response:', error);
+            console.error('Response text:', evt.detail.xhr.responseText);
         }
     } else if (targetId === 'recently-rated-albums') {
-        const response = JSON.parse(evt.detail.xhr.responseText);
-        renderAlbumSection(response, 'recently-rated-albums', 'recently-rated');
-        
-        // Show/hide Getting Started based on total album count
-        checkAndShowGettingStarted();
+        try {
+            const response = JSON.parse(evt.detail.xhr.responseText);
+            renderAlbumSection(response, 'recently-rated-albums', 'recently-rated');
+            
+            // Hide loading indicator
+            const loadingEl = document.getElementById('recently-rated-loading');
+            if (loadingEl) {
+                loadingEl.style.display = 'none';
+            }
+            
+            // Show/hide Getting Started based on total album count
+            checkAndShowGettingStarted();
+        } catch (error) {
+            console.error('Error parsing recently-rated albums response:', error);
+            console.error('Response text:', evt.detail.xhr.responseText);
+        }
     }
+});
+
+// Handle HTMX errors
+document.body.addEventListener('htmx:responseError', function(evt) {
+    console.error('HTMX response error:', evt.detail);
+});
+
+document.body.addEventListener('htmx:sendError', function(evt) {
+    console.error('HTMX send error:', evt.detail);
 });
 
 function checkAndShowGettingStarted() {
