@@ -98,6 +98,42 @@ async def startup_event():
         await start_background_tasks()
         logger.info("Background task manager started")
         
+        # Warm artwork memory cache with frequently accessed albums
+        try:
+            from .services.artwork_memory_cache import get_artwork_memory_cache
+            from .database import SessionLocal
+            from .models import Album, ArtworkCache
+            
+            memory_cache = get_artwork_memory_cache()
+            db = SessionLocal()
+            
+            # Get most frequently accessed cached artwork (top 50)
+            frequent_artwork = db.query(
+                ArtworkCache.album_id,
+                ArtworkCache.size_variant,
+                ArtworkCache.file_path
+            ).filter(
+                ArtworkCache.file_path.isnot(None)
+            ).order_by(
+                ArtworkCache.access_count.desc()
+            ).limit(50).all()
+            
+            # Convert file paths to URLs and warm cache
+            warm_entries = []
+            for album_id, size, file_path in frequent_artwork:
+                if file_path:
+                    # Convert file path to web URL
+                    web_path = f"/static/artwork_cache/{size}/{file_path.split('/')[-1]}"
+                    warm_entries.append((album_id, size, web_path))
+            
+            if warm_entries:
+                warmed = memory_cache.warm_cache(warm_entries)
+                logger.info(f"Warmed artwork memory cache with {warmed} entries")
+            
+            db.close()
+        except Exception as e:
+            logger.warning(f"Could not warm artwork cache: {e}")
+        
     except Exception as e:
         logger.error(f"Failed to initialize application: {e}")
         raise
