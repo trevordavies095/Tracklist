@@ -7,6 +7,7 @@ from typing import Dict, List, Optional, Any
 from sqlalchemy.orm import Session
 import logging
 from datetime import datetime, timezone
+import asyncio
 
 from .models import Artist, Album, Track, UserSettings
 from .musicbrainz_service import get_musicbrainz_service
@@ -160,6 +161,22 @@ class RatingService:
             db.commit()
             
             logger.info(f"Album created successfully: {album.name} by {artist.name}")
+            
+            # Trigger background artwork caching if URL exists
+            if cover_art_url:
+                try:
+                    from .services.artwork_cache_background import get_artwork_cache_background_service
+                    cache_bg_service = get_artwork_cache_background_service()
+                    task_id = cache_bg_service.trigger_album_cache(
+                        album_id=album.id,
+                        cover_art_url=cover_art_url,
+                        priority=3  # Higher priority for newly created albums
+                    )
+                    logger.info(f"Queued artwork caching for new album {album.id} (task: {task_id})")
+                except Exception as e:
+                    # Don't fail album creation if caching fails to queue
+                    logger.warning(f"Could not queue artwork caching for album {album.id}: {e}")
+            
             return self._format_album_response(album, db)
             
         except Exception as e:
@@ -657,6 +674,18 @@ class RatingService:
                         db.add(album)
                         updated_count += 1
                         logger.info(f"Updated cover art for album '{album.name}'")
+                        
+                        # Trigger background caching for the updated artwork
+                        try:
+                            from .services.artwork_cache_background import get_artwork_cache_background_service
+                            cache_bg_service = get_artwork_cache_background_service()
+                            cache_bg_service.trigger_album_cache(
+                                album_id=album.id,
+                                cover_art_url=cover_art_url,
+                                priority=5  # Medium priority for batch updates
+                            )
+                        except Exception as cache_error:
+                            logger.debug(f"Could not queue caching for album {album.id}: {cache_error}")
                     else:
                         logger.debug(f"No cover art found for album '{album.name}'")
                         
@@ -788,6 +817,19 @@ class RatingService:
             album.release_year = mb_album.get("year")
             if cover_art_url:
                 album.cover_art_url = cover_art_url
+                
+                # Trigger background caching for the new artwork
+                try:
+                    from .services.artwork_cache_background import get_artwork_cache_background_service
+                    cache_bg_service = get_artwork_cache_background_service()
+                    cache_bg_service.trigger_album_cache(
+                        album_id=album.id,
+                        cover_art_url=cover_art_url,
+                        priority=2  # High priority for retagged albums
+                    )
+                    logger.info(f"Queued artwork caching for retagged album {album.id}")
+                except Exception as cache_error:
+                    logger.debug(f"Could not queue caching for retagged album {album.id}: {cache_error}")
             
             # Update artist if different
             if mb_album["artist"]["name"] != album.artist.name:

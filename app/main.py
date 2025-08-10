@@ -81,7 +81,7 @@ app.include_router(reports.router)    # API routes for reporting
 
 @app.on_event("startup")
 async def startup_event():
-    """Initialize database and cache directories on startup"""
+    """Initialize database, cache directories, and background tasks on startup"""
     logger.info("Starting Tracklist application...")
     try:
         # Initialize database
@@ -93,9 +93,27 @@ async def startup_event():
         from .services.artwork_cache_utils import init_artwork_cache_directories
         init_artwork_cache_directories()
         
+        # Start background task manager
+        from .services.background_tasks import start_background_tasks
+        await start_background_tasks()
+        logger.info("Background task manager started")
+        
     except Exception as e:
         logger.error(f"Failed to initialize application: {e}")
         raise
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Cleanup on application shutdown"""
+    logger.info("Shutting down Tracklist application...")
+    try:
+        # Stop background task manager
+        from .services.background_tasks import stop_background_tasks
+        await stop_background_tasks()
+        logger.info("Background task manager stopped")
+    except Exception as e:
+        logger.error(f"Error during shutdown: {e}")
 
 
 @app.get("/health")
