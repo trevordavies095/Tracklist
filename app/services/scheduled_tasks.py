@@ -54,6 +54,14 @@ class ScheduledTaskManager:
                 "schedule": os.getenv("REPORTS_SCHEDULE", "weekly"),
                 "day": os.getenv("REPORTS_DAY", "monday"),
                 "time": os.getenv("REPORTS_TIME", "09:00")
+            },
+            "integrity_check": {
+                "enabled": os.getenv("INTEGRITY_CHECK_ENABLED", "true").lower() == "true",
+                "schedule": os.getenv("INTEGRITY_CHECK_SCHEDULE", "weekly"),
+                "day": os.getenv("INTEGRITY_CHECK_DAY", "sunday"),
+                "time": os.getenv("INTEGRITY_CHECK_TIME", "02:00"),  # 2 AM
+                "auto_repair": os.getenv("INTEGRITY_AUTO_REPAIR", "true").lower() == "true",
+                "quick_check_daily": os.getenv("INTEGRITY_QUICK_CHECK", "true").lower() == "true"
             }
         }
         
@@ -119,6 +127,22 @@ class ScheduledTaskManager:
                         self._should_run_reports,
                         self._run_reports
                     )
+                
+                if self.config["integrity_check"]["enabled"]:
+                    # Full integrity check (weekly)
+                    await self._check_and_run_task(
+                        "integrity_check",
+                        self._should_run_integrity_check,
+                        self._run_integrity_check
+                    )
+                    
+                    # Quick check (daily)
+                    if self.config["integrity_check"]["quick_check_daily"]:
+                        await self._check_and_run_task(
+                            "integrity_quick_check",
+                            self._should_run_quick_check,
+                            self._run_quick_check
+                        )
                 
                 # Sleep until next minute
                 await asyncio.sleep(60 - now.second)
@@ -232,6 +256,35 @@ class ScheduledTaskManager:
         
         return False
     
+    def _should_run_integrity_check(self) -> bool:
+        """Check if full integrity check should run"""
+        config = self.config["integrity_check"]
+        schedule_time = datetime.strptime(config["time"], "%H:%M").time()
+        now = datetime.now(timezone.utc)
+        
+        # Check if it's the right day and time (weekly)
+        if config["schedule"] == "weekly":
+            day_map = {
+                'monday': 0, 'tuesday': 1, 'wednesday': 2,
+                'thursday': 3, 'friday': 4, 'saturday': 5, 'sunday': 6
+            }
+            target_day = day_map.get(config["day"].lower(), 6)
+            
+            return (
+                now.weekday() == target_day and
+                now.hour == schedule_time.hour and
+                now.minute == schedule_time.minute
+            )
+        
+        return False
+    
+    def _should_run_quick_check(self) -> bool:
+        """Check if quick integrity check should run (daily)"""
+        config = self.config["integrity_check"]
+        # Run quick check at 1 AM daily
+        now = datetime.now(timezone.utc)
+        return now.hour == 1 and now.minute == 0
+    
     async def _run_cache_cleanup(self) -> Dict[str, Any]:
         """Run cache cleanup task"""
         config = self.config["cache_cleanup"]
@@ -293,6 +346,53 @@ class ScheduledTaskManager:
         logger.info("Generated weekly reports")
         
         return reports
+    
+    async def _run_integrity_check(self) -> Dict[str, Any]:
+        """Run full integrity check"""
+        from .cache_integrity_service import get_integrity_service
+        
+        config = self.config["integrity_check"]
+        integrity_service = get_integrity_service()
+        
+        # Run verification with optional repair
+        result = integrity_service.verify_integrity(
+            repair=config.get("auto_repair", True),
+            verbose=True
+        )
+        
+        # Save result
+        self._save_task_result("integrity_check", result)
+        
+        logger.info(
+            f"Integrity check completed: score={result['integrity_score']}%, "
+            f"issues={result['summary']['issues_found']}, "
+            f"repairs={result['summary']['repairs_completed']}"
+        )
+        
+        return result
+    
+    async def _run_quick_check(self) -> Dict[str, Any]:
+        """Run quick integrity check (sample-based)"""
+        from .cache_integrity_service import get_integrity_service
+        
+        integrity_service = get_integrity_service()
+        result = integrity_service.quick_check()
+        
+        # Save result
+        self._save_task_result("integrity_quick_check", result)
+        
+        logger.info(
+            f"Quick integrity check: estimated score={result['estimated_integrity_score']}%"
+        )
+        
+        # If integrity is below threshold, trigger full check
+        if result['estimated_integrity_score'] < 90:
+            logger.warning(
+                f"Integrity score below threshold ({result['estimated_integrity_score']}%), "
+                "consider running full check"
+            )
+        
+        return result
     
     def _save_task_result(self, task_name: str, result: Dict[str, Any]):
         """Save task result to file"""
