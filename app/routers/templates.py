@@ -154,7 +154,15 @@ async def completed_page(
 
 # Helper function to add custom filters to Jinja2
 def setup_template_filters(template_env):
-    """Add custom filters to Jinja2 environment"""
+    """Add custom filters and globals to Jinja2 environment"""
+    
+    # Import template utilities
+    from ..template_utils import (
+        get_artwork_url,
+        get_cache_stats,
+        format_file_size,
+        format_cache_age
+    )
     
     def format_duration(milliseconds):
         """Convert milliseconds to MM:SS format"""
@@ -196,6 +204,12 @@ def setup_template_filters(template_env):
     template_env.filters["format_duration"] = format_duration
     template_env.filters["format_rating_label"] = format_rating_label
     template_env.filters["rating_color_class"] = rating_color_class
+    template_env.filters["format_file_size"] = format_file_size
+    template_env.filters["format_cache_age"] = format_cache_age
+    
+    # Add global functions for templates
+    template_env.globals["get_artwork_url"] = get_artwork_url
+    template_env.globals["get_cache_stats"] = get_cache_stats
 
 
 # Setup filters when router is imported

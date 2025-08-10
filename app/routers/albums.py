@@ -424,6 +424,35 @@ async def submit_album_rating(
         )
 
 
+@router.get("/albums/{album_id}/artwork-url")
+async def get_album_artwork_url(
+    album_id: int = Path(..., description="Album ID", gt=0),
+    size: str = Query("medium", description="Size variant"),
+    db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    """
+    Get cached artwork URL for an album
+    
+    Returns the cached URL if available, otherwise returns the external URL
+    """
+    from ..template_utils import get_artwork_url as get_cached_url
+    from ..models import Album
+    
+    # Get album
+    album = db.query(Album).filter(Album.id == album_id).first()
+    if not album:
+        raise HTTPException(status_code=404, detail="Album not found")
+    
+    # Get artwork URL using the template utility
+    url = get_cached_url(album, size)
+    
+    return {
+        "url": url,
+        "cached": url and not url.startswith("http"),  # Cached URLs are local paths
+        "size": size
+    }
+
+
 @router.get("/albums/{album_id}")
 async def get_album_rating(
     album_id: int = Path(..., description="Album ID", gt=0),
