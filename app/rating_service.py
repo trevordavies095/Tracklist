@@ -531,10 +531,32 @@ class RatingService:
             # Get track count for logging
             track_count = db.query(Track).filter(Track.album_id == album_id).count()
             
+            # Clean up cached artwork files before deleting album
+            cache_cleanup_stats = {'files_deleted': 0, 'bytes_freed': 0}
+            try:
+                from .services.artwork_cache_service import ArtworkCacheService
+                cache_service = ArtworkCacheService()
+                cache_cleanup_stats = cache_service.clear_album_cache_sync(album_id, db)
+                if cache_cleanup_stats.get('files_deleted', 0) > 0:
+                    logger.info(f"Cleaned up {cache_cleanup_stats['files_deleted']} cache files for album {album_id}")
+            except Exception as e:
+                logger.warning(f"Failed to clean up cache files for album {album_id}: {e}")
+                # Don't fail the deletion if cache cleanup fails
+            
+            # Clear memory cache entries for this album
+            try:
+                from .services.artwork_memory_cache import get_artwork_memory_cache
+                memory_cache = get_artwork_memory_cache()
+                memory_cache.clear_album(album_id)
+                logger.debug(f"Cleared memory cache entries for album {album_id}")
+            except Exception as e:
+                logger.warning(f"Failed to clear memory cache for album {album_id}: {e}")
+                # Don't fail the deletion if memory cache cleanup fails
+            
             # Delete all tracks (ratings will be cascade deleted due to foreign key constraints)
             db.query(Track).filter(Track.album_id == album_id).delete()
             
-            # Delete the album itself
+            # Delete the album itself (ArtworkCache records will be cascade deleted)
             db.query(Album).filter(Album.id == album_id).delete()
             
             # Commit the transaction
@@ -546,7 +568,9 @@ class RatingService:
                 "success": True,
                 "message": f"Album '{album_info['title']}' has been permanently deleted",
                 "deleted_album": album_info,
-                "deleted_tracks": track_count
+                "deleted_tracks": track_count,
+                "cache_files_deleted": cache_cleanup_stats.get('files_deleted', 0),
+                "cache_bytes_freed": cache_cleanup_stats.get('bytes_freed', 0)
             }
             
         except Exception as e:
