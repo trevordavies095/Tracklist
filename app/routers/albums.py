@@ -1093,6 +1093,118 @@ async def trigger_artwork_migration(
         )
 
 
+@router.get("/system/integrity-status")
+async def get_integrity_status() -> Dict[str, Any]:
+    """
+    Get cache integrity status
+    
+    Returns the latest integrity check results and quick check status
+    """
+    try:
+        from pathlib import Path
+        import json
+        
+        # Get latest integrity report
+        reports_dir = Path("logs/scheduled_tasks")
+        latest_full = None
+        latest_quick = None
+        
+        if reports_dir.exists():
+            # Find latest full check
+            full_reports = list(reports_dir.glob("integrity_check_*.json"))
+            if full_reports:
+                latest_full_file = max(full_reports, key=lambda p: p.stat().st_mtime)
+                with open(latest_full_file, 'r') as f:
+                    latest_full = json.load(f)
+            
+            # Find latest quick check
+            quick_reports = list(reports_dir.glob("integrity_quick_check_*.json"))
+            if quick_reports:
+                latest_quick_file = max(quick_reports, key=lambda p: p.stat().st_mtime)
+                with open(latest_quick_file, 'r') as f:
+                    latest_quick = json.load(f)
+        
+        # Get scheduled task status
+        from ..services.scheduled_tasks import get_scheduled_manager
+        scheduled_manager = get_scheduled_manager()
+        task_status = scheduled_manager.get_status()
+        
+        integrity_task = task_status.get('tasks', {}).get('integrity_check', {})
+        quick_task = task_status.get('tasks', {}).get('integrity_quick_check', {})
+        
+        return {
+            'latest_full_check': latest_full,
+            'latest_quick_check': latest_quick,
+            'scheduled_task': {
+                'enabled': task_status.get('config', {}).get('integrity_check', {}).get('enabled', False),
+                'last_run': integrity_task.get('last_run'),
+                'running': integrity_task.get('running', False)
+            },
+            'quick_check': {
+                'enabled': task_status.get('config', {}).get('integrity_check', {}).get('quick_check_daily', False),
+                'last_run': quick_task.get('last_run'),
+                'running': quick_task.get('running', False)
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting integrity status: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Status unavailable",
+                "message": "Unable to retrieve integrity status"
+            }
+        )
+
+
+@router.post("/system/integrity-check")
+async def trigger_integrity_check(
+    repair: bool = Query(False, description="Attempt to repair issues"),
+    quick: bool = Query(False, description="Run quick check instead of full"),
+    verbose: bool = Query(False, description="Include detailed information")
+) -> Dict[str, Any]:
+    """
+    Manually trigger cache integrity check
+    
+    Args:
+        repair: Whether to attempt repairs (full check only)
+        quick: Run quick sample-based check instead of full check
+        verbose: Include detailed information in response
+    """
+    try:
+        from ..services.cache_integrity_service import get_integrity_service
+        
+        integrity_service = get_integrity_service()
+        
+        if quick:
+            # Run quick check
+            result = integrity_service.quick_check()
+            logger.info(f"Quick integrity check completed: {result['estimated_integrity_score']}%")
+        else:
+            # Run full check
+            result = integrity_service.verify_integrity(
+                repair=repair,
+                verbose=verbose
+            )
+            logger.info(
+                f"Full integrity check completed: score={result['integrity_score']}%, "
+                f"issues={result['summary']['issues_found']}"
+            )
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error running integrity check: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Check failed",
+                "message": f"Failed to run integrity check: {str(e)}"
+            }
+        )
+
+
 @router.get("/system/migration-status")
 async def get_migration_status() -> Dict[str, Any]:
     """
