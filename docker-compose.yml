@@ -11,9 +11,27 @@ services:
       - LOG_LEVEL=INFO
       - ENABLE_FILE_LOGGING=true
       - LOG_FILE=logs/tracklist.log
+      # Cache cleanup configuration
+      - CACHE_CLEANUP_ENABLED=true
+      - CACHE_CLEANUP_SCHEDULE=daily
+      - CACHE_CLEANUP_TIME=03:00
+      - CACHE_RETENTION_DAYS=365
+      - CACHE_MAX_SIZE_MB=5000
+      - CACHE_CLEANUP_DRY_RUN=false
+      # Memory cache clear configuration  
+      - MEMORY_CACHE_CLEAR_ENABLED=true
+      - MEMORY_CACHE_CLEAR_SCHEDULE=weekly
+      - MEMORY_CACHE_CLEAR_DAY=sunday
+      - MEMORY_CACHE_CLEAR_TIME=04:00
+      # Reports configuration
+      - REPORTS_ENABLED=true
+      - REPORTS_SCHEDULE=weekly
+      - REPORTS_DAY=monday
+      - REPORTS_TIME=09:00
     volumes:
       - ./data:/app/data
       - ./logs:/app/logs
+      - ./static/artwork_cache:/app/static/artwork_cache
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]

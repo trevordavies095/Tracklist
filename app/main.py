@@ -98,6 +98,11 @@ async def startup_event():
         await start_background_tasks()
         logger.info("Background task manager started")
         
+        # Start scheduled tasks
+        from .services.scheduled_tasks import start_scheduled_tasks
+        await start_scheduled_tasks()
+        logger.info("Scheduled task manager started")
+        
         # Warm artwork memory cache with frequently accessed albums
         try:
             from .services.artwork_memory_cache import get_artwork_memory_cache
@@ -144,6 +149,11 @@ async def shutdown_event():
     """Cleanup on application shutdown"""
     logger.info("Shutting down Tracklist application...")
     try:
+        # Stop scheduled tasks
+        from .services.scheduled_tasks import stop_scheduled_tasks
+        await stop_scheduled_tasks()
+        logger.info("Scheduled task manager stopped")
+        
         # Stop background task manager
         from .services.background_tasks import stop_background_tasks
         await stop_background_tasks()
