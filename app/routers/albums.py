@@ -776,6 +776,34 @@ async def retag_album_musicbrainz_id(
         )
 
 
+@router.get("/system/background-tasks")
+async def get_background_tasks_status() -> Dict[str, Any]:
+    """
+    Get status of background tasks including artwork caching
+    
+    Returns information about:
+    - Queued tasks
+    - Running tasks
+    - Completed tasks
+    - Failed tasks
+    """
+    try:
+        from ..services.artwork_cache_background import get_artwork_cache_background_service
+        
+        cache_service = get_artwork_cache_background_service()
+        return cache_service.get_overall_status()
+        
+    except Exception as e:
+        logger.error(f"Error getting background tasks status: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Status unavailable",
+                "message": "Unable to retrieve background tasks status"
+            }
+        )
+
+
 @router.get("/system/info")
 async def get_system_info() -> Dict[str, Any]:
     """
