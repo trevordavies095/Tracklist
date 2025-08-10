@@ -820,9 +820,12 @@ class ArtworkCacheService:
                         except Exception as e:
                             logger.warning(f"Failed to delete cache file {file_path}: {e}")
             
-            # Database records will be cascade deleted automatically
-            # But we can track how many there were
+            # Delete database records
             records_count = len(cache_records)
+            if cache_records:
+                db.query(ArtworkCache).filter_by(album_id=album_id).delete()
+                db.commit()
+                logger.debug(f"Deleted {records_count} cache database records for album {album_id}")
             
             logger.info(f"Cleared cache for album {album_id}: {files_deleted} files, {bytes_freed / 1024:.2f} KB")
             

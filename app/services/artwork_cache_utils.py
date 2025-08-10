@@ -70,7 +70,8 @@ class ArtworkCacheFileSystem:
             16-character cache key
         """
         # Create a unique string from album data
-        unique_string = f"{album_id}_{musicbrainz_id}"
+        # Match the format used in artwork_cache_service.py
+        unique_string = f"{musicbrainz_id}_{album_id}"
         
         # Generate MD5 hash and take first 16 characters
         cache_key = hashlib.md5(unique_string.encode()).hexdigest()[:16]

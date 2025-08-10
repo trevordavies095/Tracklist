@@ -842,6 +842,32 @@ class RatingService:
             if cover_art_url:
                 album.cover_art_url = cover_art_url
                 
+                # Clear existing cache before caching new artwork
+                try:
+                    from .services.artwork_cache_service import ArtworkCacheService
+                    from .services.artwork_memory_cache import get_artwork_memory_cache
+                    from .template_utils import get_artwork_resolver
+                    
+                    cache_service = ArtworkCacheService()
+                    memory_cache = get_artwork_memory_cache()
+                    template_resolver = get_artwork_resolver()
+                    
+                    # Clear from database and filesystem
+                    cache_service.clear_album_cache_sync(album.id, db)
+                    
+                    # Clear from memory cache
+                    memory_cache.clear_album(album.id)
+                    
+                    # Clear from template cache (this was missing!)
+                    template_resolver.clear_template_cache()
+                    
+                    # Mark album as not cached
+                    album.artwork_cached = False
+                    
+                    logger.info(f"Cleared existing artwork cache for retagged album {album.id}")
+                except Exception as clear_error:
+                    logger.warning(f"Failed to clear cache for retagged album {album.id}: {clear_error}")
+                
                 # Trigger background caching for the new artwork
                 try:
                     from .services.artwork_cache_background import get_artwork_cache_background_service
