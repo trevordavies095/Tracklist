@@ -1,0 +1,261 @@
+/**
+ * Lazy Loading Styles
+ * Provides loading states, animations, and skeleton screens
+ */
+
+/* Base styles for lazy-loaded images */
+img[data-src],
+.artwork-placeholder {
+    background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Loading shimmer effect */
+.artwork-placeholder::before,
+.artwork-loading::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.3),
+        transparent
+    );
+    animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+    to {
+        left: 100%;
+    }
+}
+
+/* Loading spinner overlay */
+.artwork-loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 24px;
+    height: 24px;
+    margin: -12px 0 0 -12px;
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    border-top-color: #6b7280;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Loaded state */
+.artwork-loaded {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Error state */
+.artwork-error {
+    background: linear-gradient(135deg, #fee 0%, #fcc 100%);
+    position: relative;
+}
+
+.artwork-error::after {
+    content: '⚠';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 24px;
+    color: #dc2626;
+    opacity: 0.5;
+}
+
+/* Album grid skeleton screen */
+.album-grid-skeleton {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1.5rem;
+    padding: 1rem;
+}
+
+.album-skeleton {
+    background: #fff;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.album-skeleton-image {
+    aspect-ratio: 1;
+    background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.album-skeleton-image::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.5),
+        transparent
+    );
+    animation: shimmer 1.5s infinite;
+}
+
+.album-skeleton-content {
+    padding: 0.75rem;
+}
+
+.skeleton-text {
+    height: 1rem;
+    background: linear-gradient(90deg, #f0f0f0 0%, #e0e0e0 100%);
+    border-radius: 0.25rem;
+    margin-bottom: 0.5rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.skeleton-text::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.5),
+        transparent
+    );
+    animation: shimmer 1.5s infinite;
+}
+
+.skeleton-text.title {
+    width: 80%;
+}
+
+.skeleton-text.artist {
+    width: 60%;
+    height: 0.875rem;
+    opacity: 0.7;
+}
+
+/* List view skeleton */
+.album-list-skeleton {
+    padding: 1rem;
+}
+
+.album-list-item-skeleton {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem;
+    background: #fff;
+    border-radius: 0.5rem;
+    margin-bottom: 0.5rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.album-list-item-skeleton .album-skeleton-image {
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+    margin-right: 1rem;
+}
+
+.album-list-item-skeleton .skeleton-content {
+    flex: 1;
+}
+
+/* Responsive loading states */
+@media (max-width: 640px) {
+    .album-grid-skeleton {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 1rem;
+    }
+    
+    .artwork-loading::after {
+        width: 20px;
+        height: 20px;
+        margin: -10px 0 0 -10px;
+    }
+}
+
+/* Blur-up technique for smooth transitions */
+.blur-up {
+    filter: blur(5px);
+    transition: filter 0.3s ease-out;
+}
+
+.blur-up.loaded {
+    filter: blur(0);
+}
+
+/* Progressive enhancement - no-JS fallback */
+.no-js img[data-src] {
+    display: none;
+}
+
+.no-js img[data-src] + noscript img {
+    display: block;
+}
+
+/* Performance optimizations */
+.artwork-placeholder,
+.artwork-loading {
+    will-change: opacity, transform;
+}
+
+.artwork-loaded {
+    will-change: auto;
+}
+
+/* Loading progress bar */
+.lazy-load-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: rgba(99, 102, 241, 0.1);
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.lazy-load-progress.active {
+    opacity: 1;
+}
+
+.lazy-load-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #6366f1, #8b5cf6);
+    width: 0;
+    transition: width 0.3s ease-out;
+    box-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
+}

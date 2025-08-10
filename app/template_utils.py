@@ -277,6 +277,69 @@ def get_artwork_resolver() -> ArtworkURLResolver:
 
 
 # Template function wrappers
+def get_lazy_image_html(
+    album,
+    size: str = 'medium',
+    css_class: str = '',
+    alt_text: Optional[str] = None,
+    loading: str = 'lazy'
+) -> str:
+    """
+    Generate HTML for a lazy-loaded image with fallback
+    
+    Args:
+        album: Album object or dict
+        size: Image size variant
+        css_class: Additional CSS classes
+        alt_text: Alt text for the image
+        loading: Loading strategy ('lazy', 'eager', 'auto')
+    
+    Returns:
+        HTML string for the image element
+    """
+    from markupsafe import Markup
+    
+    # Get the artwork URL
+    url = get_artwork_url(album, size)
+    
+    # Determine album name for alt text
+    if isinstance(album, dict):
+        album_name = album.get('name', 'Album')
+    else:
+        album_name = getattr(album, 'name', 'Album')
+    
+    alt = alt_text or f"{album_name} cover"
+    
+    # Check if URL is cached (local) or external
+    is_cached = url and not url.startswith('http')
+    
+    if is_cached or loading == 'eager':
+        # Load immediately for cached images or eager loading
+        html = f'''
+            <img src="{url}" 
+                 alt="{alt}"
+                 class="{css_class}"
+                 loading="{loading}">
+        '''
+    else:
+        # Use lazy loading for external images
+        placeholder = '/static/img/album-placeholder.svg'
+        html = f'''
+            <img src="{placeholder}"
+                 data-src="{url}"
+                 alt="{alt}"
+                 class="{css_class}"
+                 loading="{loading}">
+            <noscript>
+                <img src="{url}" 
+                     alt="{alt}"
+                     class="{css_class} noscript-img">
+            </noscript>
+        '''
+    
+    return Markup(html.strip())
+
+
 def get_artwork_url(album, size: str = 'medium', fallback: Optional[str] = None) -> str:
     """
     Template function to get artwork URL
