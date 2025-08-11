@@ -630,3 +630,72 @@ async def get_no_skip_albums(
                 "message": "Failed to retrieve no-skip albums"
             }
         )
+
+
+@router.get("/highest-rated-artists")
+async def get_highest_rated_artists(
+    min_albums: int = Query(default=3, ge=1, le=10, description="Minimum number of rated albums an artist must have"),
+    limit: int = Query(default=5, ge=1, le=20, description="Maximum number of artists to return"),
+    service: ReportingService = Depends(get_reporting_service),
+    db: Session = Depends(get_db)
+):
+    """
+    Get highest rated artists based on their average album scores
+    
+    Returns artists ranked by their average album rating, filtered by minimum album count.
+    Only artists with at least 'min_albums' rated albums are considered.
+    Shows up to 'min_albums' top-rated albums for each qualifying artist.
+    
+    Query Parameters:
+    - min_albums: Minimum albums required to qualify AND maximum albums to display (1-10, default: 3)  
+    - limit: Maximum number of artists to return (1-20, default: 5)
+    
+    Example response:
+    ```json
+    {
+        "artists": [
+            {
+                "artist_id": 123,
+                "artist_name": "Radiohead",
+                "album_count": 8,
+                "average_score": 87.5,
+                "displayed_albums": [
+                    {
+                        "id": 45,
+                        "name": "OK Computer",
+                        "year": 1997,
+                        "score": 95,
+                        "cover_art_url": "https://..."
+                    }
+                ],
+                "albums_displayed_count": 3
+            }
+        ],
+        "total_qualifying_artists": 25,
+        "min_albums_filter": 3
+    }
+    ```
+    """
+    try:
+        logger.info(f"Fetching highest rated artists (min_albums={min_albums}, limit={limit})")
+        highest_rated_artists = service.get_highest_rated_artists(db, min_albums=min_albums, limit=limit)
+        return highest_rated_artists
+        
+    except TracklistException as e:
+        logger.error(f"Failed to get highest rated artists: {e.message}")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Failed to get highest rated artists",
+                "message": str(e)
+            }
+        )
+    except Exception as e:
+        logger.error(f"Unexpected error getting highest rated artists: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Internal server error", 
+                "message": "Failed to retrieve highest rated artists"
+            }
+        )

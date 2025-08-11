@@ -749,6 +749,96 @@ class ReportingService:
         except Exception as e:
             logger.error(f"Failed to get available years: {e}")
             raise TracklistException(f"Failed to get available years: {str(e)}")
+    
+    def get_highest_rated_artists(
+        self,
+        db: Session,
+        min_albums: int = 3,
+        limit: int = 5
+    ) -> Dict[str, Any]:
+        """
+        Get highest rated artists based on their average album scores
+        
+        Args:
+            db: Database session
+            min_albums: Minimum number of rated albums required for inclusion
+            limit: Maximum number of artists to return
+            
+        Returns:
+            Dict with artists list, total qualifying artists, and filter info
+        """
+        try:
+            # Query to get artists with their album counts and average scores
+            from sqlalchemy import func, desc
+            
+            artist_stats = (
+                db.query(
+                    Artist.id,
+                    Artist.name,
+                    func.count(Album.id).label('album_count'),
+                    func.avg(Album.rating_score).label('avg_score')
+                )
+                .join(Album, Artist.id == Album.artist_id)
+                .filter(Album.is_rated == True)
+                .group_by(Artist.id, Artist.name)
+                .having(func.count(Album.id) >= min_albums)  # Filter by minimum album count
+                .order_by(desc('avg_score'), desc('album_count'))  # Order by average score, then album count
+                .all()
+            )
+            
+            total_qualifying_artists = len(artist_stats)
+            
+            # Limit results
+            top_artists = artist_stats[:limit]
+            
+            # Build result with detailed artist info including top albums
+            artists_data = []
+            
+            for artist_stat in top_artists:
+                # Get top albums for this artist up to the minimum threshold number
+                # (min_albums serves as both floor for qualification and max for display)
+                top_albums = (
+                    db.query(Album)
+                    .filter(
+                        Album.artist_id == artist_stat.id,
+                        Album.is_rated == True
+                    )
+                    .order_by(Album.rating_score.desc())
+                    .limit(min_albums)
+                    .all()
+                )
+                
+                artist_data = {
+                    "artist_id": artist_stat.id,
+                    "artist_name": artist_stat.name,
+                    "album_count": artist_stat.album_count,
+                    "average_score": round(artist_stat.avg_score, 1) if artist_stat.avg_score else None,
+                    "displayed_albums": [
+                        {
+                            "id": album.id,
+                            "name": album.name,
+                            "year": album.release_year,
+                            "score": album.rating_score,
+                            "cover_art_url": album.cover_art_url
+                        }
+                        for album in top_albums
+                    ],
+                    "albums_displayed_count": len(top_albums)
+                }
+                artists_data.append(artist_data)
+            
+            result = {
+                "artists": artists_data,
+                "total_qualifying_artists": total_qualifying_artists,
+                "min_albums_filter": min_albums
+            }
+            
+            logger.info(f"Found {total_qualifying_artists} artists with {min_albums}+ albums, returning top {len(top_artists)}")
+            return result
+            
+        except Exception as e:
+            logger.error(f"Failed to get highest rated artists: {e}")
+            raise TracklistException(f"Failed to get highest rated artists: {str(e)}")
 
 
 # Singleton instance
