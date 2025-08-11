@@ -31,12 +31,12 @@ async def search_albums(
 ):
     """
     Search for albums using MusicBrainz
-    
+
     Supports multiple search methods:
     1. General search: Uses the 'q' parameter for full-text search
     2. Structured search: Uses artist, album, and/or year fields for precise queries
     3. Direct lookup: Uses mbid for immediate album fetch
-    
+
     Returns paginated search results with album information including:
     - Album title and artist
     - Release year and country
@@ -53,14 +53,14 @@ async def search_albums(
                     "message": "Please provide at least one search parameter (q, artist, album, or mbid)"
                 }
             )
-        
+
         # Handle direct MusicBrainz ID lookup
         if mbid:
             logger.info(f"Direct album lookup request: {mbid}")
-            
+
             # Use the existing album details endpoint internally
             album_details = await service.get_album_details(mbid)
-            
+
             # Format as search results for consistency
             results = {
                 "releases": [{
@@ -82,7 +82,7 @@ async def search_albums(
                     "mbid": mbid
                 }
             }
-        
+
         # Handle structured search
         elif artist or album:
             search_params = {
@@ -91,7 +91,7 @@ async def search_albums(
                 "year": year
             }
             logger.info(f"Structured album search request: {search_params}")
-            
+
             results = await service.search_albums_structured(
                 artist=artist,
                 album=album,
@@ -99,25 +99,25 @@ async def search_albums(
                 limit=limit,
                 offset=offset
             )
-            
+
             results["search_context"] = {
                 "type": "structured",
                 "artist": artist,
                 "album": album,
                 "year": year
             }
-        
+
         # Handle general search
         else:
             logger.info(f"General album search request: '{q}' (limit={limit}, offset={offset})")
-            
+
             results = await service.search_albums(q, limit, offset)
-            
+
             results["search_context"] = {
                 "type": "general",
                 "query": q
             }
-        
+
         # Add pagination metadata
         results["pagination"] = {
             "limit": limit,
@@ -125,9 +125,9 @@ async def search_albums(
             "total": results.get("count", 0),
             "has_more": (offset + limit) < results.get("count", 0)
         }
-        
+
         logger.info(f"Search completed: {len(results.get('releases', []))} results returned")
-        
+
         # Check if this is an HTMX request
         hx_request = request.headers.get("HX-Request")
         if hx_request:
@@ -146,16 +146,16 @@ async def search_albums(
                 "year": year,
                 "mbid": mbid
             }
-            
+
             # Return HTML template for HTMX
             return templates.TemplateResponse(
                 "components/search_results.html",
                 template_context
             )
-        
+
         # Return JSON for API calls
         return results
-        
+
     except TracklistException as e:
         logger.error(f"Search failed: {e.message}")
         raise HTTPException(
@@ -184,19 +184,19 @@ async def get_album_details(
 ) -> Dict[str, Any]:
     """
     Get detailed album information by MusicBrainz ID
-    
+
     Returns complete album information including:
     - Album and artist details
     - Complete track listing with durations
     - Release information (year, country, format)
     - MusicBrainz metadata
-    
+
     Use this endpoint after getting a MusicBrainz ID from search results
     to get the full album details needed for rating.
     """
     try:
         logger.info(f"Album details request: {musicbrainz_id}")
-        
+
         # Validate MusicBrainz ID format (36 character UUID)
         if len(musicbrainz_id) != 36 or musicbrainz_id.count('-') != 4:
             raise HTTPException(
@@ -206,15 +206,15 @@ async def get_album_details(
                     "message": "MusicBrainz ID must be a valid UUID format"
                 }
             )
-        
+
         album_details = await service.get_album_details(musicbrainz_id)
-        
+
         logger.info(f"Album details retrieved: {album_details.get('title', 'Unknown')} - {album_details.get('total_tracks', 0)} tracks")
         return album_details
-        
+
     except TracklistException as e:
         logger.error(f"Album details fetch failed: {e.message}")
-        
+
         # Check if it's a "not found" type error
         if "not found" in e.message.lower() or any(
             error_code in str(e.details) for error_code in ["404", "400"]
@@ -227,7 +227,7 @@ async def get_album_details(
                     "musicbrainz_id": musicbrainz_id
                 }
             )
-        
+
         raise HTTPException(
             status_code=502,
             detail={
@@ -256,13 +256,13 @@ async def get_release_artwork_url(
 ) -> Dict[str, Any]:
     """
     Get cover art URL for a MusicBrainz release ID
-    
+
     This endpoint is used for lazy loading artwork in search results.
     Returns the cover art URL from Cover Art Archive if available.
     """
     try:
         from ..services.cover_art_service import get_cover_art_service
-        
+
         # Validate MusicBrainz ID format
         if len(musicbrainz_id) != 36 or musicbrainz_id.count('-') != 4:
             raise HTTPException(
@@ -272,15 +272,15 @@ async def get_release_artwork_url(
                     "message": "MusicBrainz ID must be a valid UUID format"
                 }
             )
-        
+
         cover_art_service = get_cover_art_service()
         cover_art_url = await cover_art_service.get_cover_art_url(musicbrainz_id)
-        
+
         return {
             "url": cover_art_url,
             "musicbrainz_id": musicbrainz_id
         }
-        
+
     except Exception as e:
         logger.debug(f"Could not fetch cover art for {musicbrainz_id}: {e}")
         return {
@@ -296,7 +296,7 @@ async def get_cache_stats(
 ) -> Dict[str, Any]:
     """
     Get cache statistics for monitoring and debugging
-    
+
     Returns information about cached MusicBrainz responses including:
     - Total number of cached entries
     - Active vs expired entries
@@ -326,7 +326,7 @@ async def clear_cache(
 ) -> Dict[str, str]:
     """
     Clear all cached MusicBrainz data
-    
+
     Useful for debugging or when cached data becomes stale.
     This will force fresh API calls for subsequent requests.
     """

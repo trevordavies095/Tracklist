@@ -15,7 +15,7 @@ import asyncio
 
 from ..database import get_db, get_db_info, SessionLocal
 from ..rating_service import get_rating_service, RatingService
-from ..exceptions import TracklistException, NotFoundError, ValidationError, ServiceNotFoundError, ServiceValidationError
+from ..exceptions import TracklistException, ServiceNotFoundError, ServiceValidationError
 
 logger = logging.getLogger(__name__)
 
@@ -42,21 +42,21 @@ async def create_album_for_rating(
 ):
     """
     Create album for rating from MusicBrainz data
-    
+
     Creates a local album record with all tracks from MusicBrainz,
     ready for track-by-track rating. If album already exists,
     returns existing album information.
-    
+
     The album starts in draft mode (is_rated=False) until all
     tracks are rated and the final score is submitted.
     """
     try:
         logger.info(f"Creating album for rating: {musicbrainz_id}")
-        
+
         result = await service.create_album_for_rating(musicbrainz_id, db)
-        
+
         logger.info(f"Album created/retrieved: {result['title']} by {result['artist']['name']}")
-        
+
         # Check if this is an HTMX request
         hx_request = request.headers.get("HX-Request")
         if hx_request:
@@ -69,10 +69,10 @@ async def create_album_for_rating(
                     Rate Now
                 </a>'''
             )
-        
+
         # Return JSON for API calls
         return result
-        
+
     except ServiceValidationError as e:
         logger.warning(f"Album creation validation error: {e.message}")
         raise HTTPException(
@@ -84,7 +84,7 @@ async def create_album_for_rating(
         )
     except TracklistException as e:
         logger.error(f"Album creation failed: {e.message}")
-        
+
         # Check if it's a MusicBrainz not found error
         if "not found" in e.message.lower():
             raise HTTPException(
@@ -94,7 +94,7 @@ async def create_album_for_rating(
                     "message": f"Album with MusicBrainz ID '{musicbrainz_id}' not found"
                 }
             )
-        
+
         raise HTTPException(
             status_code=502,
             detail={
@@ -113,7 +113,6 @@ async def create_album_for_rating(
         )
 
 
-
 @router.put("/tracks/{track_id}/rating")
 async def update_track_rating(
     request: Request,
@@ -124,11 +123,11 @@ async def update_track_rating(
 ) -> Dict[str, Any]:
     """
     Update track rating (auto-save)
-    
+
     Immediately saves the track rating and returns updated
     album progress including completion percentage and
     projected final score.
-    
+
     Valid ratings:
     - 0.0: Skip always (worst songs)
     - 0.33: Filler/tolerable (don't enjoy but won't skip)
@@ -152,13 +151,13 @@ async def update_track_rating(
                         "message": "Rating value is required"
                     }
                 )
-        
+
         logger.info(f"Updating track {track_id} rating to {rating}")
-        
+
         result = service.rate_track(track_id, rating, db)
-        
+
         logger.info(f"Track rating updated successfully: {result['completion_percentage']:.1f}% complete")
-        
+
         # Check if this is an HTMX request
         hx_request = request.headers.get("HX-Request")
         if hx_request:
@@ -176,9 +175,9 @@ async def update_track_rating(
                     }}));
                 </script>'''
             )
-        
+
         return result
-        
+
     except ServiceNotFoundError as e:
         logger.warning(f"Track not found: {track_id}")
         raise HTTPException(
@@ -217,7 +216,7 @@ async def get_album_progress(
 ) -> Dict[str, Any]:
     """
     Get album rating progress
-    
+
     Returns current rating status including:
     - Completion percentage
     - Projected final score (based on current ratings)
@@ -226,12 +225,12 @@ async def get_album_progress(
     """
     try:
         logger.info(f"Getting progress for album {album_id}")
-        
+
         result = service.get_album_progress(album_id, db)
-        
+
         logger.debug(f"Album progress: {result['completion_percentage']:.1f}% complete")
         return result
-        
+
     except ServiceNotFoundError as e:
         logger.warning(f"Album not found: {album_id}")
         raise HTTPException(
@@ -261,7 +260,7 @@ async def update_album_notes(
 ) -> Dict[str, Any]:
     """
     Update notes for an album
-    
+
     Allows adding or updating personal notes for an album.
     Notes are limited to 5000 characters and can be updated
     at any time during or after the rating process.
@@ -283,13 +282,13 @@ async def update_album_notes(
                         "message": "Notes value is required"
                     }
                 )
-        
+
         logger.info(f"Updating notes for album {album_id}")
-        
+
         result = service.update_album_notes(album_id, notes, db)
-        
+
         logger.info(f"Notes updated successfully for album {album_id}")
-        
+
         # Check if this is an HTMX request
         hx_request = request.headers.get("HX-Request")
         if hx_request:
@@ -297,9 +296,9 @@ async def update_album_notes(
             return HTMLResponse(
                 '''<div class="text-green-600">Notes saved</div>'''
             )
-        
+
         return result
-        
+
     except ServiceNotFoundError as e:
         logger.warning(f"Album not found: {album_id}")
         raise HTTPException(
@@ -338,24 +337,24 @@ async def submit_album_rating(
 ) -> Dict[str, Any]:
     """
     Submit final album rating
-    
+
     Calculates and saves the final album score using the formula:
     Floor((Sum of track ratings / Total tracks × 10) + Album Bonus) × 10
-    
+
     Requirements:
     - All tracks must be rated
     - Album must not be already submitted
-    
+
     Once submitted, the album is marked as completed and
     the final score cannot be changed.
     """
     try:
         logger.info(f"Submitting album rating for album {album_id}")
-        
+
         result = service.submit_album_rating(album_id, db)
-        
+
         logger.info(f"Album rating submitted: {result['title']} - Score: {result['rating_score']}")
-        
+
         # Check if this is an HTMX request
         hx_request = request.headers.get("HX-Request")
         if hx_request:
@@ -373,7 +372,7 @@ async def submit_album_rating(
                         <p class="text-lg mt-1">Final Score: <span class="font-bold text-xl">{result['rating_score']}</span>/100</p>
                     </div>
                     <div class="mt-3">
-                        <a href="/albums/{album_id}/completed" 
+                        <a href="/albums/{album_id}/completed"
                            class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-md transition-colors">
                             View Results
                             <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -394,9 +393,9 @@ async def submit_album_rating(
                     }}));
                 </script>'''
             )
-        
+
         return result
-        
+
     except ServiceNotFoundError as e:
         logger.warning(f"Album not found: {album_id}")
         raise HTTPException(
@@ -434,20 +433,20 @@ async def get_album_artwork_url(
 ) -> Dict[str, Any]:
     """
     Get cached artwork URL for an album
-    
+
     Returns the cached URL if available, otherwise returns the external URL
     """
     from ..template_utils import get_artwork_url as get_cached_url
     from ..models import Album
-    
+
     # Get album
     album = db.query(Album).filter(Album.id == album_id).first()
     if not album:
         raise HTTPException(status_code=404, detail="Album not found")
-    
+
     # Get artwork URL using the template utility
     url = get_cached_url(album, size)
-    
+
     return {
         "url": url,
         "cached": url and not url.startswith("http"),  # Cached URLs are local paths
@@ -463,7 +462,7 @@ async def get_album_rating(
 ) -> Dict[str, Any]:
     """
     Get complete album rating information
-    
+
     Returns full album details including:
     - Album and artist information
     - All track ratings
@@ -472,12 +471,12 @@ async def get_album_rating(
     """
     try:
         logger.info(f"Getting album rating for album {album_id}")
-        
+
         result = service.get_album_rating(album_id, db)
-        
+
         logger.debug(f"Album rating retrieved: {result['title']}")
         return result
-        
+
     except ServiceNotFoundError as e:
         logger.warning(f"Album not found: {album_id}")
         raise HTTPException(
@@ -512,13 +511,13 @@ async def get_user_albums(
 ) -> Dict[str, Any]:
     """
     Get user's albums
-    
+
     Returns paginated list of user's albums with optional filtering, sorting, and searching:
     - rated=true: Only completed/submitted albums
     - rated=false: Only draft/in-progress albums
     - rated=null: All albums (default)
     - search: Filter by album title or artist name (case-insensitive partial match)
-    
+
     Sorting options:
     - created_desc/created_asc: By date added (default: newest first)
     - artist_asc/artist_desc: By artist name (A→Z / Z→A)
@@ -530,12 +529,12 @@ async def get_user_albums(
     """
     try:
         logger.info(f"Getting user albums: limit={limit}, offset={offset}, rated={rated}, sort={sort}, search={search}, artist_id={artist_id}, year={year}")
-        
+
         result = service.get_user_albums(db, limit, offset, rated, sort, search, artist_id, year)
-        
+
         logger.debug(f"Retrieved {len(result['albums'])} albums (total: {result['total']})")
         return result
-        
+
     except Exception as e:
         logger.error(f"Unexpected error getting user albums: {e}", exc_info=True)
         raise HTTPException(
@@ -555,22 +554,22 @@ async def delete_album(
 ) -> Dict[str, Any]:
     """
     Delete album and all associated data
-    
+
     Performs a hard delete of:
     - Album record
     - All associated tracks and ratings
     - All metadata and scores
-    
+
     This action cannot be undone.
     """
     try:
         logger.info(f"Deleting album {album_id}")
-        
+
         result = service.delete_album(album_id, db)
-        
+
         logger.info(f"Album {album_id} deleted successfully")
         return result
-        
+
     except ServiceNotFoundError as e:
         logger.warning(f"Album not found for deletion: {album_id}")
         raise HTTPException(
@@ -598,20 +597,20 @@ async def update_album_cover_art(
 ) -> Dict[str, Any]:
     """
     Update cover art for all albums that don't have it
-    
+
     Fetches cover art from MusicBrainz Cover Art Archive API
     for albums with missing artwork.
-    
+
     Returns statistics about the update process.
     """
     try:
         logger.info("Starting cover art update for albums")
-        
+
         result = await service.update_missing_cover_art(db)
-        
+
         logger.info(f"Cover art update completed: {result['updated']} albums updated")
         return result
-        
+
     except Exception as e:
         logger.error(f"Error updating cover art: {e}")
         raise HTTPException(
@@ -631,17 +630,17 @@ async def get_release_group_releases(
 ) -> Dict[str, Any]:
     """
     Get all releases from the same release group with matching track count
-    
+
     Returns releases that could be alternative versions of the current album
     """
     try:
         logger.info(f"Getting release group releases for album {album_id}")
-        
+
         result = await service.get_release_group_releases(album_id, db)
-        
+
         logger.info(f"Found {len(result.get('releases', []))} matching releases")
         return result
-        
+
     except ServiceNotFoundError as e:
         logger.warning(f"Album not found: {album_id}")
         raise HTTPException(
@@ -675,27 +674,27 @@ async def revert_album_to_in_progress(
 ) -> Dict[str, Any]:
     """
     Revert completed album to 'In Progress' status for re-rating
-    
+
     This endpoint:
     - Changes album status from completed to in-progress
     - Preserves all existing track ratings
     - Clears the final score and rated_at timestamp
     - Allows user to modify ratings and resubmit
-    
+
     Args:
         album_id: Album ID to revert
-        
+
     Returns:
         Dict with updated album information
     """
     try:
         logger.info(f"Reverting album {album_id} to in-progress status")
-        
+
         result = service.revert_album_to_in_progress(album_id, db)
-        
+
         logger.info(f"Successfully reverted album {album_id} to in-progress")
         return result
-        
+
     except ServiceNotFoundError as e:
         logger.warning(f"Album not found: {album_id}")
         raise HTTPException(
@@ -734,27 +733,27 @@ async def retag_album_musicbrainz_id(
 ) -> Dict[str, Any]:
     """
     Update album's MusicBrainz ID while preserving all ratings and submission data
-    
+
     Args:
         album_id: Album ID to update
         request: JSON body with new_musicbrainz_id
     """
     try:
         new_mbid = retag_request.new_musicbrainz_id
-        
+
         logger.info(f"Retagging album {album_id} to MusicBrainz ID {new_mbid}")
-        
+
         result = await service.retag_album_musicbrainz_id(album_id, new_mbid, db)
-        
+
         logger.info(f"Successfully retagged album {album_id}")
         return result
-        
+
     except ServiceNotFoundError as e:
         logger.warning(f"Album not found: {album_id}")
         raise HTTPException(
             status_code=404,
             detail={
-                "error": "Album not found", 
+                "error": "Album not found",
                 "message": f"Album with ID {album_id} not found"
             }
         )
@@ -786,14 +785,14 @@ async def refresh_album_artwork(
 ) -> Dict[str, Any]:
     """
     Manually refresh artwork cache for a specific album
-    
+
     This endpoint clears the existing cached artwork and re-downloads
     fresh images from the source. Rate limited to prevent abuse.
-    
+
     Rate limits:
     - 5 refreshes per hour per session
     - 20 refreshes per day per session
-    
+
     Args:
         album_id: Album ID to refresh artwork for
     """
@@ -803,14 +802,14 @@ async def refresh_album_artwork(
         from ..services.artwork_memory_cache import get_artwork_memory_cache
         from ..services.artwork_cache_background import get_artwork_cache_background_service
         from ..models import Album
-        
+
         # Get session ID for rate limiting (use IP address as fallback)
         session_id = request.headers.get("X-Session-Id", request.client.host)
-        
+
         # Check rate limit
         refresh_limiter = get_artwork_refresh_limiter()
         allowed, limit_info = refresh_limiter.check_limit(session_id)
-        
+
         if not allowed:
             logger.warning(f"Artwork refresh rate limit exceeded for session {session_id}")
             raise HTTPException(
@@ -822,7 +821,7 @@ async def refresh_album_artwork(
                     "limit_info": limit_info
                 }
             )
-        
+
         # Get album
         album = db.query(Album).filter(Album.id == album_id).first()
         if not album:
@@ -833,7 +832,7 @@ async def refresh_album_artwork(
                     "message": f"Album with ID {album_id} not found"
                 }
             )
-        
+
         if not album.cover_art_url:
             raise HTTPException(
                 status_code=400,
@@ -842,31 +841,31 @@ async def refresh_album_artwork(
                     "message": "Album has no cover art URL to refresh"
                 }
             )
-        
+
         logger.info(f"Refreshing artwork for album {album_id}: {album.name}")
-        
+
         # Clear existing cache
         cache_service = ArtworkCacheService()
         memory_cache = get_artwork_memory_cache()
-        
+
         # Clear from database and filesystem
         clear_result = cache_service.clear_album_cache_sync(album_id, db)
-        
+
         # Clear from memory cache
         memory_cache.clear_album(album_id)
-        
+
         # Clear from template cache
         from ..template_utils import get_artwork_resolver
         template_resolver = get_artwork_resolver()
         template_resolver.clear_template_cache()
-        
+
         # Mark album as not cached
         album.artwork_cached = False
         db.commit()
-        
+
         # Record the refresh request
         refresh_limiter.record_refresh(session_id)
-        
+
         # Queue for re-caching with high priority
         background_service = get_artwork_cache_background_service()
         task_id = background_service.trigger_album_cache(
@@ -874,9 +873,9 @@ async def refresh_album_artwork(
             cover_art_url=album.cover_art_url,
             priority=2  # High priority for manual refresh
         )
-        
+
         logger.info(f"Artwork refresh queued for album {album_id}, task: {task_id}")
-        
+
         return {
             "success": True,
             "message": "Artwork refresh initiated",
@@ -886,7 +885,7 @@ async def refresh_album_artwork(
             "cleared": clear_result,
             "rate_limit": limit_info
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -904,7 +903,7 @@ async def refresh_album_artwork(
 async def get_cache_cleanup_status() -> Dict[str, Any]:
     """
     Get cache cleanup status and recommendations
-    
+
     Returns information about:
     - Total cache entries
     - Old entries to clean
@@ -913,10 +912,10 @@ async def get_cache_cleanup_status() -> Dict[str, Any]:
     """
     try:
         from ..services.cache_cleanup_service import get_cleanup_service
-        
+
         cleanup_service = get_cleanup_service()
         return cleanup_service.get_cleanup_status()
-        
+
     except Exception as e:
         logger.error(f"Error getting cache cleanup status: {e}")
         raise HTTPException(
@@ -935,21 +934,21 @@ async def trigger_cache_cleanup(
 ) -> Dict[str, Any]:
     """
     Manually trigger cache cleanup
-    
+
     Runs the cache cleanup process immediately with optional parameters.
-    
+
     Args:
         dry_run: If true, only simulate cleanup without actually deleting files
         retention_days: Override the default retention period
     """
     try:
         from ..services.scheduled_tasks import get_scheduled_task_manager
-        
+
         manager = get_scheduled_task_manager()
         result = await manager.trigger_cleanup_now(dry_run=dry_run)
-        
+
         return result
-        
+
     except Exception as e:
         logger.error(f"Error triggering cache cleanup: {e}")
         raise HTTPException(
@@ -965,7 +964,7 @@ async def trigger_cache_cleanup(
 async def get_scheduled_tasks_status() -> Dict[str, Any]:
     """
     Get scheduled tasks status
-    
+
     Returns information about:
     - Task configuration
     - Last run times
@@ -973,10 +972,10 @@ async def get_scheduled_tasks_status() -> Dict[str, Any]:
     """
     try:
         from ..services.scheduled_tasks import get_scheduled_task_manager
-        
+
         manager = get_scheduled_task_manager()
         return manager.get_status()
-        
+
     except Exception as e:
         logger.error(f"Error getting scheduled tasks status: {e}")
         raise HTTPException(
@@ -992,7 +991,7 @@ async def get_scheduled_tasks_status() -> Dict[str, Any]:
 async def get_memory_cache_status() -> Dict[str, Any]:
     """
     Get status of artwork memory cache
-    
+
     Returns information about:
     - Cache hit rate
     - Memory usage
@@ -1001,10 +1000,10 @@ async def get_memory_cache_status() -> Dict[str, Any]:
     """
     try:
         from ..services.artwork_memory_cache import get_artwork_memory_cache
-        
+
         memory_cache = get_artwork_memory_cache()
         return memory_cache.get_stats()
-        
+
     except Exception as e:
         logger.error(f"Error getting memory cache status: {e}")
         raise HTTPException(
@@ -1023,20 +1022,20 @@ async def trigger_artwork_migration(
 ) -> Dict[str, Any]:
     """
     Trigger artwork migration for existing albums
-    
+
     Processes existing albums that don't have cached artwork.
     The migration runs in the background and can be resumed if interrupted.
-    
+
     Args:
         batch_size: Number of albums to process per batch (default 10)
         limit: Optional limit on total albums to process
     """
     try:
         from ..services.artwork_cache_background import get_artwork_cache_background_service
-        from ..models import Album, ArtworkCache
-        
+        from ..models import Album
+
         db = SessionLocal()
-        
+
         try:
             # Get albums that need caching
             query = db.query(Album).filter(
@@ -1045,23 +1044,23 @@ async def trigger_artwork_migration(
                     Album.artwork_cached == None
                 )
             )
-            
+
             if limit:
                 query = query.limit(limit)
-            
+
             albums_to_process = query.all()
-            
+
             if not albums_to_process:
                 return {
                     'status': 'complete',
                     'message': 'All albums already have cached artwork',
                     'albums_to_process': 0
                 }
-            
+
             # Queue albums for background processing
             cache_service = get_artwork_cache_background_service()
             task_ids = []
-            
+
             for i, album in enumerate(albums_to_process):
                 if album.cover_art_url:
                     # Add to background queue with lower priority
@@ -1071,11 +1070,11 @@ async def trigger_artwork_migration(
                         priority=8  # Lower priority for migration
                     )
                     task_ids.append(task_id)
-                    
+
                     # Add small delay between queueing to avoid overwhelming
                     if (i + 1) % batch_size == 0:
                         await asyncio.sleep(0.1)
-            
+
             return {
                 'status': 'started',
                 'message': f'Migration started for {len(albums_to_process)} albums',
@@ -1083,10 +1082,10 @@ async def trigger_artwork_migration(
                 'batch_size': batch_size,
                 'task_ids': task_ids[:10]  # Return first 10 task IDs as sample
             }
-            
+
         finally:
             db.close()
-            
+
     except Exception as e:
         logger.error(f"Error starting artwork migration: {e}")
         raise HTTPException(
@@ -1102,18 +1101,18 @@ async def trigger_artwork_migration(
 async def get_integrity_status() -> Dict[str, Any]:
     """
     Get cache integrity status
-    
+
     Returns the latest integrity check results and quick check status
     """
     try:
         from pathlib import Path
         import json
-        
+
         # Get latest integrity report
         reports_dir = Path("logs/scheduled_tasks")
         latest_full = None
         latest_quick = None
-        
+
         if reports_dir.exists():
             # Find latest full check
             full_reports = list(reports_dir.glob("integrity_check_*.json"))
@@ -1121,22 +1120,22 @@ async def get_integrity_status() -> Dict[str, Any]:
                 latest_full_file = max(full_reports, key=lambda p: p.stat().st_mtime)
                 with open(latest_full_file, 'r') as f:
                     latest_full = json.load(f)
-            
+
             # Find latest quick check
             quick_reports = list(reports_dir.glob("integrity_quick_check_*.json"))
             if quick_reports:
                 latest_quick_file = max(quick_reports, key=lambda p: p.stat().st_mtime)
                 with open(latest_quick_file, 'r') as f:
                     latest_quick = json.load(f)
-        
+
         # Get scheduled task status
         from ..services.scheduled_tasks import get_scheduled_manager
         scheduled_manager = get_scheduled_manager()
         task_status = scheduled_manager.get_status()
-        
+
         integrity_task = task_status.get('tasks', {}).get('integrity_check', {})
         quick_task = task_status.get('tasks', {}).get('integrity_quick_check', {})
-        
+
         return {
             'latest_full_check': latest_full,
             'latest_quick_check': latest_quick,
@@ -1151,7 +1150,7 @@ async def get_integrity_status() -> Dict[str, Any]:
                 'running': quick_task.get('running', False)
             }
         }
-        
+
     except Exception as e:
         logger.error(f"Error getting integrity status: {e}")
         raise HTTPException(
@@ -1171,7 +1170,7 @@ async def trigger_integrity_check(
 ) -> Dict[str, Any]:
     """
     Manually trigger cache integrity check
-    
+
     Args:
         repair: Whether to attempt repairs (full check only)
         quick: Run quick sample-based check instead of full check
@@ -1179,9 +1178,9 @@ async def trigger_integrity_check(
     """
     try:
         from ..services.cache_integrity_service import get_integrity_service
-        
+
         integrity_service = get_integrity_service()
-        
+
         if quick:
             # Run quick check
             result = integrity_service.quick_check()
@@ -1196,9 +1195,9 @@ async def trigger_integrity_check(
                 f"Full integrity check completed: score={result['integrity_score']}%, "
                 f"issues={result['summary']['issues_found']}"
             )
-        
+
         return result
-        
+
     except Exception as e:
         logger.error(f"Error running integrity check: {e}")
         raise HTTPException(
@@ -1214,22 +1213,22 @@ async def trigger_integrity_check(
 async def get_migration_status() -> Dict[str, Any]:
     """
     Get artwork migration status
-    
+
     Returns information about ongoing or completed migration
     """
     try:
         from pathlib import Path
         import json
-        
+
         progress_file = Path("logs/artwork_migration_progress.json")
         report_file = Path("logs/artwork_migration_report.json")
-        
+
         status = {
             'in_progress': False,
             'progress': None,
             'last_report': None
         }
-        
+
         # Check progress file
         if progress_file.exists():
             try:
@@ -1246,7 +1245,7 @@ async def get_migration_status() -> Dict[str, Any]:
                     status['in_progress'] = progress.get('processed', 0) < progress.get('total', 0)
             except Exception as e:
                 logger.warning(f"Could not read progress file: {e}")
-        
+
         # Check report file
         if report_file.exists():
             try:
@@ -1261,9 +1260,9 @@ async def get_migration_status() -> Dict[str, Any]:
                     }
             except Exception as e:
                 logger.warning(f"Could not read report file: {e}")
-        
+
         return status
-        
+
     except Exception as e:
         logger.error(f"Error getting migration status: {e}")
         raise HTTPException(
@@ -1279,7 +1278,7 @@ async def get_migration_status() -> Dict[str, Any]:
 async def get_background_tasks_status() -> Dict[str, Any]:
     """
     Get status of background tasks including artwork caching
-    
+
     Returns information about:
     - Queued tasks
     - Running tasks
@@ -1288,10 +1287,10 @@ async def get_background_tasks_status() -> Dict[str, Any]:
     """
     try:
         from ..services.artwork_cache_background import get_artwork_cache_background_service
-        
+
         cache_service = get_artwork_cache_background_service()
         return cache_service.get_overall_status()
-        
+
     except Exception as e:
         logger.error(f"Error getting background tasks status: {e}")
         raise HTTPException(
@@ -1307,7 +1306,7 @@ async def get_background_tasks_status() -> Dict[str, Any]:
 async def get_system_info() -> Dict[str, Any]:
     """
     Get system information including database details
-    
+
     Returns information about:
     - Database location and status
     - Application configuration
@@ -1315,10 +1314,10 @@ async def get_system_info() -> Dict[str, Any]:
     """
     import sys
     import os
-    
+
     try:
         db_info = get_db_info()
-        
+
         return {
             "database": db_info,
             "application": {
@@ -1331,7 +1330,7 @@ async def get_system_info() -> Dict[str, Any]:
                 "platform": os.name
             }
         }
-        
+
     except Exception as e:
         logger.error(f"Error getting system info: {e}")
         raise HTTPException(
