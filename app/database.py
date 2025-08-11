@@ -14,18 +14,18 @@ def get_database_url():
     # Check for custom database path
     db_path_env = os.getenv("TRACKLIST_DB_PATH")
     database_url = os.getenv("DATABASE_URL")
-    
+
     if db_path_env:
         # User specified custom database path
         db_path = Path(db_path_env).resolve()
-        
+
         # Ensure directory exists
         db_path.parent.mkdir(parents=True, exist_ok=True)
-        
+
         # Convert to database URL format
         database_url = f"sqlite:///{db_path}"
         logger.info(f"Using custom database path: {db_path}")
-        
+
     elif database_url:
         # Use provided DATABASE_URL
         if database_url.startswith("sqlite:///"):
@@ -37,7 +37,7 @@ def get_database_url():
             else:
                 # Absolute path
                 db_path = Path(db_file_path)
-            
+
             db_path.parent.mkdir(parents=True, exist_ok=True)
             logger.info(f"Using database path from DATABASE_URL: {db_path}")
     else:
@@ -46,7 +46,7 @@ def get_database_url():
         default_path.parent.mkdir(parents=True, exist_ok=True)
         database_url = f"sqlite:///{default_path}"
         logger.info(f"Using default database path: {default_path}")
-    
+
     return database_url
 
 
@@ -96,12 +96,12 @@ def get_db():
 def init_db():
     """Initialize database with default data"""
     from .models import UserSettings
-    
+
     # First create all tables
     create_tables()
-    
+
     # Note: Database migrations are handled by Alembic in entrypoint.sh
-    
+
     db = SessionLocal()
     try:
         # Create default user settings if they don't exist
@@ -117,7 +117,7 @@ def init_db():
             logger.info("Default user settings created")
         else:
             logger.info("Default user settings already exist")
-            
+
         logger.info(f"Database initialized successfully at: {DATABASE_URL}")
     except Exception as e:
         logger.error(f"Error initializing database: {e}")
@@ -132,7 +132,7 @@ def get_db_info():
     if DATABASE_URL.startswith("sqlite:///"):
         db_file_path = DATABASE_URL.replace("sqlite:///", "")
         db_path = Path(db_file_path)
-        
+
         return {
             "type": "SQLite",
             "path": str(db_path.resolve()),

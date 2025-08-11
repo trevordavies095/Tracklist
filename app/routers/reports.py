@@ -23,7 +23,7 @@ async def get_overview_statistics(
 ):
     """
     Get overview statistics for the user's album collection
-    
+
     Returns comprehensive statistics including:
     - Total number of albums in collection
     - Count of fully rated albums
@@ -31,7 +31,7 @@ async def get_overview_statistics(
     - Average score of rated albums
     - Total tracks rated
     - Distribution of track ratings
-    
+
     Example response:
     ```json
     {
@@ -54,7 +54,7 @@ async def get_overview_statistics(
         logger.info("Fetching overview statistics")
         statistics = service.get_overview_statistics(db)
         return statistics
-        
+
     except TracklistException as e:
         logger.error(f"Failed to get overview statistics: {e.message}")
         raise HTTPException(
@@ -83,12 +83,12 @@ async def get_recent_activity(
 ):
     """
     Get recent rating activity
-    
+
     Returns recently rated albums and albums currently in progress.
-    
+
     Query Parameters:
     - limit: Maximum number of items per category (1-50, default: 10)
-    
+
     Example response:
     ```json
     {
@@ -125,7 +125,7 @@ async def get_recent_activity(
         logger.info(f"Fetching recent activity with limit={limit}")
         activity = service.get_recent_activity(db, limit=limit)
         return activity
-        
+
     except TracklistException as e:
         logger.error(f"Failed to get recent activity: {e.message}")
         raise HTTPException(
@@ -156,14 +156,14 @@ async def get_top_albums(
 ):
     """
     Get top rated albums
-    
+
     Returns the highest scored albums in the collection.
-    
+
     Query Parameters:
     - limit: Maximum number of albums to return (1-100, default: 10)
     - randomize: Whether to randomly select from top albums (default: false)
     - pool_size: When randomizing, size of top album pool to select from (5-100, default: 20)
-    
+
     Example response:
     ```json
     [
@@ -192,7 +192,7 @@ async def get_top_albums(
         logger.info(f"Fetching top {limit} albums (randomize={randomize}, pool_size={pool_size})")
         top_albums = service.get_top_albums(db, limit=limit, randomize=randomize, pool_size=pool_size)
         return top_albums
-        
+
     except TracklistException as e:
         logger.error(f"Failed to get top albums: {e.message}")
         raise HTTPException(
@@ -220,15 +220,15 @@ async def get_score_distribution(
 ):
     """
     Get distribution of album scores
-    
+
     Returns the count and percentage of albums in different score ranges.
     Score ranges:
     - 0-20: Very Poor
-    - 21-40: Poor  
+    - 21-40: Poor
     - 41-60: Average
     - 61-80: Good
     - 81-100: Excellent
-    
+
     Example response:
     ```json
     {
@@ -279,7 +279,7 @@ async def get_score_distribution(
         logger.info("Fetching score distribution")
         distribution = service.get_score_distribution(db)
         return distribution
-        
+
     except TracklistException as e:
         logger.error(f"Failed to get score distribution: {e.message}")
         raise HTTPException(
@@ -310,14 +310,14 @@ async def get_worst_albums(
 ):
     """
     Get lowest rated albums
-    
+
     Returns the lowest scored albums in the collection.
-    
+
     Query Parameters:
     - limit: Maximum number of albums to return (1-100, default: 5)
     - randomize: Whether to randomly select from worst albums (default: true)
     - pool_size: When randomizing, size of worst album pool to select from (5-100, default: 20)
-    
+
     Example response:
     ```json
     [
@@ -346,7 +346,7 @@ async def get_worst_albums(
         logger.info(f"Fetching worst {limit} albums (randomize={randomize}, pool_size={pool_size})")
         worst_albums = service.get_worst_albums(db, limit=limit, randomize=randomize, pool_size=pool_size)
         return worst_albums
-        
+
     except TracklistException as e:
         logger.error(f"Failed to get worst albums: {e.message}")
         raise HTTPException(
@@ -374,14 +374,14 @@ async def get_top_artist(
 ):
     """
     Get the artist with the most rated albums
-    
+
     Returns information about the artist you've rated the most, including:
     - Artist name and ID
     - Number of albums rated
     - Average score across their albums
     - Their top 5 highest-rated albums
     - Any artists tied with the same album count
-    
+
     Example response:
     ```json
     {
@@ -400,7 +400,7 @@ async def get_top_artist(
             },
             {
                 "id": 67,
-                "name": "In Rainbows", 
+                "name": "In Rainbows",
                 "year": 2007,
                 "score": 93,
                 "cover_art_url": "https://...",
@@ -421,7 +421,7 @@ async def get_top_artist(
         logger.info("Fetching top artist statistics")
         top_artist = service.get_top_artist(db)
         return top_artist
-        
+
     except TracklistException as e:
         logger.error(f"Failed to get top artist: {e.message}")
         raise HTTPException(
@@ -451,13 +451,13 @@ async def get_top_albums_by_year(
 ):
     """
     Get top rated albums from a specific year
-    
+
     Returns the highest scored albums from the specified release year.
-    
+
     Query Parameters:
     - year: Release year to filter by (1900-2100, required)
     - limit: Maximum number of albums to return (1-50, default: 10)
-    
+
     Example response:
     ```json
     {
@@ -475,7 +475,7 @@ async def get_top_albums_by_year(
             {
                 "id": 67,
                 "name": "The Colour and the Shape",
-                "artist": "Foo Fighters", 
+                "artist": "Foo Fighters",
                 "year": 1997,
                 "score": 87,
                 "cover_art_url": "https://...",
@@ -491,7 +491,7 @@ async def get_top_albums_by_year(
         logger.info(f"Fetching top {limit} albums from year {year}")
         top_albums_by_year = service.get_top_albums_by_year(db, year=year, limit=limit)
         return top_albums_by_year
-        
+
     except TracklistException as e:
         logger.error(f"Failed to get top albums by year: {e.message}")
         raise HTTPException(
@@ -519,10 +519,10 @@ async def get_available_years(
 ):
     """
     Get list of years for which rated albums exist
-    
+
     Returns a list of years that have at least one rated album,
     sorted in descending order (newest first).
-    
+
     Example response:
     ```json
     {
@@ -535,7 +535,7 @@ async def get_available_years(
         logger.info("Fetching available years for top albums by year report")
         available_years = service.get_available_years(db)
         return available_years
-        
+
     except TracklistException as e:
         logger.error(f"Failed to get available years: {e.message}")
         raise HTTPException(
@@ -565,14 +565,14 @@ async def get_no_skip_albums(
 ):
     """
     Get albums with no skip-worthy tracks
-    
+
     Returns albums where all tracks are rated Good (0.67) or Standout (1.0).
     These are albums with no Skip (0.0) or Filler (0.33) tracks.
-    
+
     Query Parameters:
     - limit: Optional maximum number of albums to return (1-100, default: all)
     - randomize: Whether to randomize selection (default: true)
-    
+
     Example response:
     ```json
     {
@@ -601,7 +601,7 @@ async def get_no_skip_albums(
         logger.info(f"Fetching no-skip albums (limit={limit}, randomize={randomize})")
         no_skip_data = service.get_no_skip_albums(db, limit=limit, randomize=randomize)
         return no_skip_data
-        
+
     except TracklistException as e:
         logger.error(f"Failed to get no-skip albums: {e.message}")
         raise HTTPException(
@@ -631,15 +631,15 @@ async def get_highest_rated_artists(
 ):
     """
     Get highest rated artists based on their average album scores
-    
+
     Returns artists ranked by their average album rating, filtered by minimum album count.
     Only artists with at least 'min_albums' rated albums are considered.
     Shows up to 'min_albums' top-rated albums for each qualifying artist.
-    
+
     Query Parameters:
-    - min_albums: Minimum albums required to qualify AND maximum albums to display (1-10, default: 3)  
+    - min_albums: Minimum albums required to qualify AND maximum albums to display (1-10, default: 3)
     - limit: Maximum number of artists to return (1-20, default: 5)
-    
+
     Example response:
     ```json
     {
@@ -670,7 +670,7 @@ async def get_highest_rated_artists(
         logger.info(f"Fetching highest rated artists (min_albums={min_albums}, limit={limit})")
         highest_rated_artists = service.get_highest_rated_artists(db, min_albums=min_albums, limit=limit)
         return highest_rated_artists
-        
+
     except TracklistException as e:
         logger.error(f"Failed to get highest rated artists: {e.message}")
         raise HTTPException(
@@ -685,7 +685,7 @@ async def get_highest_rated_artists(
         raise HTTPException(
             status_code=500,
             detail={
-                "error": "Internal server error", 
+                "error": "Internal server error",
                 "message": "Failed to retrieve highest rated artists"
             }
         )

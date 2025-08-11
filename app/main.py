@@ -6,7 +6,7 @@ import logging
 import os
 import asyncio
 from .database import create_tables, init_db
-from .exceptions import TracklistException, NotFoundError, ValidationError, ConflictError
+from .exceptions import TracklistException
 from .logging_config import setup_logging
 from .routers import search, albums, templates, reports
 
@@ -42,7 +42,7 @@ Tracklist is a personal music rating system that allows you to rate albums track
 ### Rating Scale
 
 - **0.0** - Skip (worst songs)
-- **0.33** - Filler (tolerable but not enjoyable)  
+- **0.33** - Filler (tolerable but not enjoyable)
 - **0.67** - Good (playlist-worthy tracks)
 - **1.0** - Standout (album highlights)
 
@@ -60,7 +60,7 @@ This API currently does not require authentication as it's designed for personal
             "description": "Album rating operations - create, rate tracks, submit ratings, and manage albums"
         },
         {
-            "name": "search", 
+            "name": "search",
             "description": "Search for albums in the MusicBrainz database"
         },
         {
@@ -88,76 +88,76 @@ async def auto_migrate_artwork_cache():
     try:
         # Wait a bit for the application to fully start
         await asyncio.sleep(5)
-        
+
         logger.info("Checking for albums that need artwork caching...")
-        
+
         from .database import SessionLocal
         from .models import Album, ArtworkCache
         from .services.artwork_cache_background import get_artwork_cache_background_service
-        
+
         db = SessionLocal()
-        
+
         try:
             # More robust check: Look for albums without actual cache entries
             # This handles cases where artwork_cached might be incorrectly set
-            from sqlalchemy import or_, and_, exists
-            
+            from sqlalchemy import exists
+
             # Subquery to check if album has any artwork cache entries
             has_cache = exists().where(
                 ArtworkCache.album_id == Album.id
             )
-            
+
             # Count albums that don't have cache entries
             uncached_count = db.query(Album).filter(
                 ~has_cache,
                 Album.cover_art_url.isnot(None)  # Only count albums with URLs
             ).count()
-            
+
             # Also log total albums for context
             total_albums = db.query(Album).count()
             albums_with_urls = db.query(Album).filter(
                 Album.cover_art_url.isnot(None)
             ).count()
-            
+
             logger.info(f"Album cache status: {total_albums} total albums, {albums_with_urls} with artwork URLs")
-            
+
             if uncached_count == 0:
                 logger.info("All albums with artwork URLs already have cached entries")
                 return
-            
+
             logger.info(f"Found {uncached_count} albums without cached artwork")
-            
+
             # Check if auto-migration is enabled (default: true)
             auto_migrate = os.getenv("AUTO_MIGRATE_ARTWORK", "true").lower() == "true"
-            
+
             if not auto_migrate:
                 logger.info("Auto-migration is disabled (set AUTO_MIGRATE_ARTWORK=true to enable)")
                 return
-            
+
             logger.info(f"Starting automatic artwork migration for {uncached_count} albums...")
-            
+
             # Get the background cache service
             cache_service = get_artwork_cache_background_service()
-            
+
             # Process albums in batches to avoid overwhelming the system
             batch_size = int(os.getenv("MIGRATION_BATCH_SIZE", "10"))
             max_albums = int(os.getenv("MIGRATION_MAX_ALBUMS", "0"))  # 0 = no limit
-            
+
             # Get albums to process - those without cache entries
             query = db.query(Album).filter(
                 ~has_cache,
                 Album.cover_art_url.isnot(None)  # Only process albums with URLs
             )
-            
+
             if max_albums > 0:
                 query = query.limit(max_albums)
-            
+
             albums = query.all()
-            
+
             if not albums:
                 logger.info("No albums with cover art URLs to migrate")
                 return
-            
+
             # Queue albums for background processing
             queued = 0
             for i, album in enumerate(albums):
@@ -169,21 +169,21 @@ async def auto_migrate_artwork_cache():
                         priority=9  # Very low priority for auto-migration
                     )
                     queued += 1
-                    
+
                     # Add delay between batches to avoid overwhelming
                     if (i + 1) % batch_size == 0:
                         await asyncio.sleep(2)  # Wait 2 seconds between batches
                         logger.info(f"Queued {queued}/{len(albums)} albums for caching...")
-                        
+
                 except Exception as e:
                     logger.warning(f"Failed to queue album {album.id} for caching: {e}")
-            
+
             logger.info(f"✓ Auto-migration started: {queued} albums queued for background caching")
             logger.info("Artwork will be cached gradually in the background without affecting performance")
-            
+
         finally:
             db.close()
-            
+
     except Exception as e:
         logger.error(f"Auto-migration failed: {e}")
         # Don't crash the application if migration fails
@@ -199,33 +199,33 @@ async def startup_event():
         create_tables()
         init_db()
         logger.info("Database initialized successfully")
-        
+
         # Initialize artwork cache directories
         from .services.artwork_cache_utils import init_artwork_cache_directories
         init_artwork_cache_directories()
-        
+
         # Start background task manager
         from .services.background_tasks import start_background_tasks
         await start_background_tasks()
         logger.info("Background task manager started")
-        
+
         # Start scheduled tasks
         from .services.scheduled_tasks import start_scheduled_tasks
         await start_scheduled_tasks()
         logger.info("Scheduled task manager started")
-        
+
         # Auto-migrate existing albums to cached artwork
         asyncio.create_task(auto_migrate_artwork_cache())
-        
+
         # Warm artwork memory cache with frequently accessed albums
         try:
             from .services.artwork_memory_cache import get_artwork_memory_cache
             from .database import SessionLocal
             from .models import Album, ArtworkCache
-            
+
             memory_cache = get_artwork_memory_cache()
             db = SessionLocal()
-            
+
             # Get most frequently accessed cached artwork (top 50)
             frequent_artwork = db.query(
                 ArtworkCache.album_id,
@@ -236,7 +236,7 @@ async def startup_event():
             ).order_by(
                 ArtworkCache.access_count.desc()
             ).limit(50).all()
-            
+
             # Convert file paths to URLs and warm cache
             warm_entries = []
             for album_id, size, file_path in frequent_artwork:
@@ -244,15 +244,15 @@ async def startup_event():
                     # Convert file path to web URL
                     web_path = f"/static/artwork_cache/{size}/{file_path.split('/')[-1]}"
                     warm_entries.append((album_id, size, web_path))
-            
+
             if warm_entries:
                 warmed = memory_cache.warm_cache(warm_entries)
                 logger.info(f"Warmed artwork memory cache with {warmed} entries")
-            
+
             db.close()
         except Exception as e:
             logger.warning(f"Could not warm artwork cache: {e}")
-        
+
     except Exception as e:
         logger.error(f"Failed to initialize application: {e}")
         raise
@@ -267,7 +267,7 @@ async def shutdown_event():
         from .services.scheduled_tasks import stop_scheduled_tasks
         await stop_scheduled_tasks()
         logger.info("Scheduled task manager stopped")
-        
+
         # Stop background task manager
         from .services.background_tasks import stop_background_tasks
         await stop_background_tasks()

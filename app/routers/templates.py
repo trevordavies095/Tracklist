@@ -58,12 +58,12 @@ async def artist_albums_page(
 ):
     """Artist's albums page"""
     from ..models import Artist
-    
+
     # Get artist details
     artist = db.query(Artist).filter(Artist.id == artist_id).first()
     if not artist:
         raise HTTPException(status_code=404, detail="Artist not found")
-    
+
     return templates.TemplateResponse("artist_albums.html", {
         "request": request,
         "artist": artist
@@ -95,11 +95,11 @@ async def rating_page(
         # Get album details
         album_data = service.get_album_rating(album_id, db)
         logger.info(f"Album data loaded for {album_id}: {album_data.get('title')}")
-        
+
         # Get current progress
         progress_data = service.get_album_progress(album_id, db)
         logger.info(f"Progress data loaded for {album_id}: {progress_data.get('completion_percentage', 0)}%")
-        
+
         # Try to render original template
         return templates.TemplateResponse("album/rating.html", {
             "request": request,
@@ -107,7 +107,7 @@ async def rating_page(
             "tracks": album_data.get("tracks", []),
             "progress": progress_data
         })
-        
+
     except ServiceNotFoundError:
         logger.warning(f"Album not found for rating page: {album_id}")
         raise HTTPException(status_code=404, detail="Album not found")
@@ -127,7 +127,7 @@ async def completed_page(
     try:
         # Get album details
         album_data = service.get_album_rating(album_id, db)
-        
+
         # Ensure album is actually completed
         if not album_data.get("is_rated"):
             # Redirect to rating page if not completed
@@ -137,13 +137,13 @@ async def completed_page(
                 "tracks": album_data.get("tracks", []),
                 "progress": service.get_album_progress(album_id, db)
             })
-        
+
         return templates.TemplateResponse("album/completed.html", {
             "request": request,
             "album": album_data,
             "tracks": album_data.get("tracks", [])
         })
-        
+
     except ServiceNotFoundError:
         logger.warning(f"Album not found for completed page: {album_id}")
         raise HTTPException(status_code=404, detail="Album not found")
@@ -155,7 +155,7 @@ async def completed_page(
 # Helper function to add custom filters to Jinja2
 def setup_template_filters(template_env):
     """Add custom filters and globals to Jinja2 environment"""
-    
+
     # Import template utilities
     from ..template_utils import (
         get_artwork_url,
@@ -164,17 +164,17 @@ def setup_template_filters(template_env):
         format_file_size,
         format_cache_age
     )
-    
+
     def format_duration(milliseconds):
         """Convert milliseconds to MM:SS format"""
         if not milliseconds:
             return "0:00"
-        
+
         seconds = int(milliseconds / 1000)
         minutes = seconds // 60
         seconds = seconds % 60
         return f"{minutes}:{seconds:02d}"
-    
+
     def format_rating_label(rating):
         """Convert numeric rating to label"""
         if rating == 0.0:
@@ -187,7 +187,7 @@ def setup_template_filters(template_env):
             return "Standout"
         else:
             return str(rating)
-    
+
     def rating_color_class(rating):
         """Get CSS class for rating color"""
         if rating == 0.0:
@@ -200,14 +200,14 @@ def setup_template_filters(template_env):
             return "text-green-800"
         else:
             return "text-gray-600"
-    
+
     # Add filters to template environment
     template_env.filters["format_duration"] = format_duration
     template_env.filters["format_rating_label"] = format_rating_label
     template_env.filters["rating_color_class"] = rating_color_class
     template_env.filters["format_file_size"] = format_file_size
     template_env.filters["format_cache_age"] = format_cache_age
-    
+
     # Add global functions for templates
     template_env.globals["get_artwork_url"] = get_artwork_url
     template_env.globals["get_lazy_image_html"] = get_lazy_image_html
