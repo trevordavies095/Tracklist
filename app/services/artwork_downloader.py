@@ -53,7 +53,7 @@ class ArtworkDownloader:
             follow_redirects=True,
             limits=httpx.Limits(max_keepalive_connections=5),
             headers={
-                'User-Agent': 'Tracklist/1.0 (https://github.com/tracklist)'
+                'User-Agent': 'Tracklist/1.3.0 (https://github.com/trevordavies095/Tracklist)'
             }
         )
         self.rate_limiter = get_domain_rate_limiter()
