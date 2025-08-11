@@ -146,6 +146,32 @@
             </div>
         </div>
         
+        <!-- Highest Rated Artists -->
+        <div class="mb-8">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-900">Highest Rated Artists</h2>
+                    <p class="text-sm text-gray-600 mt-1">Artists ranked by their average album scores</p>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <label class="text-sm text-gray-600">Min albums:</label>
+                    <input type="number" id="minAlbumsInput" min="1" max="10" value="3" 
+                           onchange="loadHighestRatedArtists(this.value)"
+                           class="w-16 px-2 py-1 border border-gray-300 rounded text-center text-sm hover:border-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div id="highest-rated-artists-content">
+                    <div class="flex justify-center py-8">
+                        <svg class="animate-spin h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
         <!-- Worst Albums -->
         <div class="mb-8">
             <div class="mb-6">
@@ -285,6 +311,9 @@ async function loadStatistics() {
             
         // Load available years for top albums by year dropdown
         loadAvailableYears();
+        
+        // Load highest rated artists with default filter
+        loadHighestRatedArtists(3);
         
     } catch (error) {
         console.error('Error loading initial statistics:', error);
@@ -1038,6 +1067,146 @@ function renderTopAlbumsByYear(data, year) {
     `;
     
     contentDiv.innerHTML = albumsHtml;
+}
+
+// Load highest rated artists with minimum album filter
+async function loadHighestRatedArtists(minAlbums) {
+    const contentDiv = document.getElementById('highest-rated-artists-content');
+    
+    // Show loading state
+    contentDiv.innerHTML = `
+        <div class="flex justify-center py-8">
+            <svg class="animate-spin h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+        </div>
+    `;
+    
+    try {
+        const response = await fetch(`/api/v1/reports/highest-rated-artists?min_albums=${minAlbums}&limit=5`);
+        const data = await response.json();
+        
+        if (data.artists && data.artists.length > 0) {
+            renderHighestRatedArtists(data);
+        } else {
+            // Show empty state
+            contentDiv.innerHTML = `
+                <div class="text-center py-8 text-gray-500">
+                    <svg class="w-16 h-16 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                    </svg>
+                    <p class="text-lg font-medium mb-2">No Artists Found</p>
+                    <p class="text-sm">No artists have ${minAlbums}+ rated albums yet</p>
+                </div>
+            `;
+        }
+    } catch (error) {
+        console.error('Error loading highest rated artists:', error);
+        contentDiv.innerHTML = `
+            <div class="text-center py-8 text-red-600">
+                <svg class="w-16 h-16 mx-auto mb-3 text-red-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+                <p class="text-lg font-medium mb-2">Error Loading Artists</p>
+                <p class="text-sm">Failed to load highest rated artists. Please try again.</p>
+            </div>
+        `;
+    }
+}
+
+// Render the highest rated artists data
+function renderHighestRatedArtists(data) {
+    const contentDiv = document.getElementById('highest-rated-artists-content');
+    
+    const artistsHtml = `
+        <div class="mb-4">
+            <div class="flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-gray-900">Top ${data.artists.length} Artists</h3>
+                <div class="text-sm text-gray-600">
+                    ${data.total_qualifying_artists} artists with ${data.min_albums_filter}+ albums
+                </div>
+            </div>
+        </div>
+        
+        <div class="space-y-6">
+            ${data.artists.map((artist, index) => `
+                <div class="flex items-start space-x-4 p-4 bg-gray-50 rounded-lg">
+                    <!-- Ranking Badge -->
+                    <div class="flex-shrink-0">
+                        <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full flex items-center justify-center">
+                            <span class="text-white font-bold text-lg">${index + 1}</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Artist Info -->
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-start justify-between mb-2">
+                            <div>
+                                <h4 class="text-lg font-semibold">
+                                    <a href="/artists/${artist.artist_id}/albums" class="text-gray-900 hover:text-blue-600 transition-colors">
+                                        ${artist.artist_name}
+                                    </a>
+                                </h4>
+                                <div class="flex items-center space-x-4 text-sm text-gray-600 mt-1">
+                                    <span>${artist.album_count} albums rated</span>
+                                    <span class="text-lg font-bold ${getScoreColor(artist.average_score)}">
+                                        ${artist.average_score} avg
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Displayed Albums -->
+                        ${artist.displayed_albums && artist.displayed_albums.length > 0 ? `
+                            <div>
+                                <p class="text-xs font-medium text-gray-500 mb-2">
+                                    Top ${artist.albums_displayed_count} of ${artist.album_count} Albums:
+                                </p>
+                                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+                                    ${artist.displayed_albums.map(album => `
+                                        <div class="group">
+                                            <a href="/albums/${album.id}/completed" class="block">
+                                                <div class="w-20 h-20 rounded-lg overflow-hidden bg-gray-100 shadow-sm group-hover:shadow-md transition-shadow">
+                                                    ${album.cover_art_url ? `
+                                                        <img src="${album.cover_art_url}" 
+                                                             alt="${album.name}" 
+                                                             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                                        <div class="w-full h-full bg-gradient-to-br from-gray-400 to-gray-600 flex items-center justify-center" style="display:none;">
+                                                            <svg class="w-6 h-6 text-white opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+                                                            </svg>
+                                                        </div>
+                                                    ` : `
+                                                        <div class="w-full h-full bg-gradient-to-br from-gray-400 to-gray-600 flex items-center justify-center">
+                                                            <svg class="w-6 h-6 text-white opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+                                                            </svg>
+                                                        </div>
+                                                    `}
+                                                </div>
+                                                <div class="mt-2 text-center w-20">
+                                                    <p class="text-xs text-gray-900 truncate font-medium group-hover:text-blue-600 transition-colors" title="${album.name}">
+                                                        ${album.name}
+                                                    </p>
+                                                    <div class="mt-1 text-center">
+                                                        <span class="text-sm font-bold ${getScoreColor(album.score)}">${album.score}</span>
+                                                    </div>
+                                                </div>
+                                            </a>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+    
+    contentDiv.innerHTML = artistsHtml;
 }
 
 // Load statistics when page loads
