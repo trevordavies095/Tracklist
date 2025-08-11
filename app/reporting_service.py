@@ -284,6 +284,11 @@ class ReportingService:
     
     def get_score_distribution(self, db: Session) -> Dict[str, Any]:
         """
+        **DEPRECATED**: Get distribution of album scores across different ranges
+        
+        This method is deprecated and no longer used in the main stats page.
+        It remains available for backwards compatibility or potential future use.
+        
         Get distribution of album scores across different ranges
         
         Args:
@@ -496,6 +501,11 @@ class ReportingService:
         pool_size: int = 20
     ) -> List[Dict[str, Any]]:
         """
+        **DEPRECATED**: Get the lowest rated albums
+        
+        This method is deprecated and no longer used in the main stats page.
+        It remains available for backwards compatibility or potential future use.
+        
         Get the lowest rated albums
         
         Args:

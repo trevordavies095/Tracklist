@@ -219,6 +219,11 @@ async def get_score_distribution(
     db: Session = Depends(get_db)
 ):
     """
+    **DEPRECATED**: Get distribution of album scores
+    
+    This endpoint is deprecated and no longer used in the main stats page.
+    It remains available for backwards compatibility or potential future use.
+    
     Get distribution of album scores
     
     Returns the count and percentage of albums in different score ranges.
@@ -309,6 +314,11 @@ async def get_worst_albums(
     db: Session = Depends(get_db)
 ):
     """
+    **DEPRECATED**: Get lowest rated albums
+    
+    This endpoint is deprecated and no longer used in the main stats page.
+    It remains available for backwards compatibility or potential future use.
+    
     Get lowest rated albums
     
     Returns the lowest scored albums in the collection.
