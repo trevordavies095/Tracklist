@@ -647,6 +647,98 @@ class ReportingService:
         except Exception as e:
             logger.error(f"Failed to get top artist: {e}")
             raise TracklistException(f"Failed to get top artist: {str(e)}")
+    
+    def get_top_albums_by_year(
+        self,
+        db: Session,
+        year: int,
+        limit: int = 10
+    ) -> Dict[str, Any]:
+        """
+        Get top rated albums from a specific year
+        
+        Args:
+            db: Database session
+            year: Release year to filter by
+            limit: Maximum number of albums to return
+            
+        Returns:
+            Dict with year, albums list, and statistics
+        """
+        try:
+            # Get all fully rated albums from the specified year
+            albums_query = (
+                db.query(Album)
+                .filter(
+                    Album.is_rated == True,
+                    Album.release_year == year
+                )
+                .order_by(Album.rating_score.desc())
+            )
+            
+            # Get total count for statistics
+            total_albums_in_year = albums_query.count()
+            
+            # Apply limit for the actual results
+            top_albums = albums_query.limit(limit).all()
+            
+            # Also get count of rated albums in this year
+            rated_albums_in_year = len(top_albums) if limit >= total_albums_in_year else total_albums_in_year
+            
+            result = {
+                "year": year,
+                "albums": [
+                    self._format_album_summary(album)
+                    for album in top_albums
+                ],
+                "total_albums_in_year": total_albums_in_year,
+                "rated_albums_in_year": rated_albums_in_year
+            }
+            
+            logger.info(f"Found {len(top_albums)} top albums from year {year} (total: {total_albums_in_year})")
+            return result
+            
+        except Exception as e:
+            logger.error(f"Failed to get top albums by year: {e}")
+            raise TracklistException(f"Failed to get top albums by year: {str(e)}")
+    
+    def get_available_years(self, db: Session) -> Dict[str, Any]:
+        """
+        Get list of years for which rated albums exist
+        
+        Args:
+            db: Database session
+            
+        Returns:
+            Dict with years list and total count
+        """
+        try:
+            # Query to get distinct years from rated albums
+            years = (
+                db.query(Album.release_year)
+                .filter(
+                    Album.is_rated == True,
+                    Album.release_year.isnot(None)
+                )
+                .distinct()
+                .order_by(Album.release_year.desc())
+                .all()
+            )
+            
+            # Extract year values and filter out None values
+            year_values = [year[0] for year in years if year[0] is not None]
+            
+            result = {
+                "years": year_values,
+                "total_years": len(year_values)
+            }
+            
+            logger.info(f"Found {len(year_values)} years with rated albums")
+            return result
+            
+        except Exception as e:
+            logger.error(f"Failed to get available years: {e}")
+            raise TracklistException(f"Failed to get available years: {str(e)}")
 
 
 # Singleton instance
