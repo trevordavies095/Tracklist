@@ -442,6 +442,120 @@ async def get_top_artist(
         )
 
 
+@router.get("/top-albums-by-year")
+async def get_top_albums_by_year(
+    year: int = Query(..., ge=1900, le=2100, description="Year to filter albums by"),
+    limit: int = Query(default=10, ge=1, le=50, description="Maximum number of albums to return"),
+    service: ReportingService = Depends(get_reporting_service),
+    db: Session = Depends(get_db)
+):
+    """
+    Get top rated albums from a specific year
+    
+    Returns the highest scored albums from the specified release year.
+    
+    Query Parameters:
+    - year: Release year to filter by (1900-2100, required)
+    - limit: Maximum number of albums to return (1-50, default: 10)
+    
+    Example response:
+    ```json
+    {
+        "year": 1997,
+        "albums": [
+            {
+                "id": 45,
+                "name": "OK Computer",
+                "artist": "Radiohead",
+                "year": 1997,
+                "score": 95,
+                "cover_art_url": "https://...",
+                "rated_at": "2024-01-10T14:22:00"
+            },
+            {
+                "id": 67,
+                "name": "The Colour and the Shape",
+                "artist": "Foo Fighters", 
+                "year": 1997,
+                "score": 87,
+                "cover_art_url": "https://...",
+                "rated_at": "2024-01-12T16:45:00"
+            }
+        ],
+        "total_albums_in_year": 15,
+        "rated_albums_in_year": 8
+    }
+    ```
+    """
+    try:
+        logger.info(f"Fetching top {limit} albums from year {year}")
+        top_albums_by_year = service.get_top_albums_by_year(db, year=year, limit=limit)
+        return top_albums_by_year
+        
+    except TracklistException as e:
+        logger.error(f"Failed to get top albums by year: {e.message}")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Failed to get top albums by year",
+                "message": str(e)
+            }
+        )
+    except Exception as e:
+        logger.error(f"Unexpected error getting top albums by year: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Internal server error",
+                "message": "Failed to retrieve top albums by year"
+            }
+        )
+
+
+@router.get("/available-years")
+async def get_available_years(
+    service: ReportingService = Depends(get_reporting_service),
+    db: Session = Depends(get_db)
+):
+    """
+    Get list of years for which rated albums exist
+    
+    Returns a list of years that have at least one rated album,
+    sorted in descending order (newest first).
+    
+    Example response:
+    ```json
+    {
+        "years": [2023, 2022, 2021, 2020, 1997, 1995, 1991],
+        "total_years": 7
+    }
+    ```
+    """
+    try:
+        logger.info("Fetching available years for top albums by year report")
+        available_years = service.get_available_years(db)
+        return available_years
+        
+    except TracklistException as e:
+        logger.error(f"Failed to get available years: {e.message}")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Failed to get available years",
+                "message": str(e)
+            }
+        )
+    except Exception as e:
+        logger.error(f"Unexpected error getting available years: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Internal server error",
+                "message": "Failed to retrieve available years"
+            }
+        )
+
+
 @router.get("/no-skips")
 async def get_no_skip_albums(
     limit: Optional[int] = Query(default=None, ge=1, le=100, description="Optional limit on number of albums to return"),

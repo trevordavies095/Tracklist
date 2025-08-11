@@ -118,6 +118,34 @@
             </div>
         </div>
         
+        <!-- Top Albums by Year -->
+        <div class="mb-8">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-900">Top Albums by Year</h2>
+                    <p class="text-sm text-gray-600 mt-1">Your highest-rated albums from a specific year</p>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <select id="yearSelector" onchange="loadTopAlbumsByYear(this.value)" 
+                            class="px-3 py-2 border border-gray-300 rounded-md text-sm bg-white hover:border-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="">Select Year...</option>
+                        <!-- Years will be populated here -->
+                    </select>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div id="top-albums-by-year-content">
+                    <div class="text-center py-8 text-gray-500">
+                        <svg class="w-16 h-16 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3a2 2 0 012-2h6a2 2 0 012 2v4m-8 0V7a2 2 0 012-2h4a2 2 0 012 2v0m-8 0h8m-8 0v10a2 2 0 002 2h4a2 2 0 002-2V7"></path>
+                        </svg>
+                        <p class="text-lg font-medium mb-2">Select a Year</p>
+                        <p class="text-sm">Choose a year from the dropdown to see your top albums from that year</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
         <!-- Worst Albums -->
         <div class="mb-8">
             <div class="mb-6">
@@ -254,6 +282,9 @@ async function loadStatistics() {
                     </div>
                 `;
             });
+            
+        // Load available years for top albums by year dropdown
+        loadAvailableYears();
         
     } catch (error) {
         console.error('Error loading initial statistics:', error);
@@ -848,6 +879,165 @@ function renderScoreDistribution(data) {
     `;
 
     document.getElementById('score-distribution-chart').innerHTML = chartHtml;
+}
+
+// Load available years for the dropdown
+async function loadAvailableYears() {
+    try {
+        const response = await fetch('/api/v1/reports/available-years');
+        const data = await response.json();
+        
+        const yearSelector = document.getElementById('yearSelector');
+        if (data.years && data.years.length > 0) {
+            // Clear existing options except the first one
+            yearSelector.innerHTML = '<option value="">Select Year...</option>';
+            
+            // Add year options
+            data.years.forEach(year => {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = year;
+                yearSelector.appendChild(option);
+            });
+            
+            // Enable the selector
+            yearSelector.disabled = false;
+            
+            // Default to current year if available
+            const currentYear = new Date().getFullYear();
+            if (data.years.includes(currentYear)) {
+                yearSelector.value = currentYear;
+                // Load albums for current year automatically
+                loadTopAlbumsByYear(currentYear);
+            }
+        } else {
+            yearSelector.innerHTML = '<option value="">No years available</option>';
+            yearSelector.disabled = true;
+        }
+    } catch (error) {
+        console.error('Error loading available years:', error);
+        const yearSelector = document.getElementById('yearSelector');
+        yearSelector.innerHTML = '<option value="">Error loading years</option>';
+        yearSelector.disabled = true;
+    }
+}
+
+// Load top albums by year when year is selected
+async function loadTopAlbumsByYear(year) {
+    const contentDiv = document.getElementById('top-albums-by-year-content');
+    
+    if (!year) {
+        // Show default state when no year is selected
+        contentDiv.innerHTML = `
+            <div class="text-center py-8 text-gray-500">
+                <svg class="w-16 h-16 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3a2 2 0 012-2h6a2 2 0 012 2v4m-8 0V7a2 2 0 012-2h4a2 2 0 012 2v0m-8 0h8m-8 0v10a2 2 0 002 2h4a2 2 0 002-2V7"></path>
+                </svg>
+                <p class="text-lg font-medium mb-2">Select a Year</p>
+                <p class="text-sm">Choose a year from the dropdown to see your top albums from that year</p>
+            </div>
+        `;
+        return;
+    }
+    
+    // Show loading state
+    contentDiv.innerHTML = `
+        <div class="flex justify-center py-8">
+            <svg class="animate-spin h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+        </div>
+    `;
+    
+    try {
+        const response = await fetch(`/api/v1/reports/top-albums-by-year?year=${year}&limit=10`);
+        const data = await response.json();
+        
+        if (data.albums && data.albums.length > 0) {
+            renderTopAlbumsByYear(data, year);
+        } else {
+            // Show empty state for the specific year
+            contentDiv.innerHTML = `
+                <div class="text-center py-8 text-gray-500">
+                    <svg class="w-16 h-16 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    <p class="text-lg font-medium mb-2">No Albums from ${year}</p>
+                    <p class="text-sm">You haven't rated any albums from ${year} yet</p>
+                </div>
+            `;
+        }
+    } catch (error) {
+        console.error('Error loading top albums by year:', error);
+        contentDiv.innerHTML = `
+            <div class="text-center py-8 text-red-600">
+                <svg class="w-16 h-16 mx-auto mb-3 text-red-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+                <p class="text-lg font-medium mb-2">Error Loading Albums</p>
+                <p class="text-sm">Failed to load albums for ${year}. Please try again.</p>
+            </div>
+        `;
+    }
+}
+
+// Render the top albums by year data
+function renderTopAlbumsByYear(data, year) {
+    const contentDiv = document.getElementById('top-albums-by-year-content');
+    
+    const albumsHtml = `
+        <div class="mb-4">
+            <div class="flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-gray-900">Top Albums from ${year}</h3>
+                <div class="text-sm text-gray-600">
+                    ${data.albums.length} of ${data.total_albums_in_year} rated albums shown
+                </div>
+            </div>
+        </div>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+            ${data.albums.map(album => `
+                <div class="group">
+                    <a href="/albums/${album.id}/completed" class="block">
+                        <div class="aspect-square overflow-hidden rounded-lg bg-gray-100 mb-3 shadow-md group-hover:shadow-xl transition-shadow duration-300">
+                            ${album.cover_art_url ? `
+                                <img src="${album.cover_art_url}" 
+                                     alt="${album.name}" 
+                                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                <div class="w-full h-full bg-gradient-to-br from-blue-400 to-indigo-400 flex items-center justify-center" style="display:none;">
+                                    <svg class="w-16 h-16 text-white opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+                                    </svg>
+                                </div>
+                            ` : `
+                                <div class="w-full h-full bg-gradient-to-br from-blue-400 to-indigo-400 flex items-center justify-center">
+                                    <svg class="w-16 h-16 text-white opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+                                    </svg>
+                                </div>
+                            `}
+                        </div>
+                        
+                        <!-- Album info -->
+                        <div class="space-y-1">
+                            <h4 class="text-sm font-semibold text-gray-900 truncate group-hover:text-blue-600 transition-colors">
+                                ${album.name}
+                            </h4>
+                            <p class="text-xs text-gray-600 truncate">${album.artist}</p>
+                            <div class="flex items-center justify-between">
+                                <span class="text-xl font-bold ${getScoreColor(album.score)}">${album.score}</span>
+                                <span class="text-xs text-gray-500">${year}</span>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            `).join('')}
+        </div>
+    `;
+    
+    contentDiv.innerHTML = albumsHtml;
 }
 
 // Load statistics when page loads
