@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://i.imgur.com/l8gi1kL.jpeg" alt="Tracklist Logo" />
+</p>
+
 # Tracklist
 
 A self-hosted music album rating application that enables precise album scoring through track-by-track ratings.
