@@ -107,9 +107,14 @@ def init_db():
         # Create default user settings if they don't exist
         existing_settings = db.query(UserSettings).filter(UserSettings.user_id == 1).first()
         if not existing_settings:
+            # Get default album bonus from environment variable
+            default_album_bonus = float(os.getenv("DEFAULT_ALBUM_BONUS", "0.33"))
+            # Ensure it's within valid range (0.1 to 0.4)
+            default_album_bonus = max(0.1, min(0.4, default_album_bonus))
+            
             default_settings = UserSettings(
                 user_id=1,
-                album_bonus=0.33,
+                album_bonus=default_album_bonus,
                 theme='light'
             )
             db.add(default_settings)

@@ -122,7 +122,14 @@ class RatingService:
 
             # Get user settings for album bonus
             settings = db.query(UserSettings).filter(UserSettings.user_id == 1).first()
-            album_bonus = settings.album_bonus if settings else 0.33
+            if settings:
+                album_bonus = settings.album_bonus
+            else:
+                # Fallback to environment variable if no settings exist
+                import os
+                album_bonus = float(os.getenv("DEFAULT_ALBUM_BONUS", "0.33"))
+                # Ensure it's within valid range (0.1 to 0.4)
+                album_bonus = max(0.1, min(0.4, album_bonus))
 
             # Fetch cover art
             from .services.cover_art_service import get_cover_art_service

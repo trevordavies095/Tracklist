@@ -56,6 +56,7 @@ Track your music rating journey with detailed statistics:
 - **Standout (1.0)**: Album highlight, exceptional track
 
 **Score Formula**: `Floor((Average Rating × 10) + Album Bonus) × 10`
+- Album Bonus defaults to 0.33 (configurable via `DEFAULT_ALBUM_BONUS` env var, range: 0.1-0.4)
 
 ## Quick Start
 
@@ -79,6 +80,7 @@ services:
       - TRACKLIST_DB_PATH=/app/data/tracklist.db
       - ENVIRONMENT=production
       - LOG_LEVEL=ERROR  # Options: DEBUG, INFO, WARNING, ERROR
+      - DEFAULT_ALBUM_BONUS=0.33  # Album bonus points (0.1-0.4, default: 0.33)
     restart: unless-stopped
 
 volumes:
