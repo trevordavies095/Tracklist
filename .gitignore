@@ -78,6 +78,9 @@ Musium.db
 # Documentation
 docs/
 
+# Logo source files
+logos/
+
 # Artwork cache - cached images should not be committed
 static/artwork_cache/original/*
 static/artwork_cache/large/*

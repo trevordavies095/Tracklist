@@ -104,7 +104,7 @@ uvicorn app.main:app --reload --port 8000
 
 ## Screenshot
 
-![Statistics Dashboard](https://i.imgur.com/H17DPjZ.png)
+![Statistics Dashboard](https://i.imgur.com/8y1N94s.png)
 
 ## Configuration
 
