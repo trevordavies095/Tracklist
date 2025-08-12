@@ -330,100 +330,165 @@ document.body.addEventListener('htmx:afterRequest', function(evt) {
             block: 'start' 
         });
         
-        // Load artwork lazily after search results are displayed
-        loadArtworkLazily();
+        // Initialize true lazy loading after search results are displayed
+        initializeArtworkLazyLoading();
     }
 });
 
-// Lazy load artwork for search results
-async function loadArtworkLazily() {
-    const artworkContainers = document.querySelectorAll('.album-artwork[data-mbid]');
+// True lazy loading with Intersection Observer (iOS compatible)
+let artworkObserver = null;
+let loadingQueue = new Set();
+
+function initializeArtworkLazyLoading() {
+    // Cleanup existing observer
+    if (artworkObserver) {
+        artworkObserver.disconnect();
+    }
     
-    // Load artwork with a slight delay between each request to avoid overwhelming the server
-    for (let i = 0; i < artworkContainers.length; i++) {
-        const container = artworkContainers[i];
-        const mbid = container.dataset.mbid;
-        const img = container.querySelector('img');
-        const placeholder = container.querySelector('.artwork-placeholder');
-        
-        try {
-            // Slight delay to stagger requests
-            if (i > 0) await new Promise(resolve => setTimeout(resolve, 100));
-            
-            const response = await fetch(`/api/v1/releases/${mbid}/artwork-url`);
-            if (response.ok) {
-                const data = await response.json();
-                console.debug(`Artwork response for ${mbid}:`, data); // Debug log
+    // Check for Intersection Observer support (fallback for older iOS)
+    if (!('IntersectionObserver' in window)) {
+        console.debug('IntersectionObserver not supported, falling back to immediate loading');
+        loadArtworkLazily();
+        return;
+    }
+    
+    // Create observer with iOS-friendly options
+    artworkObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const container = entry.target;
+                const mbid = container.dataset.mbid;
                 
-                if (data.url && data.url !== null && data.url !== '') {
-                    console.debug(`Loading artwork for ${mbid}: ${data.url}`); // Debug log
-                    
-                    // Set up image loading with proper error handling
+                // Avoid duplicate loading
+                if (loadingQueue.has(mbid)) return;
+                loadingQueue.add(mbid);
+                
+                // Stop observing this element
+                artworkObserver.unobserve(container);
+                
+                // Load the artwork
+                loadSingleArtwork(container, mbid);
+            }
+        });
+    }, {
+        // More aggressive intersection for iOS
+        rootMargin: '50px 0px',
+        threshold: 0.1
+    });
+    
+    // Observe all artwork containers
+    const artworkContainers = document.querySelectorAll('.album-artwork[data-mbid]');
+    artworkContainers.forEach(container => {
+        artworkObserver.observe(container);
+    });
+}
+
+async function loadSingleArtwork(container, mbid) {
+    const img = container.querySelector('img');
+    const placeholder = container.querySelector('.artwork-placeholder');
+    
+    try {
+        console.debug(`Loading artwork for ${mbid}`);
+        
+        const response = await fetch(`/api/v1/releases/${mbid}/artwork-url`);
+        if (response.ok) {
+            const data = await response.json();
+            console.debug(`Artwork response for ${mbid}:`, data);
+            
+            if (data.url && data.url !== null && data.url !== '') {
+                console.debug(`Loading artwork for ${mbid}: ${data.url}`);
+                
+                // Set up image loading with iOS-compatible error handling
+                const loadPromise = new Promise((resolve, reject) => {
                     img.onload = function() {
-                        console.debug(`Image loaded successfully for ${mbid}`); // Debug log
-                        // Only apply transition when we know the image loaded successfully
-                        this.style.opacity = '0';
-                        this.style.transition = 'opacity 0.3s ease-in-out';
-                        this.classList.remove('hidden');
-                        // Trigger fade-in
-                        setTimeout(() => {
-                            this.style.opacity = '1';
-                            placeholder.style.display = 'none';
-                        }, 10); // Small delay to ensure transition applies
+                        console.debug(`Image loaded successfully for ${mbid}`);
+                        resolve();
                     };
                     
                     img.onerror = function() {
-                        console.debug(`Image failed to load for ${mbid}`); // Debug log
-                        // Keep placeholder if image fails to load - no transition needed
-                        this.classList.add('hidden');
-                        this.style.transition = '';
-                        this.style.opacity = '';
-                        placeholder.style.display = 'flex';
+                        console.debug(`Image failed to load for ${mbid}`);
+                        reject(new Error('Image load failed'));
                     };
                     
-                    // Start loading the image
+                    // Timeout for iOS network issues
+                    setTimeout(() => {
+                        reject(new Error('Image load timeout'));
+                    }, 10000);
+                    
+                    // Start loading
                     img.src = data.url;
-                } else {
-                    console.debug(`No artwork URL for ${mbid}, keeping placeholder`); // Debug log
-                    // No artwork available - ensure placeholder stays visible and no loading effect
-                    // Clear any existing event handlers
-                    img.onload = null;
-                    img.onerror = null;
-                    // Ensure clean state
-                    img.style.transition = '';
-                    img.style.opacity = '';
-                    img.classList.add('hidden');
-                    placeholder.style.display = 'flex';
-                    // IMPORTANT: Stop the shimmer animation by removing the placeholder class
-                    placeholder.classList.remove('artwork-placeholder');
-                    placeholder.classList.add('artwork-no-shimmer');
+                });
+                
+                try {
+                    await loadPromise;
+                    // Success - show image with transition
+                    img.style.opacity = '0';
+                    img.style.transition = 'opacity 0.3s ease-in-out';
+                    img.classList.remove('hidden');
+                    
+                    // Use requestAnimationFrame for smoother iOS transitions
+                    requestAnimationFrame(() => {
+                        img.style.opacity = '1';
+                        placeholder.style.display = 'none';
+                    });
+                    
+                } catch (loadError) {
+                    // Image failed to load - keep placeholder
+                    handleArtworkError(img, placeholder);
                 }
+                
             } else {
-                console.debug(`API call failed for ${mbid}`); // Debug log
-                // API call failed - ensure placeholder stays visible and no loading effect
-                img.onload = null;
-                img.onerror = null;
-                img.style.transition = '';
-                img.style.opacity = '';
-                img.classList.add('hidden');
-                placeholder.style.display = 'flex';
-                // IMPORTANT: Stop the shimmer animation
-                placeholder.classList.remove('artwork-placeholder');
-                placeholder.classList.add('artwork-no-shimmer');
+                console.debug(`No artwork URL for ${mbid}, keeping placeholder`);
+                handleArtworkError(img, placeholder);
             }
-        } catch (error) {
-            console.debug(`Exception loading artwork for ${mbid}:`, error);
-            // Keep placeholder on error and clear any transition
-            img.onload = null;
-            img.onerror = null;
-            img.style.transition = '';
-            img.style.opacity = '';
-            img.classList.add('hidden');
-            placeholder.style.display = 'flex';
-            // IMPORTANT: Stop the shimmer animation
-            placeholder.classList.remove('artwork-placeholder');
-            placeholder.classList.add('artwork-no-shimmer');
+        } else {
+            console.debug(`API call failed for ${mbid}`);
+            handleArtworkError(img, placeholder);
         }
+    } catch (error) {
+        console.debug(`Exception loading artwork for ${mbid}:`, error);
+        handleArtworkError(img, placeholder);
+    } finally {
+        loadingQueue.delete(mbid);
+    }
+}
+
+function handleArtworkError(img, placeholder) {
+    // Clean up image element
+    img.onload = null;
+    img.onerror = null;
+    img.style.transition = '';
+    img.style.opacity = '';
+    img.classList.add('hidden');
+    
+    // Show static placeholder (stop shimmer)
+    placeholder.style.display = 'flex';
+    placeholder.classList.remove('artwork-placeholder');
+    placeholder.classList.add('artwork-no-shimmer');
+}
+
+// Fallback for browsers without Intersection Observer
+async function loadArtworkLazily() {
+    const artworkContainers = document.querySelectorAll('.album-artwork[data-mbid]');
+    
+    // Load artwork with delays, but only load visible items first
+    const visibleContainers = Array.from(artworkContainers).filter(container => {
+        const rect = container.getBoundingClientRect();
+        return rect.top < window.innerHeight + 100; // Load if near viewport
+    });
+    
+    // Load visible items first
+    for (let i = 0; i < visibleContainers.length; i++) {
+        const container = visibleContainers[i];
+        const mbid = container.dataset.mbid;
+        
+        if (loadingQueue.has(mbid)) continue;
+        loadingQueue.add(mbid);
+        
+        // Stagger requests
+        if (i > 0) await new Promise(resolve => setTimeout(resolve, 200));
+        
+        await loadSingleArtwork(container, mbid);
     }
 }
 </script>
