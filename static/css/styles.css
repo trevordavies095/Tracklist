@@ -271,6 +271,120 @@
     color: white;
 }
 
+/* Mobile-Optimized Styles for Homepage */
+@media (max-width: 640px) {
+    /* Compact welcome header */
+    .mobile-compact-header h1 {
+        font-size: 1.75rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    .mobile-compact-header p {
+        font-size: 0.875rem !important;
+        line-height: 1.25rem !important;
+    }
+    
+    /* Quick action cards - full width and compact */
+    .mobile-action-card {
+        padding: 1rem !important;
+    }
+    
+    .mobile-action-card .mobile-icon-box {
+        width: 2.5rem !important;
+        height: 2.5rem !important;
+    }
+    
+    .mobile-action-card h3 {
+        font-size: 1rem !important;
+    }
+    
+    .mobile-action-card p {
+        font-size: 0.75rem !important;
+    }
+    
+    /* Album cards - more compact */
+    .mobile-album-card {
+        padding: 0.75rem !important;
+    }
+    
+    .mobile-album-card .album-art {
+        width: 3rem !important;
+        height: 3rem !important;
+        flex-shrink: 0;
+    }
+    
+    .mobile-album-card .album-art svg {
+        width: 1.5rem !important;
+        height: 1.5rem !important;
+    }
+    
+    /* Rating scale - 2x2 grid */
+    .mobile-rating-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 0.5rem !important;
+    }
+    
+    .mobile-rating-item {
+        padding: 0.5rem !important;
+    }
+    
+    .mobile-rating-item .rating-icon {
+        width: 1.75rem !important;
+        height: 1.75rem !important;
+        font-size: 0.625rem !important;
+    }
+    
+    .mobile-rating-item .rating-label {
+        font-size: 0.875rem !important;
+    }
+    
+    .mobile-rating-item .rating-desc {
+        font-size: 0.625rem !important;
+    }
+    
+    /* Hide getting started guide steps on mobile by default */
+    .mobile-collapsible {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease-out;
+    }
+    
+    .mobile-collapsible.expanded {
+        max-height: 500px;
+    }
+    
+    /* Reduce section spacing */
+    .mobile-section-spacing {
+        margin-bottom: 2rem !important;
+    }
+    
+    /* Hide loading skeletons beyond 3 on mobile */
+    .mobile-hide-skeleton:nth-child(n+4) {
+        display: none !important;
+    }
+    
+    /* Compact section headers */
+    .mobile-section-header h2 {
+        font-size: 1.25rem !important;
+    }
+    
+    .mobile-section-header a {
+        font-size: 0.75rem !important;
+    }
+}
+
+/* Tablet adjustments */
+@media (min-width: 641px) and (max-width: 768px) {
+    .tablet-album-card {
+        padding: 1rem !important;
+    }
+    
+    .tablet-album-art {
+        width: 4rem !important;
+        height: 4rem !important;
+    }
+}
+
 /* Print Styles */
 @media print {
     .no-print {

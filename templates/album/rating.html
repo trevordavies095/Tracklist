@@ -7,26 +7,26 @@
 {% block content %}
 <div class="max-w-6xl mx-auto">
     <!-- Album Header -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
-        <div class="p-8">
-            <div class="flex flex-col lg:flex-row lg:items-center space-y-6 lg:space-y-0 lg:space-x-8">
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-4 md:mb-6">
+        <div class="p-4 sm:p-6 md:p-8">
+            <div class="flex flex-col lg:flex-row lg:items-center space-y-4 sm:space-y-6 lg:space-y-0 lg:space-x-8">
                 <!-- Album Artwork -->
-                <div class="flex-shrink-0">
-                    <div class="w-48 h-48 rounded-lg overflow-hidden">
+                <div class="flex-shrink-0 mx-auto lg:mx-0">
+                    <div class="w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 lg:w-48 lg:h-48 rounded-lg overflow-hidden">
                         <img src="{{ get_artwork_url(album, 'large') }}" 
                              alt="{{ album.title }} cover" 
                              class="w-full h-full object-cover"
-                             onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'w-48 h-48 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg flex items-center justify-center\'><svg class=\'w-24 h-24 text-gray-400\' fill=\'none\' stroke=\'currentColor\' viewBox=\'0 0 24 24\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3\'></path></svg></div>';">
+                             onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg flex items-center justify-center\'><svg class=\'w-12 sm:w-16 md:w-20 lg:w-24 h-12 sm:h-16 md:h-20 lg:h-24 text-gray-400\' fill=\'none\' stroke=\'currentColor\' viewBox=\'0 0 24 24\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3\'></path></svg></div>';">
                     </div>
                 </div>
                 
                 <!-- Album Info -->
-                <div class="flex-1">
-                    <div class="flex items-start justify-between mb-2">
-                        <h1 class="text-3xl font-bold text-gray-900 group relative inline-block{% if album.genre %} cursor-help{% endif %}">
+                <div class="flex-1 text-center lg:text-left">
+                    <div class="flex flex-col sm:flex-row items-start justify-between mb-2">
+                        <h1 class="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 group relative inline-block{% if album.genre %} cursor-help{% endif %}">
                             {{ album.title }}
                             {% if album.year %}
-                            <span class="text-2xl font-normal text-gray-500">(<a href="/years/{{ album.year }}/albums" class="hover:text-blue-600 hover:underline transition-colors">{{ album.year }}</a>)</span>
+                            <span class="text-lg sm:text-xl md:text-2xl font-normal text-gray-500">(<a href="/years/{{ album.year }}/albums" class="hover:text-blue-600 hover:underline transition-colors">{{ album.year }}</a>)</span>
                             {% endif %}
                             {% if album.genre %}
                             <span class="absolute -bottom-8 left-0 text-xs bg-gray-800 text-white px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
@@ -35,7 +35,7 @@
                             {% endif %}
                         </h1>
                         <!-- Action Buttons (No Edit Rating since it's in progress) -->
-                        <div class="flex items-center space-x-2 ml-4">
+                        <div class="flex items-center space-x-2 mt-2 sm:mt-0 sm:ml-4">
                             <button onclick="openRetagModal()" 
                                     title="Change Release Version"
                                     class="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all duration-200 group relative">
@@ -55,13 +55,13 @@
                             </a>
                         </div>
                     </div>
-                    <p class="text-xl text-gray-600 mb-6">by <a href="/artists/{{ album.artist.id }}/albums" class="hover:text-blue-600 hover:underline transition-colors">{{ album.artist.name }}</a></p>
+                    <p class="text-base sm:text-lg md:text-xl text-gray-600 mb-4 md:mb-6">by <a href="/artists/{{ album.artist.id }}/albums" class="hover:text-blue-600 hover:underline transition-colors">{{ album.artist.name }}</a></p>
                     
                     <!-- Rating Status -->
-                    <div class="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                        <div class="text-center">
-                            <div class="text-lg font-semibold text-amber-800 mb-1">Rating in Progress</div>
-                            <div class="text-sm text-amber-600">Rate each track below to complete</div>
+                    <div class="bg-amber-50 border border-amber-200 rounded-lg p-3 md:p-4">
+                        <div class="text-center lg:text-left">
+                            <div class="text-base md:text-lg font-semibold text-amber-800 mb-0.5 md:mb-1">Rating in Progress</div>
+                            <div class="text-xs sm:text-sm text-amber-600">Rate each track below to complete</div>
                         </div>
                     </div>
                 </div>
@@ -74,14 +74,14 @@
     {% include 'components/progress_bar.html' %}
     
     <!-- Rating Instructions -->
-    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 md:p-4 mb-4 md:mb-6">
         <div class="flex items-start">
             <svg class="w-5 h-5 text-blue-400 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
             </svg>
             <div>
                 <h3 class="text-sm font-semibold text-blue-800 mb-1">How to Rate Tracks</h3>
-                <div class="text-sm text-blue-700 space-y-1">
+                <div class="text-xs sm:text-sm text-blue-700 space-y-0.5 sm:space-y-1">
                     <p><span class="font-medium text-red-600">Skip (0.0)</span> - Worst songs you'd never want to hear</p>
                     <p><span class="font-medium text-amber-600">Filler (0.33)</span> - Tolerable but not enjoyable, won't skip</p>
                     <p><span class="font-medium text-green-600">Good (0.67)</span> - Like the track, playlist-worthy</p>
@@ -94,30 +94,30 @@
     
     <!-- Track List -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200">
-        <div class="p-6">
-            <div class="flex items-baseline justify-between mb-6">
-                <h2 class="text-xl font-semibold text-gray-900">Rate Each Track</h2>
+        <div class="p-4 md:p-6">
+            <div class="flex items-baseline justify-between mb-4 md:mb-6">
+                <h2 class="text-lg md:text-xl font-semibold text-gray-900">Rate Each Track</h2>
                 {% if album.total_duration_ms %}
                 <span class="text-xs text-gray-500">Total Duration: {{ (album.total_duration_ms / 60000) | round(0) | int }} min</span>
                 {% endif %}
             </div>
             
-            <div class="space-y-4">
+            <div class="space-y-3 md:space-y-4">
                 {% for track in tracks %}
-                <div class="track-row{% if track.rating is not none %} rated{% endif %} p-4 rounded-lg border border-gray-100" 
+                <div class="track-row{% if track.rating is not none %} rated{% endif %} p-3 md:p-4 rounded-lg border border-gray-100" 
                      id="track-{{ track.id }}-row">
                     
                     <!-- Track Info -->
-                    <div class="flex flex-col lg:flex-row lg:items-center justify-between space-y-3 lg:space-y-0 lg:space-x-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between space-y-3 sm:space-y-0 sm:space-x-4">
                         <div class="flex-1 min-w-0">
-                            <div class="flex items-center space-x-3">
-                                <span class="flex-shrink-0 w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-sm font-medium text-gray-600">
+                            <div class="flex items-center space-x-2 sm:space-x-3">
+                                <span class="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 bg-gray-100 rounded-full flex items-center justify-center text-xs sm:text-sm font-medium text-gray-600">
                                     {{ track.track_number }}
                                 </span>
                                 <div class="min-w-0 flex-1">
-                                    <h3 class="text-base font-medium text-gray-900 truncate">{{ track.title }}</h3>
+                                    <h3 class="text-sm sm:text-base font-medium text-gray-900 truncate">{{ track.title }}</h3>
                                     {% if track.duration_ms %}
-                                    <p class="text-sm text-gray-500">{{ track.duration_ms | format_duration }}</p>
+                                    <p class="text-xs sm:text-sm text-gray-500">{{ track.duration_ms | format_duration }}</p>
                                     {% endif %}
                                 </div>
                             </div>

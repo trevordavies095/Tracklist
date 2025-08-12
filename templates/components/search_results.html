@@ -144,14 +144,6 @@
                             </span>
                         </button>
                         
-                        <button @click="console.log('Show details for album:', $el.closest('[data-album-title]').dataset.albumTitle)"
-                                class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors">
-                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                            Details
-                        </button>
-                        
                         <a href="https://musicbrainz.org/release/{{ album.musicbrainz_id }}" 
                            target="_blank"
                            class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors">

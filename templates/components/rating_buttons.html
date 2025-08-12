@@ -1,13 +1,13 @@
 <!-- Color-coded Rating Buttons Component -->
 <!-- Usage: Set track_id and current_rating variables before including this template -->
 
-<div class="rating-buttons flex flex-wrap gap-2" x-data="ratingButtons({{ track_id }}, {{ current_rating or 'null' }})">
+<div class="rating-buttons flex flex-wrap gap-1.5 sm:gap-2" x-data="ratingButtons({{ track_id }}, {{ current_rating or 'null' }})">
     <!-- Skip (0.0) - Red -->
     <div class="tooltip-trigger relative">
         <button 
             @click="setRating(0.0)"
             :class="{ 'selected': currentRating === 0.0 }"
-            class="rating-button rating-button-skip px-3 py-2 rounded-md text-sm font-medium min-w-[80px]"
+            class="rating-button rating-button-skip px-3 py-2.5 sm:py-2 rounded-md text-xs sm:text-sm font-medium min-w-[70px] sm:min-w-[80px] min-h-[44px] sm:min-h-0"
             :disabled="saving"
             hx-put="/api/v1/tracks/{{ track_id }}/rating"
             hx-vals='{"rating": 0.0}'
@@ -33,7 +33,7 @@
         <button 
             @click="setRating(0.33)"
             :class="{ 'selected': currentRating === 0.33 }"
-            class="rating-button rating-button-filler px-3 py-2 rounded-md text-sm font-medium min-w-[80px]"
+            class="rating-button rating-button-filler px-3 py-2.5 sm:py-2 rounded-md text-xs sm:text-sm font-medium min-w-[70px] sm:min-w-[80px] min-h-[44px] sm:min-h-0"
             :disabled="saving"
             hx-put="/api/v1/tracks/{{ track_id }}/rating"
             hx-vals='{"rating": 0.33}'
@@ -59,7 +59,7 @@
         <button 
             @click="setRating(0.67)"
             :class="{ 'selected': currentRating === 0.67 }"
-            class="rating-button rating-button-good px-3 py-2 rounded-md text-sm font-medium min-w-[80px]"
+            class="rating-button rating-button-good px-3 py-2.5 sm:py-2 rounded-md text-xs sm:text-sm font-medium min-w-[70px] sm:min-w-[80px] min-h-[44px] sm:min-h-0"
             :disabled="saving"
             hx-put="/api/v1/tracks/{{ track_id }}/rating"
             hx-vals='{"rating": 0.67}'
@@ -85,7 +85,7 @@
         <button 
             @click="setRating(1.0)"
             :class="{ 'selected': currentRating === 1.0 }"
-            class="rating-button rating-button-standout px-3 py-2 rounded-md text-sm font-medium min-w-[80px]"
+            class="rating-button rating-button-standout px-3 py-2.5 sm:py-2 rounded-md text-xs sm:text-sm font-medium min-w-[70px] sm:min-w-[80px] min-h-[44px] sm:min-h-0"
             :disabled="saving"
             hx-put="/api/v1/tracks/{{ track_id }}/rating"
             hx-vals='{"rating": 1.0}'
