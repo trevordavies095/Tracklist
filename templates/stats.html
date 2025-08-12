@@ -7,17 +7,17 @@
 {% block content %}
 <div class="max-w-7xl mx-auto">
     <!-- Page Header -->
-    <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-900 mb-2">Your Statistics</h1>
-        <p class="text-gray-600">Track your album rating progress and discover insights about your music taste</p>
+    <div class="mb-8 md:mb-12 mobile-compact-header px-4 md:px-0">
+        <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-2 md:mb-4">Your Statistics</h1>
+        <p class="text-sm sm:text-base md:text-lg text-gray-600">Track your album rating progress and discover insights about your music taste</p>
     </div>
     
     <!-- Loading State -->
-    <div id="stats-loading" class="space-y-6">
+    <div id="stats-loading" class="space-y-6 px-4 md:px-0">
         <!-- Overview Cards Loading -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
             {% for i in range(4) %}
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6">
                 <div class="loading-skeleton h-4 w-24 mb-2"></div>
                 <div class="loading-skeleton h-8 w-16 mb-1"></div>
                 <div class="loading-skeleton h-3 w-32"></div>
@@ -26,12 +26,12 @@
         </div>
         
         <!-- Charts Loading -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-6">
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6">
                 <div class="loading-skeleton h-6 w-32 mb-4"></div>
                 <div class="loading-skeleton h-64 w-full"></div>
             </div>
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6">
                 <div class="loading-skeleton h-6 w-32 mb-4"></div>
                 <div class="loading-skeleton h-64 w-full"></div>
             </div>
@@ -39,19 +39,19 @@
     </div>
     
     <!-- Stats Content (Hidden initially, shown after data loads) -->
-    <div id="stats-content" style="display: none;">
+    <div id="stats-content" style="display: none;" class="px-4 md:px-0">
         <!-- Overview Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8" id="overview-cards">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-8 mobile-section-spacing" id="overview-cards">
             <!-- Cards will be inserted here by JavaScript -->
         </div>
         
         <!-- Top Artist -->
-        <div class="mb-8">
-            <div class="mb-6">
-                <h2 class="text-2xl font-bold text-gray-900">Most Rated Artist</h2>
-                <p class="text-sm text-gray-600 mt-1">The artist you've rated the most albums from</p>
+        <div class="mb-8 mobile-section-spacing">
+            <div class="mb-4 md:mb-6 mobile-section-header">
+                <h2 class="text-xl md:text-2xl font-bold text-gray-900">Most Rated Artist</h2>
+                <p class="text-xs sm:text-sm md:text-base text-gray-600 mt-1">The artist you've rated the most albums from</p>
             </div>
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6">
                 <div id="top-artist-section">
                     <!-- Top artist will be inserted here -->
                 </div>
@@ -59,18 +59,18 @@
         </div>
         
         <!-- Rating Distribution & Average Score -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-6 mb-8 mobile-section-spacing">
             <!-- Rating Distribution Card -->
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <h2 class="text-lg font-semibold text-gray-900 mb-4">Track Rating Distribution</h2>
-                <div id="rating-distribution" class="space-y-3">
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6">
+                <h2 class="text-base md:text-lg font-semibold text-gray-900 mb-3 md:mb-4">Track Rating Distribution</h2>
+                <div id="rating-distribution" class="space-y-2 md:space-y-3">
                     <!-- Distribution bars will be inserted here -->
                 </div>
             </div>
             
             <!-- Average Score Card -->
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <h2 class="text-lg font-semibold text-gray-900 mb-4">Collection Overview</h2>
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6">
+                <h2 class="text-base md:text-lg font-semibold text-gray-900 mb-3 md:mb-4">Collection Overview</h2>
                 <div id="collection-overview">
                     <!-- Overview content will be inserted here -->
                 </div>
@@ -79,52 +79,52 @@
         
         
         <!-- Top Albums -->
-        <div class="mb-8">
-            <div class="mb-6">
-                <h2 class="text-2xl font-bold text-gray-900">Top Rated Albums</h2>
-                <p class="text-sm text-gray-600 mt-1">Your highest-rated favorites</p>
+        <div class="mb-8 mobile-section-spacing">
+            <div class="mb-4 md:mb-6 mobile-section-header">
+                <h2 class="text-xl md:text-2xl font-bold text-gray-900">Top Rated Albums</h2>
+                <p class="text-xs sm:text-sm md:text-base text-gray-600 mt-1">Your highest-rated favorites</p>
             </div>
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <div id="top-albums-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6">
+                <div id="top-albums-list" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-6">
                     <!-- Top albums will be inserted here -->
                 </div>
             </div>
         </div>
         
         <!-- No Skips Albums -->
-        <div class="mb-8">
-            <div class="flex justify-between items-center mb-6">
+        <div class="mb-8 mobile-section-spacing">
+            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 md:mb-6 mobile-section-header">
                 <div>
-                    <h2 class="text-2xl font-bold text-gray-900">No Skips Albums</h2>
-                    <p class="text-sm text-gray-600 mt-1">Albums with only Good and Standout tracks</p>
+                    <h2 class="text-xl md:text-2xl font-bold text-gray-900">No Skips Albums</h2>
+                    <p class="text-xs sm:text-sm md:text-base text-gray-600 mt-1">Albums with only Good and Standout tracks</p>
                 </div>
-                <div id="no-skips-stats" class="text-right">
+                <div id="no-skips-stats" class="text-left sm:text-right mt-2 sm:mt-0">
                     <!-- Stats will be inserted here -->
                 </div>
             </div>
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <div id="no-skips-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6">
+                <div id="no-skips-list" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-6">
                     <!-- No skip albums will be inserted here -->
                 </div>
             </div>
         </div>
         
         <!-- Top Albums by Year -->
-        <div class="mb-8">
-            <div class="flex justify-between items-center mb-6">
+        <div class="mb-8 mobile-section-spacing">
+            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 md:mb-6 mobile-section-header">
                 <div>
-                    <h2 class="text-2xl font-bold text-gray-900">Top Albums by Year</h2>
-                    <p class="text-sm text-gray-600 mt-1">Your highest-rated albums from a specific year</p>
+                    <h2 class="text-xl md:text-2xl font-bold text-gray-900">Top Albums by Year</h2>
+                    <p class="text-xs sm:text-sm md:text-base text-gray-600 mt-1">Your highest-rated albums from a specific year</p>
                 </div>
-                <div class="flex items-center space-x-2">
+                <div class="flex items-center space-x-2 mt-2 sm:mt-0">
                     <select id="yearSelector" onchange="loadTopAlbumsByYear(this.value)" 
-                            class="px-3 py-2 border border-gray-300 rounded-md text-sm bg-white hover:border-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            class="px-3 py-2 border border-gray-300 rounded-md text-xs sm:text-sm bg-white hover:border-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                         <option value="">Select Year...</option>
                         <!-- Years will be populated here -->
                     </select>
                 </div>
             </div>
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6">
                 <div id="top-albums-by-year-content">
                     <div class="text-center py-8 text-gray-500">
                         <svg class="w-16 h-16 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -138,20 +138,20 @@
         </div>
         
         <!-- Highest Rated Artists -->
-        <div class="mb-8">
-            <div class="flex justify-between items-center mb-6">
+        <div class="mb-8 mobile-section-spacing">
+            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 md:mb-6 mobile-section-header">
                 <div>
-                    <h2 class="text-2xl font-bold text-gray-900">Highest Rated Artists</h2>
-                    <p class="text-sm text-gray-600 mt-1">Artists ranked by their average album scores</p>
+                    <h2 class="text-xl md:text-2xl font-bold text-gray-900">Highest Rated Artists</h2>
+                    <p class="text-xs sm:text-sm md:text-base text-gray-600 mt-1">Artists ranked by their average album scores</p>
                 </div>
-                <div class="flex items-center space-x-2">
-                    <label class="text-sm text-gray-600">Min albums:</label>
+                <div class="flex items-center space-x-2 mt-2 sm:mt-0">
+                    <label class="text-xs sm:text-sm text-gray-600">Min albums:</label>
                     <input type="number" id="minAlbumsInput" min="1" max="10" value="3" 
                            onchange="loadHighestRatedArtists(this.value)"
-                           class="w-16 px-2 py-1 border border-gray-300 rounded text-center text-sm hover:border-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                           class="w-16 px-2 py-1 border border-gray-300 rounded text-center text-xs sm:text-sm hover:border-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
             </div>
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6">
                 <div id="highest-rated-artists-content">
                     <div class="flex justify-center py-8">
                         <svg class="animate-spin h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24">
@@ -166,22 +166,22 @@
     </div>
     
     <!-- Empty State (shown when no albums) -->
-    <div id="empty-state" style="display: none;" class="text-center py-16">
+    <div id="empty-state" style="display: none;" class="text-center py-12 md:py-16 px-4 md:px-0">
         <div class="max-w-md mx-auto">
-            <svg class="w-24 h-24 mx-auto mb-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-16 h-16 md:w-24 md:h-24 mx-auto mb-4 md:mb-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
             </svg>
-            <h2 class="text-2xl font-semibold text-gray-900 mb-3">No Statistics Yet</h2>
-            <p class="text-gray-600 mb-8">Start rating albums to see your statistics and insights</p>
-            <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                <a href="/search" class="inline-flex items-center justify-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <h2 class="text-xl md:text-2xl font-semibold text-gray-900 mb-2 md:mb-3">No Statistics Yet</h2>
+            <p class="text-sm md:text-base text-gray-600 mb-6 md:mb-8">Start rating albums to see your statistics and insights</p>
+            <div class="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center">
+                <a href="/search" class="inline-flex items-center justify-center px-4 py-2 md:px-6 md:py-3 bg-blue-600 hover:bg-blue-700 text-white text-sm md:text-base font-medium rounded-lg transition-colors">
+                    <svg class="w-4 h-4 md:w-5 md:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                     </svg>
                     Search Albums
                 </a>
-                <a href="/" class="inline-flex items-center justify-center px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <a href="/" class="inline-flex items-center justify-center px-4 py-2 md:px-6 md:py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm md:text-base font-medium rounded-lg transition-colors">
+                    <svg class="w-4 h-4 md:w-5 md:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
                     </svg>
                     Go to Dashboard
@@ -314,8 +314,15 @@ function updateNoSkipsCard(noSkipsData) {
     if (cards.length >= 3 && noSkipsData) {
         // Update the third card (No Skips)
         const noSkipsCard = cards[2];
-        noSkipsCard.querySelector('.text-2xl').textContent = noSkipsData.total_count;
-        noSkipsCard.querySelector('.text-xs').textContent = `${noSkipsData.percentage}% of rated`;
+        const valueElement = noSkipsCard.querySelector('p.text-xl'); // The value paragraph
+        const subtitleElement = noSkipsCard.querySelector('p.text-xs.text-gray-500'); // The subtitle paragraph
+        
+        if (valueElement) {
+            valueElement.textContent = noSkipsData.total_count;
+        }
+        if (subtitleElement) {
+            subtitleElement.textContent = `${noSkipsData.percentage}% of rated`;
+        }
     }
 }
 
@@ -352,16 +359,16 @@ function renderOverviewCards(data, noSkipsData) {
     ];
     
     const cardsHtml = cards.map(card => `
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div class="flex items-center justify-between mb-4">
-                <div class="flex items-center justify-center w-10 h-10 bg-${card.color}-100 rounded-lg">
-                    <svg class="w-6 h-6 text-${card.color}-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6">
+            <div class="flex items-center justify-between mb-3 md:mb-4">
+                <div class="flex items-center justify-center w-8 h-8 md:w-10 md:h-10 bg-${card.color}-100 rounded-lg">
+                    <svg class="w-5 h-5 md:w-6 md:h-6 text-${card.color}-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${card.icon}"></path>
                     </svg>
                 </div>
             </div>
-            <p class="text-sm font-medium text-gray-600 mb-1">${card.title}</p>
-            <p class="text-2xl font-bold text-gray-900">${card.value}</p>
+            <p class="text-xs sm:text-sm font-medium text-gray-600 mb-1">${card.title}</p>
+            <p class="text-xl md:text-2xl font-bold text-gray-900">${card.value}</p>
             <p class="text-xs text-gray-500 mt-1">${card.subtitle}</p>
         </div>
     `).join('');
@@ -373,10 +380,10 @@ function renderNoSkipAlbums(noSkipsData) {
     // Update stats header
     if (noSkipsData && noSkipsData.total_count > 0) {
         document.getElementById('no-skips-stats').innerHTML = `
-            <div class="text-sm text-gray-600">
-                <span class="text-2xl font-bold text-gray-900">${noSkipsData.total_count}</span> albums
+            <div class="text-xs sm:text-sm text-gray-600">
+                <span class="text-xl md:text-2xl font-bold text-gray-900">${noSkipsData.total_count}</span> albums
             </div>
-            <div class="text-sm text-gray-600">
+            <div class="text-xs sm:text-sm text-gray-600">
                 ${noSkipsData.percentage}% of rated albums
             </div>
         `;
@@ -405,18 +412,18 @@ function renderNoSkipAlbums(noSkipsData) {
                         `}
                     </div>
                     <div class="space-y-1">
-                        <h3 class="text-sm font-medium text-gray-900 truncate group-hover:text-blue-600 transition-colors">
+                        <h3 class="text-xs sm:text-sm font-medium text-gray-900 truncate group-hover:text-blue-600 transition-colors">
                             ${album.name}
                         </h3>
                         <p class="text-xs text-gray-600 truncate">${album.artist}</p>
                         <div class="flex items-center justify-between">
-                            <span class="text-lg font-bold ${getScoreColor(album.score)}">${album.score}</span>
+                            <span class="text-sm md:text-lg font-bold ${getScoreColor(album.score)}">${album.score}</span>
                             <span class="text-xs text-gray-500">${album.total_tracks} tracks</span>
                         </div>
                     </div>
                 </a>
                 <!-- No Skip Badge -->
-                <div class="absolute top-2 right-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">
+                <div class="absolute top-1 right-1 md:top-2 md:right-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-bold px-1.5 py-0.5 md:px-2 md:py-1 rounded-full shadow-lg">
                     NO SKIPS
                 </div>
             </div>
@@ -425,7 +432,7 @@ function renderNoSkipAlbums(noSkipsData) {
         document.getElementById('no-skips-list').innerHTML = albumsHtml;
     } else {
         document.getElementById('no-skips-stats').innerHTML = `
-            <div class="text-sm text-gray-500">No albums yet</div>
+            <div class="text-xs sm:text-sm text-gray-500">No albums yet</div>
         `;
         document.getElementById('no-skips-list').innerHTML = `
             <div class="col-span-full text-center py-8 text-gray-500">
@@ -456,8 +463,8 @@ function renderRatingDistribution(distribution) {
     const distributionHtml = ratings.map(rating => `
         <div>
             <div class="flex justify-between items-center mb-1">
-                <span class="text-sm font-medium text-gray-700">${rating.name}</span>
-                <span class="text-sm text-gray-600">${rating.count} tracks (${rating.percent}%)</span>
+                <span class="text-xs sm:text-sm font-medium text-gray-700">${rating.name}</span>
+                <span class="text-xs sm:text-sm text-gray-600">${rating.count} tracks (${rating.percent}%)</span>
             </div>
             <div class="w-full bg-gray-200 rounded-full h-2">
                 <div class="${rating.color} h-2 rounded-full transition-all duration-500" style="width: ${rating.percent}%"></div>
@@ -477,22 +484,22 @@ function renderCollectionOverview(data) {
         <div class="space-y-4">
             <!-- Average Score Display -->
             ${avgScore !== null ? `
-                <div class="text-center py-4">
-                    <div class="text-5xl font-bold ${scoreColor} mb-2">${avgScore}</div>
-                    <div class="text-sm text-gray-600">Average Album Score</div>
+                <div class="text-center py-3 md:py-4">
+                    <div class="text-3xl sm:text-4xl md:text-5xl font-bold ${scoreColor} mb-2">${avgScore}</div>
+                    <div class="text-xs sm:text-sm text-gray-600">Average Album Score</div>
                 </div>
             ` : `
-                <div class="text-center py-4">
-                    <div class="text-3xl text-gray-400 mb-2">—</div>
-                    <div class="text-sm text-gray-600">No rated albums yet</div>
+                <div class="text-center py-3 md:py-4">
+                    <div class="text-2xl sm:text-3xl text-gray-400 mb-2">—</div>
+                    <div class="text-xs sm:text-sm text-gray-600">No rated albums yet</div>
                 </div>
             `}
             
             <!-- Collection Stats -->
-            <div class="border-t pt-4 space-y-3">
+            <div class="border-t pt-3 md:pt-4 space-y-3">
                 <div class="flex justify-between items-center">
-                    <span class="text-sm text-gray-600">Completion Rate</span>
-                    <span class="text-sm font-semibold text-gray-900">${completionRate}%</span>
+                    <span class="text-xs sm:text-sm text-gray-600">Completion Rate</span>
+                    <span class="text-xs sm:text-sm font-semibold text-gray-900">${completionRate}%</span>
                 </div>
                 <div class="w-full bg-gray-200 rounded-full h-2">
                     <div class="bg-blue-600 h-2 rounded-full transition-all duration-500" style="width: ${completionRate}%"></div>
@@ -500,15 +507,15 @@ function renderCollectionOverview(data) {
                 
                 <div class="grid grid-cols-3 gap-2 pt-2">
                     <div class="text-center">
-                        <div class="text-lg font-semibold text-gray-900">${data.fully_rated_count}</div>
+                        <div class="text-base md:text-lg font-semibold text-gray-900">${data.fully_rated_count}</div>
                         <div class="text-xs text-gray-600">Completed</div>
                     </div>
                     <div class="text-center">
-                        <div class="text-lg font-semibold text-gray-900">${data.in_progress_count}</div>
+                        <div class="text-base md:text-lg font-semibold text-gray-900">${data.in_progress_count}</div>
                         <div class="text-xs text-gray-600">In Progress</div>
                     </div>
                     <div class="text-center">
-                        <div class="text-lg font-semibold text-gray-900">${data.unrated_albums_count}</div>
+                        <div class="text-base md:text-lg font-semibold text-gray-900">${data.unrated_albums_count}</div>
                         <div class="text-xs text-gray-600">Not Started</div>
                     </div>
                 </div>
@@ -663,12 +670,12 @@ function renderTopAlbums(albums) {
                     
                     <!-- Album info -->
                     <div class="space-y-1">
-                        <h3 class="text-sm font-semibold text-gray-900 truncate group-hover:text-blue-600 transition-colors">
+                        <h3 class="text-xs sm:text-sm font-semibold text-gray-900 truncate group-hover:text-blue-600 transition-colors">
                             ${album.name}
                         </h3>
                         <p class="text-xs text-gray-600 truncate">${album.artist}</p>
                         <div class="flex items-center justify-between">
-                            <span class="text-xl font-bold ${getScoreColor(album.score)}">${album.score}</span>
+                            <span class="text-sm md:text-xl font-bold ${getScoreColor(album.score)}">${album.score}</span>
                             ${album.year ? `<span class="text-xs text-gray-500">${album.year}</span>` : ''}
                         </div>
                     </div>
@@ -804,7 +811,7 @@ function renderTopAlbumsByYear(data, year) {
             </div>
         </div>
         
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-6">
             ${data.albums.map(album => `
                 <div class="group">
                     <a href="/albums/${album.id}/completed" class="block">
@@ -830,12 +837,12 @@ function renderTopAlbumsByYear(data, year) {
                         
                         <!-- Album info -->
                         <div class="space-y-1">
-                            <h4 class="text-sm font-semibold text-gray-900 truncate group-hover:text-blue-600 transition-colors">
+                            <h4 class="text-xs sm:text-sm font-semibold text-gray-900 truncate group-hover:text-blue-600 transition-colors">
                                 ${album.name}
                             </h4>
                             <p class="text-xs text-gray-600 truncate">${album.artist}</p>
                             <div class="flex items-center justify-between">
-                                <span class="text-xl font-bold ${getScoreColor(album.score)}">${album.score}</span>
+                                <span class="text-sm md:text-xl font-bold ${getScoreColor(album.score)}">${album.score}</span>
                                 <span class="text-xs text-gray-500">${year}</span>
                             </div>
                         </div>
@@ -908,13 +915,13 @@ function renderHighestRatedArtists(data) {
             </div>
         </div>
         
-        <div class="space-y-6">
+        <div class="space-y-4 md:space-y-6">
             ${data.artists.map((artist, index) => `
-                <div class="flex items-start space-x-4 p-4 bg-gray-50 rounded-lg">
+                <div class="flex items-start space-x-3 md:space-x-4 p-3 md:p-4 bg-gray-50 rounded-lg">
                     <!-- Ranking Badge -->
                     <div class="flex-shrink-0">
-                        <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full flex items-center justify-center">
-                            <span class="text-white font-bold text-lg">${index + 1}</span>
+                        <div class="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full flex items-center justify-center">
+                            <span class="text-white font-bold text-sm md:text-lg">${index + 1}</span>
                         </div>
                     </div>
                     
@@ -922,14 +929,14 @@ function renderHighestRatedArtists(data) {
                     <div class="flex-1 min-w-0">
                         <div class="flex items-start justify-between mb-2">
                             <div>
-                                <h4 class="text-lg font-semibold">
+                                <h4 class="text-base md:text-lg font-semibold">
                                     <a href="/artists/${artist.artist_id}/albums" class="text-gray-900 hover:text-blue-600 transition-colors">
                                         ${artist.artist_name}
                                     </a>
                                 </h4>
-                                <div class="flex items-center space-x-4 text-sm text-gray-600 mt-1">
+                                <div class="flex items-center space-x-2 md:space-x-4 text-xs sm:text-sm text-gray-600 mt-1">
                                     <span>${artist.album_count} albums rated</span>
-                                    <span class="text-lg font-bold ${getScoreColor(artist.average_score)}">
+                                    <span class="text-sm md:text-lg font-bold ${getScoreColor(artist.average_score)}">
                                         ${artist.average_score} avg
                                     </span>
                                 </div>
@@ -942,11 +949,11 @@ function renderHighestRatedArtists(data) {
                                 <p class="text-xs font-medium text-gray-500 mb-2">
                                     Top ${artist.albums_displayed_count} of ${artist.album_count} Albums:
                                 </p>
-                                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+                                <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-2 md:gap-3">
                                     ${artist.displayed_albums.map(album => `
                                         <div class="group">
                                             <a href="/albums/${album.id}/completed" class="block">
-                                                <div class="w-20 h-20 rounded-lg overflow-hidden bg-gray-100 shadow-sm group-hover:shadow-md transition-shadow">
+                                                <div class="w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden bg-gray-100 shadow-sm group-hover:shadow-md transition-shadow">
                                                     ${album.cover_art_url ? `
                                                         <img src="${album.cover_art_url}" 
                                                              alt="${album.name}" 
@@ -965,12 +972,12 @@ function renderHighestRatedArtists(data) {
                                                         </div>
                                                     `}
                                                 </div>
-                                                <div class="mt-2 text-center w-20">
+                                                <div class="mt-2 text-center w-16 md:w-20">
                                                     <p class="text-xs text-gray-900 truncate font-medium group-hover:text-blue-600 transition-colors" title="${album.name}">
                                                         ${album.name}
                                                     </p>
                                                     <div class="mt-1 text-center">
-                                                        <span class="text-sm font-bold ${getScoreColor(album.score)}">${album.score}</span>
+                                                        <span class="text-xs md:text-sm font-bold ${getScoreColor(album.score)}">${album.score}</span>
                                                     </div>
                                                 </div>
                                             </a>

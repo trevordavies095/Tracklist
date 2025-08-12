@@ -34,8 +34,8 @@
                             </span>
                             {% endif %}
                         </h1>
-                        <!-- Action Buttons (No Edit Rating since it's in progress) -->
-                        <div class="flex items-center space-x-2 mt-2 sm:mt-0 sm:ml-4">
+                        <!-- Action Buttons (Desktop) -->
+                        <div class="hidden lg:flex items-center space-x-2 mt-2 sm:mt-0 sm:ml-4">
                             <button onclick="openRetagModal()" 
                                     title="Change Release Version"
                                     class="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all duration-200 group relative">
@@ -53,6 +53,14 @@
                                 </svg>
                                 <span class="absolute -bottom-8 right-0 text-xs bg-gray-800 text-white px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">MusicBrainz</span>
                             </a>
+                            <button onclick="confirmDeleteAlbum()" 
+                                    title="Delete Album"
+                                    class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 group relative">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                                <span class="absolute -bottom-8 right-0 text-xs bg-gray-800 text-white px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Delete Album</span>
+                            </button>
                         </div>
                     </div>
                     <p class="text-base sm:text-lg md:text-xl text-gray-600 mb-4 md:mb-6">by <a href="/artists/{{ album.artist.id }}/albums" class="hover:text-blue-600 hover:underline transition-colors">{{ album.artist.name }}</a></p>
@@ -63,6 +71,32 @@
                             <div class="text-base md:text-lg font-semibold text-amber-800 mb-0.5 md:mb-1">Rating in Progress</div>
                             <div class="text-xs sm:text-sm text-amber-600">Rate each track below to complete</div>
                         </div>
+                    </div>
+                    
+                    <!-- Mobile Action Buttons - Shown only on mobile/tablet -->
+                    <div class="lg:hidden grid grid-cols-2 gap-2 mt-4">
+                        <button onclick="openRetagModal()" 
+                                class="flex flex-col items-center justify-center p-3 text-gray-600 bg-white border border-gray-200 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all duration-200">
+                            <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                            </svg>
+                            <span class="text-xs">Change Release</span>
+                        </button>
+                        <a href="https://musicbrainz.org/release/{{ album.musicbrainz_id }}" 
+                           target="_blank"
+                           class="flex flex-col items-center justify-center p-3 text-gray-600 bg-white border border-gray-200 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200">
+                            <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                            </svg>
+                            <span class="text-xs">MusicBrainz</span>
+                        </a>
+                        <button onclick="confirmDeleteAlbum()" 
+                                class="flex flex-col items-center justify-center p-3 text-gray-600 bg-white border border-gray-200 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 col-span-2">
+                            <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                            <span class="text-xs">Delete Album</span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -698,5 +732,109 @@ async function saveNotes() {
 document.addEventListener('DOMContentLoaded', function() {
     updateNotesCharCount();
 });
+
+// Delete Album functionality
+function confirmDeleteAlbum() {
+    const albumId = {{ album.id }};
+    const albumTitle = "{{ album.title }}";
+    const artistName = "{{ album.artist.name }}";
+    
+    // Create and show delete confirmation modal
+    const modal = document.createElement('div');
+    modal.id = 'delete-modal';
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4';
+    modal.innerHTML = `
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full" onclick="event.stopPropagation()">
+            <div class="p-6">
+                <div class="flex items-center mb-4">
+                    <div class="flex-shrink-0">
+                        <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L5.082 15.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-lg font-medium text-gray-900">Delete Album</h3>
+                        <p class="text-sm text-gray-500">This action cannot be undone.</p>
+                    </div>
+                </div>
+                
+                <div class="mb-6">
+                    <p class="text-gray-700">Are you sure you want to permanently delete <strong>"${albumTitle}"</strong> by ${artistName}?</p>
+                    <p class="text-sm text-gray-500 mt-2">This will remove the album, all track ratings, and scores from your library.</p>
+                </div>
+                
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <button onclick="closeDeleteModal()" 
+                            class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 px-4 rounded-md text-sm font-medium transition-colors">
+                        Cancel
+                    </button>
+                    <button onclick="executeDelete(${albumId})" 
+                            class="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-md text-sm font-medium transition-colors">
+                        Delete Permanently
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Close modal when clicking outside
+    modal.onclick = function(event) {
+        if (event.target === modal) {
+            closeDeleteModal();
+        }
+    };
+}
+
+function closeDeleteModal() {
+    const modal = document.getElementById('delete-modal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+async function executeDelete(albumId) {
+    const deleteBtn = event.target;
+    const originalText = deleteBtn.innerHTML;
+    
+    // Show loading state
+    deleteBtn.innerHTML = `
+        <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        Deleting...
+    `;
+    deleteBtn.disabled = true;
+    
+    try {
+        const response = await fetch(`/api/v1/albums/${albumId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        if (response.ok) {
+            // Redirect to My Albums page after successful deletion
+            window.location.href = '/albums';
+        } else {
+            const error = await response.json();
+            alert(`Failed to delete album: ${error.message || 'Unknown error'}`);
+            
+            // Restore button
+            deleteBtn.innerHTML = originalText;
+            deleteBtn.disabled = false;
+        }
+    } catch (error) {
+        console.error('Delete error:', error);
+        alert('Network error deleting album');
+        
+        // Restore button
+        deleteBtn.innerHTML = originalText;
+        deleteBtn.disabled = false;
+    }
+}
 </script>
 {% endblock %}
