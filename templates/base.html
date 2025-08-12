@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Tracklist - Music Album Rating System{% endblock %}</title>
     
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/static/img/favicon.ico">
+    
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -58,11 +61,8 @@
             <div class="flex justify-between items-center h-16">
                 <!-- Logo / Brand -->
                 <div class="flex-shrink-0">
-                    <a href="/" class="flex items-center space-x-2">
-                        <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                            <span class="text-white font-bold text-sm">T</span>
-                        </div>
-                        <span class="text-xl font-semibold text-gray-900">Tracklist</span>
+                    <a href="/" class="flex items-center">
+                        <img src="/static/img/logo.png" alt="Tracklist" class="h-10 w-auto">
                     </a>
                 </div>
                 
