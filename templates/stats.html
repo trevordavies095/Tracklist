@@ -2,14 +2,14 @@
 
 {% block title %}Statistics - Tracklist{% endblock %}
 
-{% block nav_stats %}text-blue-600 border-b-2 border-blue-600{% endblock %}
+{% block nav_stats %}text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400{% endblock %}
 
 {% block content %}
 <div class="max-w-7xl mx-auto">
     <!-- Page Header -->
     <div class="mb-8 md:mb-12 mobile-compact-header px-4 md:px-0">
-        <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-2 md:mb-4">Your Statistics</h1>
-        <p class="text-sm sm:text-base md:text-lg text-gray-600">Track your album rating progress and discover insights about your music taste</p>
+        <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 dark:text-gray-100 mb-2 md:mb-4">Your Statistics</h1>
+        <p class="text-sm sm:text-base md:text-lg text-gray-600 dark:text-gray-400">Track your album rating progress and discover insights about your music taste</p>
     </div>
     
     <!-- Loading State -->
@@ -17,7 +17,7 @@
         <!-- Overview Cards Loading -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
             {% for i in range(4) %}
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 md:p-6">
                 <div class="loading-skeleton h-4 w-24 mb-2"></div>
                 <div class="loading-skeleton h-8 w-16 mb-1"></div>
                 <div class="loading-skeleton h-3 w-32"></div>
@@ -27,11 +27,11 @@
         
         <!-- Charts Loading -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-6">
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 md:p-6">
                 <div class="loading-skeleton h-6 w-32 mb-4"></div>
                 <div class="loading-skeleton h-64 w-full"></div>
             </div>
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 md:p-6">
                 <div class="loading-skeleton h-6 w-32 mb-4"></div>
                 <div class="loading-skeleton h-64 w-full"></div>
             </div>
@@ -51,7 +51,7 @@
                 <h2 class="text-xl md:text-2xl font-bold text-gray-900">Most Rated Artist</h2>
                 <p class="text-xs sm:text-sm md:text-base text-gray-600 mt-1">The artist you've rated the most albums from</p>
             </div>
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 md:p-6">
                 <div id="top-artist-section">
                     <!-- Top artist will be inserted here -->
                 </div>
@@ -61,7 +61,7 @@
         <!-- Rating Distribution & Average Score -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-6 mb-8 mobile-section-spacing">
             <!-- Rating Distribution Card -->
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 md:p-6">
                 <h2 class="text-base md:text-lg font-semibold text-gray-900 mb-3 md:mb-4">Track Rating Distribution</h2>
                 <div id="rating-distribution" class="space-y-2 md:space-y-3">
                     <!-- Distribution bars will be inserted here -->
@@ -69,7 +69,7 @@
             </div>
             
             <!-- Average Score Card -->
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 md:p-6">
                 <h2 class="text-base md:text-lg font-semibold text-gray-900 mb-3 md:mb-4">Collection Overview</h2>
                 <div id="collection-overview">
                     <!-- Overview content will be inserted here -->
@@ -84,7 +84,7 @@
                 <h2 class="text-xl md:text-2xl font-bold text-gray-900">Top Rated Albums</h2>
                 <p class="text-xs sm:text-sm md:text-base text-gray-600 mt-1">Your highest-rated favorites</p>
             </div>
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 md:p-6">
                 <div id="top-albums-list" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-6">
                     <!-- Top albums will be inserted here -->
                 </div>
@@ -102,7 +102,7 @@
                     <!-- Stats will be inserted here -->
                 </div>
             </div>
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 md:p-6">
                 <div id="no-skips-list" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-6">
                     <!-- No skip albums will be inserted here -->
                 </div>
@@ -118,13 +118,13 @@
                 </div>
                 <div class="flex items-center space-x-2 mt-2 sm:mt-0">
                     <select id="yearSelector" onchange="loadTopAlbumsByYear(this.value)" 
-                            class="px-3 py-2 border border-gray-300 rounded-md text-xs sm:text-sm bg-white hover:border-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-xs sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 hover:border-gray-400 dark:hover:border-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                         <option value="">Select Year...</option>
                         <!-- Years will be populated here -->
                     </select>
                 </div>
             </div>
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 md:p-6">
                 <div id="top-albums-by-year-content">
                     <div class="text-center py-8 text-gray-500">
                         <svg class="w-16 h-16 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -151,7 +151,7 @@
                            class="w-16 px-2 py-1 border border-gray-300 rounded text-center text-xs sm:text-sm hover:border-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </div>
             </div>
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6">
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 md:p-6">
                 <div id="highest-rated-artists-content">
                     <div class="flex justify-center py-8">
                         <svg class="animate-spin h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24">
@@ -180,7 +180,7 @@
                     </svg>
                     Search Albums
                 </a>
-                <a href="/" class="inline-flex items-center justify-center px-4 py-2 md:px-6 md:py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm md:text-base font-medium rounded-lg transition-colors">
+                <a href="/" class="inline-flex items-center justify-center px-4 py-2 md:px-6 md:py-3 bg-gray-100 dark:bg-gray-600 hover:bg-gray-200 text-gray-700 text-sm md:text-base font-medium rounded-lg transition-colors">
                     <svg class="w-4 h-4 md:w-5 md:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
                     </svg>
@@ -359,17 +359,17 @@ function renderOverviewCards(data, noSkipsData) {
     ];
     
     const cardsHtml = cards.map(card => `
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 md:p-6">
             <div class="flex items-center justify-between mb-3 md:mb-4">
-                <div class="flex items-center justify-center w-8 h-8 md:w-10 md:h-10 bg-${card.color}-100 rounded-lg">
+                <div class="flex items-center justify-center w-8 h-8 md:w-10 md:h-10 bg-${card.color}-100 dark:bg-${card.color}-900/50 rounded-lg">
                     <svg class="w-5 h-5 md:w-6 md:h-6 text-${card.color}-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${card.icon}"></path>
                     </svg>
                 </div>
             </div>
-            <p class="text-xs sm:text-sm font-medium text-gray-600 mb-1">${card.title}</p>
-            <p class="text-xl md:text-2xl font-bold text-gray-900">${card.value}</p>
-            <p class="text-xs text-gray-500 mt-1">${card.subtitle}</p>
+            <p class="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">${card.title}</p>
+            <p class="text-xl md:text-2xl font-bold text-gray-900 dark:text-gray-100">${card.value}</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">${card.subtitle}</p>
         </div>
     `).join('');
     
@@ -380,10 +380,10 @@ function renderNoSkipAlbums(noSkipsData) {
     // Update stats header
     if (noSkipsData && noSkipsData.total_count > 0) {
         document.getElementById('no-skips-stats').innerHTML = `
-            <div class="text-xs sm:text-sm text-gray-600">
-                <span class="text-xl md:text-2xl font-bold text-gray-900">${noSkipsData.total_count}</span> albums
+            <div class="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                <span class="text-xl md:text-2xl font-bold text-gray-900 dark:text-gray-100">${noSkipsData.total_count}</span> albums
             </div>
-            <div class="text-xs sm:text-sm text-gray-600">
+            <div class="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                 ${noSkipsData.percentage}% of rated albums
             </div>
         `;
@@ -392,7 +392,7 @@ function renderNoSkipAlbums(noSkipsData) {
         const albumsHtml = noSkipsData.albums.map(album => `
             <div class="group relative">
                 <a href="/albums/${album.id}/completed" class="block">
-                    <div class="aspect-square overflow-hidden rounded-lg bg-gray-100 mb-3">
+                    <div class="aspect-square overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-600 mb-3">
                         ${album.cover_art_url ? `
                             <img src="${album.cover_art_url}" 
                                  alt="${album.name}" 
@@ -598,7 +598,7 @@ function renderTopArtist(topArtist) {
                         ${topArtist.top_albums.map(album => `
                             <div class="group">
                                 <a href="/albums/${album.id}/completed" class="block">
-                                    <div class="aspect-square overflow-hidden rounded-lg bg-gray-100 mb-2 shadow-sm group-hover:shadow-md transition-shadow">
+                                    <div class="aspect-square overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-600 mb-2 shadow-sm group-hover:shadow-md transition-shadow">
                                         ${album.cover_art_url ? `
                                             <img src="${album.cover_art_url}" 
                                                  alt="${album.name}" 
@@ -647,7 +647,7 @@ function renderTopAlbums(albums) {
                 <a href="/albums/${album.id}/completed" class="block">
                     <div class="relative">
                         <!-- Album cover -->
-                        <div class="aspect-square overflow-hidden rounded-lg bg-gray-100 mb-3 shadow-md group-hover:shadow-xl transition-shadow duration-300">
+                        <div class="aspect-square overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-600 mb-3 shadow-md group-hover:shadow-xl transition-shadow duration-300">
                             ${album.cover_art_url ? `
                                 <img src="${album.cover_art_url}" 
                                      alt="${album.name}" 
@@ -804,8 +804,8 @@ function renderTopAlbumsByYear(data, year) {
     const albumsHtml = `
         <div class="mb-4">
             <div class="flex items-center justify-between">
-                <h3 class="text-lg font-semibold text-gray-900">Top Albums from ${year}</h3>
-                <div class="text-sm text-gray-600">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Top Albums from ${year}</h3>
+                <div class="text-sm text-gray-600 dark:text-gray-400">
                     ${data.albums.length} of ${data.total_albums_in_year} rated albums shown
                 </div>
             </div>
@@ -815,7 +815,7 @@ function renderTopAlbumsByYear(data, year) {
             ${data.albums.map(album => `
                 <div class="group">
                     <a href="/albums/${album.id}/completed" class="block">
-                        <div class="aspect-square overflow-hidden rounded-lg bg-gray-100 mb-3 shadow-md group-hover:shadow-xl transition-shadow duration-300">
+                        <div class="aspect-square overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-600 mb-3 shadow-md group-hover:shadow-xl transition-shadow duration-300">
                             ${album.cover_art_url ? `
                                 <img src="${album.cover_art_url}" 
                                      alt="${album.name}" 
@@ -908,8 +908,8 @@ function renderHighestRatedArtists(data) {
     const artistsHtml = `
         <div class="mb-4">
             <div class="flex items-center justify-between">
-                <h3 class="text-lg font-semibold text-gray-900">Top ${data.artists.length} Artists</h3>
-                <div class="text-sm text-gray-600">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Top ${data.artists.length} Artists</h3>
+                <div class="text-sm text-gray-600 dark:text-gray-400">
                     ${data.total_qualifying_artists} artists with ${data.min_albums_filter}+ albums
                 </div>
             </div>
@@ -917,7 +917,7 @@ function renderHighestRatedArtists(data) {
         
         <div class="space-y-4 md:space-y-6">
             ${data.artists.map((artist, index) => `
-                <div class="flex items-start space-x-3 md:space-x-4 p-3 md:p-4 bg-gray-50 rounded-lg">
+                <div class="flex items-start space-x-3 md:space-x-4 p-3 md:p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                     <!-- Ranking Badge -->
                     <div class="flex-shrink-0">
                         <div class="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full flex items-center justify-center">
@@ -930,11 +930,11 @@ function renderHighestRatedArtists(data) {
                         <div class="flex items-start justify-between mb-2">
                             <div>
                                 <h4 class="text-base md:text-lg font-semibold">
-                                    <a href="/artists/${artist.artist_id}/albums" class="text-gray-900 hover:text-blue-600 transition-colors">
+                                    <a href="/artists/${artist.artist_id}/albums" class="text-gray-900 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
                                         ${artist.artist_name}
                                     </a>
                                 </h4>
-                                <div class="flex items-center space-x-2 md:space-x-4 text-xs sm:text-sm text-gray-600 mt-1">
+                                <div class="flex items-center space-x-2 md:space-x-4 text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-1">
                                     <span>${artist.album_count} albums rated</span>
                                     <span class="text-sm md:text-lg font-bold ${getScoreColor(artist.average_score)}">
                                         ${artist.average_score} avg
@@ -946,14 +946,14 @@ function renderHighestRatedArtists(data) {
                         <!-- Displayed Albums -->
                         ${artist.displayed_albums && artist.displayed_albums.length > 0 ? `
                             <div>
-                                <p class="text-xs font-medium text-gray-500 mb-2">
+                                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">
                                     Top ${artist.albums_displayed_count} of ${artist.album_count} Albums:
                                 </p>
                                 <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-2 md:gap-3">
                                     ${artist.displayed_albums.map(album => `
                                         <div class="group">
                                             <a href="/albums/${album.id}/completed" class="block">
-                                                <div class="w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden bg-gray-100 shadow-sm group-hover:shadow-md transition-shadow">
+                                                <div class="w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-600 dark:bg-gray-600 shadow-sm group-hover:shadow-md transition-shadow">
                                                     ${album.cover_art_url ? `
                                                         <img src="${album.cover_art_url}" 
                                                              alt="${album.name}" 

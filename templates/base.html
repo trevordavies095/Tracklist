@@ -15,10 +15,20 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Tracklist">
     
+    <!-- Dark Mode Script (must run before body renders) -->
+    <script>
+        // Check for saved theme preference or default to 'light'
+        const theme = localStorage.getItem('theme') || 'light';
+        if (theme === 'dark') {
+            document.documentElement.classList.add('dark');
+        }
+    </script>
+    
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
@@ -54,7 +64,7 @@
     
     {% block head %}{% endblock %}
 </head>
-<body class="h-full flex flex-col bg-gray-50">
+<body class="h-full flex flex-col bg-gray-50 dark:bg-gray-900 transition-colors">
     <noscript>
         <style>
             /* Show all images immediately when JS is disabled */
@@ -63,7 +73,7 @@
         </style>
     </noscript>
     <!-- Navigation Header -->
-    <header class="bg-white shadow-sm border-b border-gray-200">
+    <header class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
         <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
                 <!-- Logo / Brand -->
@@ -76,24 +86,48 @@
                 <!-- Navigation Links -->
                 <div class="hidden md:block">
                     <div class="ml-10 flex items-baseline space-x-4">
-                        <a href="/" class="{% block nav_home %}text-gray-500 hover:text-gray-900{% endblock %} px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                        <a href="/" class="{% block nav_home %}text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100{% endblock %} px-3 py-2 rounded-md text-sm font-medium transition-colors">
                             Dashboard
                         </a>
-                        <a href="/search" class="{% block nav_search %}text-gray-500 hover:text-gray-900{% endblock %} px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                        <a href="/search" class="{% block nav_search %}text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100{% endblock %} px-3 py-2 rounded-md text-sm font-medium transition-colors">
                             Search Albums
                         </a>
-                        <a href="/albums" class="{% block nav_albums %}text-gray-500 hover:text-gray-900{% endblock %} px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                        <a href="/albums" class="{% block nav_albums %}text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100{% endblock %} px-3 py-2 rounded-md text-sm font-medium transition-colors">
                             My Albums
                         </a>
-                        <a href="/stats" class="{% block nav_stats %}text-gray-500 hover:text-gray-900{% endblock %} px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                        <a href="/stats" class="{% block nav_stats %}text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100{% endblock %} px-3 py-2 rounded-md text-sm font-medium transition-colors">
                             Statistics
                         </a>
+                        
+                        <!-- Dark Mode Toggle -->
+                        <button id="theme-toggle" class="ml-4 p-2 rounded-md text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                            <!-- Sun Icon (Light Mode) -->
+                            <svg class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                            </svg>
+                            <!-- Moon Icon (Dark Mode) -->
+                            <svg class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                            </svg>
+                        </button>
                     </div>
                 </div>
                 
                 <!-- Mobile menu button -->
-                <div class="md:hidden" x-data="{ open: false }">
-                    <button @click="open = !open" class="text-gray-500 hover:text-gray-900 focus:outline-none focus:text-gray-900">
+                <div class="md:hidden flex items-center space-x-2" x-data="{ open: false }">
+                    <!-- Mobile Dark Mode Toggle -->
+                    <button id="theme-toggle-mobile" class="p-2 rounded-md text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                        <!-- Sun Icon (Light Mode) -->
+                        <svg class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                        </svg>
+                        <!-- Moon Icon (Dark Mode) -->
+                        <svg class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                        </svg>
+                    </button>
+                    
+                    <button @click="open = !open" class="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 focus:outline-none focus:text-gray-900 dark:focus:text-gray-100">
                         <svg class="h-6 w-6 fill-current" viewBox="0 0 24 24">
                             <path x-show="!open" d="M4 6h16M4 12h16M4 18h16"></path>
                             <path x-show="open" d="M6 18L18 6M6 6l12 12"></path>
@@ -108,11 +142,11 @@
                          x-transition:leave="transition ease-in duration-75"
                          x-transition:leave-start="transform opacity-100 scale-100"
                          x-transition:leave-end="transform opacity-0 scale-95"
-                         class="absolute top-16 right-0 mt-2 w-56 bg-white rounded-md shadow-lg py-1 z-50 mr-4">
-                        <a href="/" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Dashboard</a>
-                        <a href="/search" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Search Albums</a>
-                        <a href="/albums" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">My Albums</a>
-                        <a href="/stats" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Statistics</a>
+                         class="absolute top-16 right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1 z-50 mr-4 border border-gray-200 dark:border-gray-700">
+                        <a href="/" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Dashboard</a>
+                        <a href="/search" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Search Albums</a>
+                        <a href="/albums" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">My Albums</a>
+                        <a href="/stats" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">Statistics</a>
                     </div>
                 </div>
             </div>
@@ -136,15 +170,15 @@
     </div>
     
     <!-- Footer -->
-    <footer class="bg-white border-t border-gray-200 py-8">
+    <footer class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 py-8">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center">
-                <div class="text-sm text-gray-500">
+                <div class="text-sm text-gray-500 dark:text-gray-400">
                     2025 Tracklist - Self-hostable Album Rating System
                 </div>
                 <div class="flex space-x-4">
-                    <a href="/api/v1/docs" class="text-sm text-gray-500 hover:text-gray-900">API Docs</a>
-                    <a href="/health" class="text-sm text-gray-500 hover:text-gray-900">Health Check</a>
+                    <a href="/api/v1/docs" class="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">API Docs</a>
+                    <a href="/health" class="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">Health Check</a>
                 </div>
             </div>
         </div>
@@ -263,5 +297,26 @@
         }
     }
     </style>
+    
+    <!-- Dark Mode Toggle Script -->
+    <script>
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = localStorage.getItem('theme') || 'light';
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            
+            if (newTheme === 'dark') {
+                html.classList.add('dark');
+            } else {
+                html.classList.remove('dark');
+            }
+            
+            localStorage.setItem('theme', newTheme);
+        }
+        
+        // Add event listeners to both desktop and mobile toggle buttons
+        document.getElementById('theme-toggle')?.addEventListener('click', toggleTheme);
+        document.getElementById('theme-toggle-mobile')?.addEventListener('click', toggleTheme);
+    </script>
 </body>
 </html>

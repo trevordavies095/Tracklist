@@ -7,7 +7,7 @@
 {% block content %}
 <div class="max-w-6xl mx-auto">
     <!-- Album Header -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-4 md:mb-6">
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 mb-4 md:mb-6">
         <div class="p-4 sm:p-6 md:p-8">
             <div class="flex flex-col lg:flex-row lg:items-center space-y-4 sm:space-y-6 lg:space-y-0 lg:space-x-8">
                 <!-- Album Artwork -->
@@ -23,10 +23,10 @@
                 <!-- Album Info -->
                 <div class="flex-1 text-center lg:text-left">
                     <div class="flex flex-col sm:flex-row items-start justify-between mb-2">
-                        <h1 class="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 group relative inline-block{% if album.genre %} cursor-help{% endif %}">
+                        <h1 class="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100 group relative inline-block{% if album.genre %} cursor-help{% endif %}">
                             {{ album.title }}
                             {% if album.year %}
-                            <span class="text-lg sm:text-xl md:text-2xl font-normal text-gray-500">(<a href="/years/{{ album.year }}/albums" class="hover:text-blue-600 hover:underline transition-colors">{{ album.year }}</a>)</span>
+                            <span class="text-lg sm:text-xl md:text-2xl font-normal text-gray-500 dark:text-gray-400">(<a href="/years/{{ album.year }}/albums" class="hover:text-blue-600 hover:underline transition-colors">{{ album.year }}</a>)</span>
                             {% endif %}
                             {% if album.genre %}
                             <span class="absolute -bottom-8 left-0 text-xs bg-gray-800 text-white px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
@@ -38,7 +38,7 @@
                         <div class="hidden lg:flex items-center space-x-2 mt-2 sm:mt-0 sm:ml-4">
                             <button onclick="openRetagModal()" 
                                     title="Change Release Version"
-                                    class="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all duration-200 group relative">
+                                    class="p-2 text-gray-400 dark:text-gray-500 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/30 rounded-lg transition-all duration-200 group relative">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
                                 </svg>
@@ -47,7 +47,7 @@
                             <a href="https://musicbrainz.org/release/{{ album.musicbrainz_id }}" 
                                target="_blank"
                                title="View on MusicBrainz"
-                               class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 group relative">
+                               class="p-2 text-gray-400 dark:text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-all duration-200 group relative">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
                                 </svg>
