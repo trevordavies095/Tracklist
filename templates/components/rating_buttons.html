@@ -1,7 +1,7 @@
 <!-- Color-coded Rating Buttons Component -->
 <!-- Usage: Set track_id and current_rating variables before including this template -->
 
-<div class="rating-buttons flex flex-wrap gap-1.5 sm:gap-2" x-data="ratingButtons({{ track_id }}, {{ current_rating or 'null' }})">
+<div class="rating-buttons flex flex-wrap gap-1.5 sm:gap-2" x-data="ratingButtons({{ track_id }}, {{ current_rating if current_rating is not none else 'null' }})">
     <!-- Skip (0.0) - Red -->
     <div class="tooltip-trigger relative">
         <button 
