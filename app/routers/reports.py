@@ -705,7 +705,6 @@ async def export_database(
     - All artists, albums, and tracks
     - All ratings and notes
     - User settings and preferences
-    - Artwork cache metadata
     - Complete relationships and timestamps
     
     This export can be used to:
@@ -729,7 +728,6 @@ async def export_database(
         "artists": [ ... ],
         "albums": [ ... ],
         "tracks": [ ... ],
-        "artwork_cache": [ ... ],
         "statistics": {
             "total_albums": 150,
             "rated_albums": 87,

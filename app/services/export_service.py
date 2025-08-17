@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from typing import Dict, Any, Optional
 from sqlalchemy.orm import Session
 
-from ..models import Album, Artist, Track, UserSettings, ArtworkCache
+from ..models import Album, Artist, Track, UserSettings
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +26,7 @@ class ExportService:
         
         This creates a comprehensive backup that can be used to restore
         the entire database state including all albums, artists, tracks,
-        ratings, settings, and artwork cache metadata.
+        ratings, and settings.
         
         Args:
             db: Database session
@@ -49,8 +49,7 @@ class ExportService:
                 "settings": {},
                 "artists": [],
                 "albums": [],
-                "tracks": [],
-                "artwork_cache": []
+                "tracks": []
             }
             
             # Export User Settings
@@ -131,22 +130,6 @@ class ExportService:
                     "updated_at": track.updated_at.isoformat() if track.updated_at else None
                 })
             
-            # Export Artwork Cache metadata (not the actual files, just the metadata)
-            logger.info("Exporting artwork cache metadata...")
-            artwork_caches = db.query(ArtworkCache).order_by(ArtworkCache.album_id).all()
-            
-            for cache in artwork_caches:
-                export_data["artwork_cache"].append({
-                    "album_id": cache.album_id,
-                    "size_variant": cache.size_variant,
-                    "file_path": cache.file_path,  # Path for reference
-                    "file_size_bytes": cache.file_size_bytes,
-                    "content_type": cache.content_type,
-                    "original_url": cache.original_url,
-                    "last_fetched_at": cache.last_fetched_at.isoformat() if cache.last_fetched_at else None,
-                    "access_count": cache.access_count,
-                    "last_accessed_at": cache.last_accessed_at.isoformat() if cache.last_accessed_at else None
-                })
             
             # Calculate statistics
             rated_albums = [a for a in export_data["albums"] if a["is_rated"]]
@@ -160,7 +143,6 @@ class ExportService:
                 "total_tracks": len(export_data["tracks"]),
                 "rated_tracks": len(rated_tracks),
                 "unrated_tracks": len(export_data["tracks"]) - len(rated_tracks),
-                "artwork_cache_entries": len(export_data["artwork_cache"]),
                 "average_album_score": (
                     sum(a["rating_score"] for a in rated_albums) / len(rated_albums) 
                     if rated_albums else 0
@@ -229,7 +211,6 @@ class ExportService:
                 "rated_albums": db.query(Album).filter(Album.is_rated == True).count(),
                 "total_tracks": db.query(Track).count(),
                 "rated_tracks": db.query(Track).filter(Track.track_rating.isnot(None)).count(),
-                "artwork_cache_entries": db.query(ArtworkCache).count(),
                 "settings_configured": db.query(UserSettings).filter(UserSettings.user_id == 1).count() > 0
             }
             
@@ -241,7 +222,6 @@ class ExportService:
                 (stats["total_albums"] * 2) +  # ~2KB per album
                 (stats["total_tracks"] * 0.5) +  # ~0.5KB per track
                 (stats["total_artists"] * 0.3) +  # ~0.3KB per artist
-                (stats["artwork_cache_entries"] * 0.2) +  # ~0.2KB per cache entry
                 10  # Base overhead
             )
             
