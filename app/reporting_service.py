@@ -188,7 +188,7 @@ class ReportingService:
         """Format album data for summary response"""
         # Get cached artwork URL if available
         from .template_utils import get_artwork_url
-        cached_artwork_url = get_artwork_url(album, size='medium')
+        cached_artwork_url = get_artwork_url(album, size='large')
         
         return {
             "id": album.id,
@@ -218,7 +218,7 @@ class ReportingService:
 
         # Get cached artwork URL if available
         from .template_utils import get_artwork_url
-        cached_artwork_url = get_artwork_url(album, size='medium')
+        cached_artwork_url = get_artwork_url(album, size='large')
         
         return {
             "id": album.id,
@@ -484,7 +484,7 @@ class ReportingService:
 
         # Get cached artwork URL if available
         from .template_utils import get_artwork_url
-        cached_artwork_url = get_artwork_url(album, size='medium')
+        cached_artwork_url = get_artwork_url(album, size='large')
 
         return {
             "id": album.id,
@@ -639,7 +639,7 @@ class ReportingService:
                         "name": album.name,
                         "year": album.release_year,
                         "score": album.rating_score,
-                        "cover_art_url": get_artwork_url(album, size='medium'),
+                        "cover_art_url": get_artwork_url(album, size='large'),
                         "rated_at": album.rated_at.isoformat() if album.rated_at else None
                     }
                     for album in top_albums

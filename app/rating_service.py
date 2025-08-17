@@ -508,7 +508,7 @@ class RatingService:
         """Format album summary for lists"""
         # Get cached artwork URL if available
         from .template_utils import get_artwork_url
-        cached_artwork_url = get_artwork_url(album, size='medium')
+        cached_artwork_url = get_artwork_url(album, size='large')
         
         return {
             "id": album.id,
