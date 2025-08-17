@@ -2,7 +2,7 @@
 Template serving routes for the frontend UI
 """
 
-from fastapi import APIRouter, Request, Depends, HTTPException, Path
+from fastapi import APIRouter, Request, Depends, HTTPException, Path, Query
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
@@ -10,6 +10,7 @@ import logging
 
 from ..database import get_db
 from ..rating_service import get_rating_service, RatingService
+from ..services.comparison_service import get_comparison_service, ComparisonService
 from ..exceptions import ServiceNotFoundError
 
 logger = logging.getLogger(__name__)
@@ -196,6 +197,43 @@ async def completed_page(
     except Exception as e:
         logger.error(f"Error loading completed page for album {album_id}: {e}")
         raise HTTPException(status_code=500, detail="Error loading completed page")
+
+
+@router.get("/albums/compare", response_class=HTMLResponse)
+async def compare_albums_page(
+    request: Request,
+    album1: int = Query(None, description="First album ID"),
+    album2: int = Query(None, description="Second album ID"),
+    comparison_service: ComparisonService = Depends(get_comparison_service),
+    db: Session = Depends(get_db)
+):
+    """Album comparison page"""
+    comparison_data = None
+    error_message = None
+    
+    logger.info(f"Compare albums page accessed with params: album1={album1}, album2={album2}")
+    
+    try:
+        # If both album IDs provided, generate comparison
+        if album1 and album2:
+            logger.info(f"Both albums provided, generating comparison for {album1} vs {album2}")
+            comparison_data = comparison_service.compare_albums(album1, album2, db)
+            logger.info(f"Comparison data generated successfully: {bool(comparison_data)}")
+        else:
+            logger.info(f"Missing album parameters: album1={album1}, album2={album2}")
+            
+    except Exception as e:
+        logger.error(f"Error generating comparison for albums {album1} vs {album2}: {e}", exc_info=True)
+        error_message = str(e)
+    
+    logger.info(f"Returning template with comparison_data={bool(comparison_data)}, error_message={bool(error_message)}")
+    
+    return templates.TemplateResponse("albums/compare.html", {
+        "request": request,
+        "comparison": comparison_data,
+        "error_message": error_message,
+        "page_title": "Compare Albums"
+    })
 
 
 # Helper function to add custom filters to Jinja2

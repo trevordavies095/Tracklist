@@ -15,6 +15,7 @@ import asyncio
 
 from ..database import get_db, get_db_info, SessionLocal
 from ..rating_service import get_rating_service, RatingService
+from ..services.comparison_service import get_comparison_service, ComparisonService
 from ..exceptions import TracklistException, ServiceNotFoundError, ServiceValidationError
 
 logger = logging.getLogger(__name__)
@@ -452,6 +453,108 @@ async def get_album_artwork_url(
         "cached": url and not url.startswith("http"),  # Cached URLs are local paths
         "size": size
     }
+
+
+@router.get("/albums/compare")
+async def compare_albums(
+    album1: int = Query(..., description="First album ID", gt=0),
+    album2: int = Query(..., description="Second album ID", gt=0),
+    format: str = Query("json", description="Response format (html|json)"),
+    comparison_service: ComparisonService = Depends(get_comparison_service),
+    db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    """
+    Compare two albums side-by-side
+    
+    Provides detailed track-by-track comparison with statistics,
+    visual indicators, and insights about rating differences.
+    
+    Query Parameters:
+    - album1: ID of first album to compare
+    - album2: ID of second album to compare  
+    - format: Response format (html for web view, json for API)
+    
+    Validation:
+    - Both albums must exist and be rated
+    - Albums must be different
+    - User must have permission to view both albums
+    
+    Returns comprehensive comparison data including:
+    - Album metadata and cover art
+    - Track-by-track comparison matrix
+    - Winner determination and statistics
+    - Rating difference analysis
+    - Better tracks identification
+    - Comparison insights and highlights
+    """
+    try:
+        logger.info(f"Comparing albums {album1} vs {album2}")
+        
+        # Generate comparison data
+        comparison_data = comparison_service.compare_albums(album1, album2, db)
+        
+        logger.info(f"Comparison generated successfully for albums {album1} vs {album2}")
+        return comparison_data
+        
+    except ServiceValidationError as e:
+        logger.warning(f"Album comparison validation error: {e.message}")
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "error": "Validation error",
+                "message": e.message
+            }
+        )
+    except ServiceNotFoundError as e:
+        logger.warning(f"Album comparison not found error: {e.message}")
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "error": "Albums not found",
+                "message": e.message
+            }
+        )
+    except Exception as e:
+        logger.error(f"Unexpected error comparing albums: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Internal server error",
+                "message": "Failed to compare albums"
+            }
+        )
+
+
+@router.get("/albums/rated")
+async def get_rated_albums_for_comparison(
+    comparison_service: ComparisonService = Depends(get_comparison_service),
+    db: Session = Depends(get_db)
+) -> Dict[str, Any]:
+    """
+    Get list of user's rated albums for comparison selection
+    
+    Returns list of albums that can be used in comparisons,
+    filtered to only rated albums with basic metadata.
+    """
+    try:
+        logger.info("Getting rated albums for comparison")
+        
+        albums = comparison_service.get_user_rated_albums(db)
+        
+        return {
+            "albums": albums,
+            "total": len(albums)
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting rated albums: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Internal server error",
+                "message": "Failed to get rated albums"
+            }
+        )
 
 
 @router.get("/albums/{album_id}")
