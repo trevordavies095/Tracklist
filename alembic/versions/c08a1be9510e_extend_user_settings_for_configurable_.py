@@ -17,18 +17,37 @@ depends_on = None
 
 
 def upgrade() -> None:
-    # Add new columns for extended settings
-    op.add_column('user_settings', sa.Column('auto_migrate_artwork', sa.Boolean(), nullable=True))
-    op.add_column('user_settings', sa.Column('cache_retention_days', sa.Integer(), nullable=True))
-    op.add_column('user_settings', sa.Column('cache_max_size_mb', sa.Integer(), nullable=True))
-    op.add_column('user_settings', sa.Column('cache_cleanup_enabled', sa.Boolean(), nullable=True))
-    op.add_column('user_settings', sa.Column('cache_cleanup_schedule', sa.String(20), nullable=True))
-    op.add_column('user_settings', sa.Column('items_per_page', sa.Integer(), nullable=True))
-    op.add_column('user_settings', sa.Column('default_sort_order', sa.String(20), nullable=True))
-    op.add_column('user_settings', sa.Column('date_format', sa.String(20), nullable=True))
-    op.add_column('user_settings', sa.Column('auto_cache_artwork', sa.Boolean(), nullable=True))
-    op.add_column('user_settings', sa.Column('migration_batch_size', sa.Integer(), nullable=True))
-    op.add_column('user_settings', sa.Column('cache_cleanup_time', sa.String(10), nullable=True))
+    # Get current columns to avoid duplicates
+    from sqlalchemy import inspect
+    from sqlalchemy.sql import text
+    
+    conn = op.get_bind()
+    inspector = inspect(conn)
+    existing_columns = [col['name'] for col in inspector.get_columns('user_settings')]
+    
+    # Add new columns for extended settings (only if they don't exist)
+    if 'auto_migrate_artwork' not in existing_columns:
+        op.add_column('user_settings', sa.Column('auto_migrate_artwork', sa.Boolean(), nullable=True))
+    if 'cache_retention_days' not in existing_columns:
+        op.add_column('user_settings', sa.Column('cache_retention_days', sa.Integer(), nullable=True))
+    if 'cache_max_size_mb' not in existing_columns:
+        op.add_column('user_settings', sa.Column('cache_max_size_mb', sa.Integer(), nullable=True))
+    if 'cache_cleanup_enabled' not in existing_columns:
+        op.add_column('user_settings', sa.Column('cache_cleanup_enabled', sa.Boolean(), nullable=True))
+    if 'cache_cleanup_schedule' not in existing_columns:
+        op.add_column('user_settings', sa.Column('cache_cleanup_schedule', sa.String(20), nullable=True))
+    if 'items_per_page' not in existing_columns:
+        op.add_column('user_settings', sa.Column('items_per_page', sa.Integer(), nullable=True))
+    if 'default_sort_order' not in existing_columns:
+        op.add_column('user_settings', sa.Column('default_sort_order', sa.String(20), nullable=True))
+    if 'date_format' not in existing_columns:
+        op.add_column('user_settings', sa.Column('date_format', sa.String(20), nullable=True))
+    if 'auto_cache_artwork' not in existing_columns:
+        op.add_column('user_settings', sa.Column('auto_cache_artwork', sa.Boolean(), nullable=True))
+    if 'migration_batch_size' not in existing_columns:
+        op.add_column('user_settings', sa.Column('migration_batch_size', sa.Integer(), nullable=True))
+    if 'cache_cleanup_time' not in existing_columns:
+        op.add_column('user_settings', sa.Column('cache_cleanup_time', sa.String(10), nullable=True))
     
     # Set default values for existing rows
     op.execute("""

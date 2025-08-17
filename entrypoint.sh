@@ -37,7 +37,13 @@ if [ -f "./data/tracklist.db" ]; then
 fi
 
 # Run migrations (this will create tables if they don't exist)
-alembic upgrade head
+# The migration c08a1be9510e has been fixed to check for existing columns
+alembic upgrade head || {
+    echo "Migration failed. This might be due to duplicate columns."
+    echo "The migration has been updated to handle existing columns gracefully."
+    echo "If this persists, please check the database schema."
+    exit 1
+}
 
 # Start the application
 echo "Starting Uvicorn server..."
