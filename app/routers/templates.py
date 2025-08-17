@@ -88,6 +88,14 @@ async def settings_page(request: Request, db: Session = Depends(get_db)):
     })
 
 
+@router.get("/test-export", response_class=HTMLResponse)
+async def test_export_page(request: Request):
+    """Test page for export functionality"""
+    return templates.TemplateResponse("test_export.html", {
+        "request": request
+    })
+
+
 @router.get("/artists/{artist_id}/albums", response_class=HTMLResponse)
 async def artist_albums_page(
     request: Request,
