@@ -4,11 +4,13 @@ Reporting API endpoints for user statistics and analytics
 
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import Response
 from sqlalchemy.orm import Session
 import logging
 
 from ..database import get_db
 from ..reporting_service import get_reporting_service, ReportingService
+from ..services.export_service import get_export_service, ExportService
 from ..exceptions import TracklistException
 
 logger = logging.getLogger(__name__)
@@ -687,5 +689,117 @@ async def get_highest_rated_artists(
             detail={
                 "error": "Internal server error",
                 "message": "Failed to retrieve highest rated artists"
+            }
+        )
+
+
+@router.get("/export")
+async def export_database(
+    service: ExportService = Depends(get_export_service),
+    db: Session = Depends(get_db)
+):
+    """
+    Export complete database to JSON format
+    
+    Creates a comprehensive backup of your entire Tracklist database including:
+    - All artists, albums, and tracks
+    - All ratings and notes
+    - User settings and preferences
+    - Artwork cache metadata
+    - Complete relationships and timestamps
+    
+    This export can be used to:
+    - Backup your entire collection
+    - Migrate to a new installation
+    - Share your collection with others
+    - Restore after data loss
+    
+    Returns:
+    - JSON file download with complete database backup
+    
+    Example response structure:
+    ```json
+    {
+        "export_metadata": {
+            "version": "2.0",
+            "export_date": "2025-01-17T10:30:00Z",
+            "application": "Tracklist"
+        },
+        "settings": { ... },
+        "artists": [ ... ],
+        "albums": [ ... ],
+        "tracks": [ ... ],
+        "artwork_cache": [ ... ],
+        "statistics": {
+            "total_albums": 150,
+            "rated_albums": 87,
+            "total_tracks": 1850
+        }
+    }
+    ```
+    """
+    try:
+        logger.info("Starting complete database export")
+        
+        # Perform export
+        json_content, filename = service.export_to_json_string(db)
+        
+        # Return the file response
+        return Response(
+            content=json_content,
+            media_type="application/json",
+            headers={
+                "Content-Disposition": f'attachment; filename="{filename}"'
+            }
+        )
+        
+    except HTTPException:
+        raise  # Re-raise HTTP exceptions
+    except Exception as e:
+        logger.error(f"Export failed: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Export failed",
+                "message": str(e)
+            }
+        )
+
+
+@router.get("/export/stats")
+async def get_export_statistics(
+    service: ExportService = Depends(get_export_service),
+    db: Session = Depends(get_db)
+):
+    """
+    Get statistics about what would be exported
+    
+    Returns information about the data that would be included in an export.
+    
+    Example response:
+    ```json
+    {
+        "total_albums": 150,
+        "rated_albums": 87,
+        "unrated_albums": 63,
+        "total_tracks": 1850,
+        "rated_tracks": 1024,
+        "exportable_albums": 87,
+        "exportable_with_unrated": 150
+    }
+    ```
+    """
+    try:
+        logger.info("Getting export statistics")
+        stats = service.get_export_statistics(db)
+        return stats
+        
+    except Exception as e:
+        logger.error(f"Failed to get export statistics: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Failed to get export statistics",
+                "message": str(e)
             }
         )
