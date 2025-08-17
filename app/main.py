@@ -201,6 +201,18 @@ async def startup_event():
         init_db()
         logger.info("Database initialized successfully")
 
+        # Validate and fix artwork_cached flags
+        try:
+            from .services.artwork_cache_validator import validate_artwork_cache_on_startup
+            logger.info("Validating artwork cache flags...")
+            validation_stats = validate_artwork_cache_on_startup()
+            if validation_stats.get('fixed', 0) > 0:
+                logger.info(f"Fixed {validation_stats['fixed']} incorrect artwork_cached flags")
+            else:
+                logger.info("All artwork_cached flags are correct")
+        except Exception as e:
+            logger.warning(f"Could not validate artwork cache flags: {e}")
+
         # Initialize artwork cache directories
         from .services.artwork_cache_utils import init_artwork_cache_directories
         init_artwork_cache_directories()

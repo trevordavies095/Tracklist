@@ -24,6 +24,14 @@ class ArtworkURLResolver:
     def __init__(self):
         """Initialize the artwork URL resolver"""
         self.cache_service = get_artwork_cache_service()
+        
+        # Try to import background service (may not be available in all contexts)
+        try:
+            from .services.artwork_cache_background import ArtworkCacheBackgroundService
+            self.background_service = ArtworkCacheBackgroundService()
+        except ImportError:
+            logger.debug("Background caching service not available")
+            self.background_service = None
 
         # Cache hit/miss tracking
         self.stats = {
@@ -31,12 +39,16 @@ class ArtworkURLResolver:
             'cache_misses': 0,
             'fallback_used': 0,
             'errors': 0,
+            'auto_queued': 0,
             'start_time': datetime.now(timezone.utc)
         }
 
         # In-memory cache for template calls (short-lived)
         self._template_cache = {}
         self._cache_ttl = 300  # 5 minutes
+        
+        # Track which albums we've already queued (to avoid duplicate queuing)
+        self._queued_albums = set()
 
     def get_artwork_url(
         self,
@@ -139,8 +151,11 @@ class ArtworkURLResolver:
                     'time': datetime.now(timezone.utc)
                 }
                 memory_cache.set(album_id, normalized_size, cover_art_url)
-                # Optionally trigger async caching in background
-                self._trigger_background_cache_for_dict(album_id, cover_art_url, artwork_cached)
+                
+                # AUTO-QUEUE FOR CACHING: If we're returning an external URL, queue it for background caching
+                if cover_art_url.startswith('http') and not artwork_cached:
+                    self._queue_for_background_caching(album_id, cover_art_url)
+                
                 return cover_art_url
 
             # Use fallback
@@ -199,23 +214,40 @@ class ArtworkURLResolver:
         # Fallback to direct path
         return f"/{file_path}"
 
-    def _trigger_background_cache_for_dict(self, album_id: int, cover_art_url: str, artwork_cached: bool) -> None:
+    def _queue_for_background_caching(self, album_id: int, cover_art_url: str) -> None:
         """
-        Trigger background caching of album artwork for dict data
+        Queue album artwork for background caching
 
         Args:
             album_id: Album ID
-            cover_art_url: Album artwork URL
-            artwork_cached: Whether artwork is already cached
+            cover_art_url: Album artwork URL to cache
         """
         try:
-            # Only trigger if album has artwork URL and isn't already cached
-            if cover_art_url and not artwork_cached:
-                # This would ideally use a task queue
-                # For now, just log the intention
-                logger.debug(f"Would trigger background cache for album {album_id}")
+            # Check if we've already queued this album in this session
+            if album_id in self._queued_albums:
+                logger.debug(f"Album {album_id} already queued for caching in this session")
+                return
+            
+            # Check if background service is available
+            if not self.background_service:
+                logger.debug(f"Background service not available, cannot auto-queue album {album_id}")
+                return
+            
+            # Queue for background caching with low priority (so it doesn't interfere with user requests)
+            task_id = self.background_service.trigger_album_cache(
+                album_id=album_id,
+                cover_art_url=cover_art_url,
+                priority=8  # Low priority for auto-queued items
+            )
+            
+            # Track that we've queued this album
+            self._queued_albums.add(album_id)
+            self.stats['auto_queued'] += 1
+            
+            logger.info(f"Auto-queued album {album_id} for background caching (task: {task_id})")
+            
         except Exception as e:
-            logger.debug(f"Could not trigger background cache: {e}")
+            logger.debug(f"Could not auto-queue album {album_id} for caching: {e}")
 
     def get_stats(self) -> Dict[str, Any]:
         """
@@ -240,10 +272,12 @@ class ArtworkURLResolver:
             'cache_misses': self.stats['cache_misses'],
             'fallback_used': self.stats['fallback_used'],
             'errors': self.stats['errors'],
+            'auto_queued': self.stats['auto_queued'],
             'total_requests': total_requests,
             'hit_rate': round(hit_rate, 2),
             'uptime_seconds': uptime.total_seconds(),
-            'template_cache_size': len(self._template_cache)
+            'template_cache_size': len(self._template_cache),
+            'queued_albums_count': len(self._queued_albums)
         }
 
     def clear_template_cache(self) -> None:
@@ -258,8 +292,10 @@ class ArtworkURLResolver:
             'cache_misses': 0,
             'fallback_used': 0,
             'errors': 0,
-            'total_requests': 0
+            'auto_queued': 0,
+            'start_time': datetime.now(timezone.utc)
         }
+        self._queued_albums.clear()
         logger.debug("Statistics cleared")
 
 
