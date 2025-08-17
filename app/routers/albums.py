@@ -502,7 +502,7 @@ async def get_user_albums(
     limit: int = Query(50, description="Maximum number of results", ge=1, le=100),
     offset: int = Query(0, description="Offset for pagination", ge=0),
     rated: Optional[bool] = Query(None, description="Filter by rated status (true=rated, false=draft, null=all)"),
-    sort: str = Query("created_desc", description="Sort order (created_desc, created_asc, artist_asc, artist_desc, album_asc, album_desc, rating_desc, rating_asc, year_desc, year_asc, rated_desc, rating_desc_status)"),
+    sort: Optional[str] = Query(None, description="Sort order (created_desc, created_asc, artist_asc, artist_desc, album_asc, album_desc, rating_desc, rating_asc, year_desc, year_asc, rated_desc, rating_desc_status)"),
     search: Optional[str] = Query(None, description="Search query for album title or artist name"),
     artist_id: Optional[int] = Query(None, description="Filter by artist ID"),
     year: Optional[int] = Query(None, description="Filter by release year"),
@@ -528,6 +528,23 @@ async def get_user_albums(
     - rating_desc_status: By rating score desc with in-progress albums first
     """
     try:
+        # Get user settings for default sort if not provided
+        from ..models import UserSettings
+        settings = db.query(UserSettings).filter(UserSettings.user_id == 1).first()
+        
+        if sort is None:
+            if settings and settings.default_sort_order:
+                # Map settings sort names to API sort names
+                sort_mapping = {
+                    'score_desc': 'rating_desc',  # Score (High to Low) -> rating_desc
+                    'score_asc': 'rating_asc',    # Score (Low to High) -> rating_asc
+                    'name_asc': 'album_asc',       # Name (A-Z) -> album_asc
+                    'name_desc': 'album_desc'      # Name (Z-A) -> album_desc
+                }
+                sort = sort_mapping.get(settings.default_sort_order, settings.default_sort_order)
+            else:
+                sort = 'created_desc'
+        
         logger.info(f"Getting user albums: limit={limit}, offset={offset}, rated={rated}, sort={sort}, search={search}, artist_id={artist_id}, year={year}")
 
         result = service.get_user_albums(db, limit, offset, rated, sort, search, artist_id, year)

@@ -1,0 +1,401 @@
+{% extends "base.html" %}
+
+{% block title %}Settings - Tracklist{% endblock %}
+
+{% block nav_settings %}text-blue-600 border-b-2 border-blue-600{% endblock %}
+
+{% block head %}
+<!-- Alpine.js Collapse Plugin for smooth animations -->
+<script src="https://unpkg.com/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
+<script>
+    function showNotification(message, type = 'success') {
+        const container = document.getElementById('notification-container');
+        const notification = document.createElement('div');
+        const bgColor = type === 'success' ? 'bg-green-500' : 'bg-red-500';
+        
+        notification.className = `${bgColor} text-white px-4 py-3 rounded shadow-lg transition-opacity duration-500`;
+        notification.textContent = message;
+        
+        container.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            setTimeout(() => notification.remove(), 500);
+        }, 3000);
+    }
+
+    async function updateSettings(section) {
+        const form = document.getElementById(`${section}-form`);
+        const formData = new FormData(form);
+        const data = {};
+        
+        // Convert form data to object
+        for (let [key, value] of formData.entries()) {
+            // Handle checkboxes
+            if (form.elements[key].type === 'checkbox') {
+                data[key] = form.elements[key].checked;
+            }
+            // Handle numbers
+            else if (form.elements[key].type === 'number') {
+                data[key] = parseInt(value);
+            }
+            // Handle floats (range input)
+            else if (form.elements[key].type === 'range') {
+                data[key] = parseFloat(value);
+            }
+            else {
+                data[key] = value;
+            }
+        }
+        
+        try {
+            const response = await fetch('/api/v1/settings/', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            });
+            
+            if (response.ok) {
+                showNotification(`${section.charAt(0).toUpperCase() + section.slice(1)} settings saved successfully!`);
+                
+                // If theme was changed, apply it immediately
+                if (data.theme) {
+                    document.documentElement.setAttribute('data-theme', data.theme);
+                    localStorage.setItem('theme', data.theme);
+                }
+            } else {
+                const error = await response.json();
+                showNotification(`Error saving settings: ${error.detail}`, 'error');
+            }
+        } catch (error) {
+            showNotification(`Error saving settings: ${error.message}`, 'error');
+        }
+    }
+
+    async function resetToDefaults() {
+        if (!confirm('Are you sure you want to reset all settings to default values?')) {
+            return;
+        }
+        
+        try {
+            const response = await fetch('/api/v1/settings/reset-defaults', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+            
+            if (response.ok) {
+                showNotification('Settings reset to defaults successfully!');
+                // Reload page to show new values
+                setTimeout(() => window.location.reload(), 1500);
+            } else {
+                const error = await response.json();
+                showNotification(`Error resetting settings: ${error.detail}`, 'error');
+            }
+        } catch (error) {
+            showNotification(`Error resetting settings: ${error.message}`, 'error');
+        }
+    }
+
+    // Update slider value display
+    function updateSliderValue(sliderId, displayId) {
+        const slider = document.getElementById(sliderId);
+        const display = document.getElementById(displayId);
+        display.textContent = slider.value;
+        slider.addEventListener('input', () => {
+            display.textContent = slider.value;
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        updateSliderValue('album_bonus', 'album-bonus-value');
+        updateSliderValue('migration_batch_size', 'batch-size-value');
+        updateSliderValue('cache_retention_days', 'retention-days-value');
+        updateSliderValue('cache_max_size_mb', 'cache-size-value');
+    });
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <h1 class="text-3xl font-bold text-gray-900 mb-8">Settings</h1>
+    
+    <!-- General Settings -->
+    <div class="bg-white shadow rounded-lg mb-6">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h2 class="text-xl font-semibold text-gray-900">General Settings</h2>
+            <p class="text-sm text-gray-600 mt-1">Configure basic application preferences</p>
+        </div>
+        <form id="general-form" class="p-6 space-y-6">
+            <!-- Album Bonus -->
+            <div>
+                <label for="album_bonus" class="block text-sm font-medium text-gray-700 mb-2">
+                    Album Bonus Factor
+                    <span class="text-gray-500 font-normal">(0.1 - 0.4)</span>
+                </label>
+                <div class="flex items-center space-x-4">
+                    <input type="range" id="album_bonus" name="album_bonus" 
+                           min="0.1" max="0.4" step="0.01" value="{{ settings.album_bonus }}"
+                           class="flex-1">
+                    <span id="album-bonus-value" class="text-sm font-semibold text-gray-700 w-12">{{ settings.album_bonus }}</span>
+                </div>
+                <p class="text-xs text-gray-500 mt-1">Bonus points added to album scores for cohesiveness</p>
+            </div>
+            
+            <!-- Default Sort Order -->
+            <div>
+                <label for="default_sort_order" class="block text-sm font-medium text-gray-700 mb-2">
+                    Default Sort Order
+                </label>
+                <select id="default_sort_order" name="default_sort_order" 
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="created_desc" {% if settings.default_sort_order == 'created_desc' %}selected{% endif %}>Recently Added</option>
+                    <option value="created_asc" {% if settings.default_sort_order == 'created_asc' %}selected{% endif %}>Oldest First</option>
+                    <option value="rated_desc" {% if settings.default_sort_order == 'rated_desc' %}selected{% endif %}>Recently Rated</option>
+                    <option value="rated_asc" {% if settings.default_sort_order == 'rated_asc' %}selected{% endif %}>Oldest Rated</option>
+                    <option value="name_asc" {% if settings.default_sort_order == 'name_asc' %}selected{% endif %}>Name (A-Z)</option>
+                    <option value="name_desc" {% if settings.default_sort_order == 'name_desc' %}selected{% endif %}>Name (Z-A)</option>
+                    <option value="year_desc" {% if settings.default_sort_order == 'year_desc' %}selected{% endif %}>Year (Newest)</option>
+                    <option value="year_asc" {% if settings.default_sort_order == 'year_asc' %}selected{% endif %}>Year (Oldest)</option>
+                    <option value="score_desc" {% if settings.default_sort_order == 'score_desc' %}selected{% endif %}>Score (High to Low)</option>
+                    <option value="score_asc" {% if settings.default_sort_order == 'score_asc' %}selected{% endif %}>Score (Low to High)</option>
+                </select>
+            </div>
+            
+            <div class="flex justify-end">
+                <button type="button" onclick="updateSettings('general')" 
+                        class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    Save General Settings
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Display Settings -->
+    <div class="bg-white shadow rounded-lg mb-6">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h2 class="text-xl font-semibold text-gray-900">Display Settings</h2>
+            <p class="text-sm text-gray-600 mt-1">Customize the appearance and display options</p>
+        </div>
+        <form id="display-form" class="p-6 space-y-6">
+            <!-- Theme (Disabled - Dark mode not implemented) -->
+            <div class="opacity-50">
+                <label for="theme" class="block text-sm font-medium text-gray-700 mb-2">
+                    Theme
+                    <span class="text-gray-500 font-normal">(Coming Soon)</span>
+                </label>
+                <select id="theme" name="theme" disabled
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed">
+                    <option value="light" selected>Light</option>
+                    <option value="dark">Dark</option>
+                </select>
+                <p class="text-xs text-gray-500 mt-1">Dark mode is not yet implemented</p>
+            </div>
+            
+            <!-- Date Format -->
+            <div>
+                <label for="date_format" class="block text-sm font-medium text-gray-700 mb-2">
+                    Date Format
+                </label>
+                <select id="date_format" name="date_format" 
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="YYYY-MM-DD" {% if settings.date_format == 'YYYY-MM-DD' %}selected{% endif %}>YYYY-MM-DD (2025-01-15)</option>
+                    <option value="MM/DD/YYYY" {% if settings.date_format == 'MM/DD/YYYY' %}selected{% endif %}>MM/DD/YYYY (01/15/2025)</option>
+                    <option value="DD/MM/YYYY" {% if settings.date_format == 'DD/MM/YYYY' %}selected{% endif %}>DD/MM/YYYY (15/01/2025)</option>
+                </select>
+            </div>
+            
+            <div class="flex justify-end">
+                <button type="button" onclick="updateSettings('display')" 
+                        class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    Save Display Settings
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Automation Settings -->
+    <div class="bg-white shadow rounded-lg mb-6" x-data="{ open: false }">
+        <div class="px-6 py-4 border-b border-gray-200 cursor-pointer" @click="open = !open">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-xl font-semibold text-gray-900">Automation Settings</h2>
+                    <p class="text-sm text-gray-600 mt-1">Configure automatic tasks and background processes</p>
+                </div>
+                <svg :class="{'rotate-180': open}" class="w-5 h-5 text-gray-500 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+            </div>
+        </div>
+        <form id="automation-form" class="p-6 space-y-6" x-show="open" x-collapse>
+            <!-- Auto Cache Artwork -->
+            <div class="flex items-center justify-between">
+                <div>
+                    <label for="auto_cache_artwork" class="text-sm font-medium text-gray-700">
+                        Auto-Cache Artwork
+                    </label>
+                    <p class="text-xs text-gray-500">Automatically download and cache album artwork</p>
+                </div>
+                <input type="checkbox" id="auto_cache_artwork" name="auto_cache_artwork" 
+                       {% if settings.auto_cache_artwork %}checked{% endif %}
+                       class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
+            </div>
+            
+            <!-- Auto Migrate Artwork -->
+            <div class="flex items-center justify-between">
+                <div>
+                    <label for="auto_migrate_artwork" class="text-sm font-medium text-gray-700">
+                        Auto-Migrate Artwork
+                    </label>
+                    <p class="text-xs text-gray-500">Automatically migrate artwork on album creation</p>
+                </div>
+                <input type="checkbox" id="auto_migrate_artwork" name="auto_migrate_artwork" 
+                       {% if settings.auto_migrate_artwork %}checked{% endif %}
+                       class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
+            </div>
+            
+            <!-- Migration Batch Size -->
+            <div>
+                <label for="migration_batch_size" class="block text-sm font-medium text-gray-700 mb-2">
+                    Migration Batch Size
+                    <span class="text-gray-500 font-normal">(1 - 50)</span>
+                </label>
+                <div class="flex items-center space-x-4">
+                    <input type="range" id="migration_batch_size" name="migration_batch_size" 
+                           min="1" max="50" step="1" value="{{ settings.migration_batch_size }}"
+                           class="flex-1">
+                    <span id="batch-size-value" class="text-sm font-semibold text-gray-700 w-12">{{ settings.migration_batch_size }}</span>
+                </div>
+                <p class="text-xs text-gray-500 mt-1">Number of albums to process in each batch</p>
+            </div>
+            
+            <div class="flex justify-end">
+                <button type="button" onclick="updateSettings('automation')" 
+                        class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    Save Automation Settings
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Storage & Cleanup Settings -->
+    <div class="bg-white shadow rounded-lg mb-6" x-data="{ open: false }">
+        <div class="px-6 py-4 border-b border-gray-200 cursor-pointer" @click="open = !open">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-xl font-semibold text-gray-900">Storage & Cleanup</h2>
+                    <p class="text-sm text-gray-600 mt-1">Manage cache storage and cleanup policies</p>
+                </div>
+                <svg :class="{'rotate-180': open}" class="w-5 h-5 text-gray-500 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+            </div>
+        </div>
+        <form id="storage-form" class="p-6 space-y-6" x-show="open" x-collapse>
+            <!-- Cache Retention Days -->
+            <div>
+                <label for="cache_retention_days" class="block text-sm font-medium text-gray-700 mb-2">
+                    Cache Retention Days
+                    <span class="text-gray-500 font-normal">(7 - 3650)</span>
+                </label>
+                <div class="flex items-center space-x-4">
+                    <input type="range" id="cache_retention_days" name="cache_retention_days" 
+                           min="7" max="3650" step="1" value="{{ settings.cache_retention_days }}"
+                           class="flex-1">
+                    <span id="retention-days-value" class="text-sm font-semibold text-gray-700 w-16">{{ settings.cache_retention_days }}</span>
+                </div>
+                <p class="text-xs text-gray-500 mt-1">Days to keep cached artwork before cleanup</p>
+            </div>
+            
+            <!-- Max Cache Size -->
+            <div>
+                <label for="cache_max_size_mb" class="block text-sm font-medium text-gray-700 mb-2">
+                    Max Cache Size (MB)
+                    <span class="text-gray-500 font-normal">(100 - 100000)</span>
+                </label>
+                <div class="flex items-center space-x-4">
+                    <input type="range" id="cache_max_size_mb" name="cache_max_size_mb" 
+                           min="100" max="100000" step="100" value="{{ settings.cache_max_size_mb }}"
+                           class="flex-1">
+                    <span id="cache-size-value" class="text-sm font-semibold text-gray-700 w-20">{{ settings.cache_max_size_mb }}</span>
+                </div>
+                <p class="text-xs text-gray-500 mt-1">Maximum size of the artwork cache in megabytes</p>
+            </div>
+            
+            <!-- Cache Cleanup Enabled -->
+            <div class="flex items-center justify-between">
+                <div>
+                    <label for="cache_cleanup_enabled" class="text-sm font-medium text-gray-700">
+                        Enable Automatic Cleanup
+                    </label>
+                    <p class="text-xs text-gray-500">Run cache cleanup automatically on schedule</p>
+                </div>
+                <input type="checkbox" id="cache_cleanup_enabled" name="cache_cleanup_enabled" 
+                       {% if settings.cache_cleanup_enabled %}checked{% endif %}
+                       class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
+            </div>
+            
+            <!-- Cleanup Schedule -->
+            <div>
+                <label for="cache_cleanup_schedule" class="block text-sm font-medium text-gray-700 mb-2">
+                    Cleanup Schedule
+                </label>
+                <select id="cache_cleanup_schedule" name="cache_cleanup_schedule" 
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="daily" {% if settings.cache_cleanup_schedule == 'daily' %}selected{% endif %}>Daily</option>
+                    <option value="weekly" {% if settings.cache_cleanup_schedule == 'weekly' %}selected{% endif %}>Weekly</option>
+                    <option value="monthly" {% if settings.cache_cleanup_schedule == 'monthly' %}selected{% endif %}>Monthly</option>
+                </select>
+            </div>
+            
+            <!-- Cleanup Time -->
+            <div>
+                <label for="cache_cleanup_time" class="block text-sm font-medium text-gray-700 mb-2">
+                    Cleanup Time (24-hour format)
+                </label>
+                <input type="time" id="cache_cleanup_time" name="cache_cleanup_time" 
+                       value="{{ settings.cache_cleanup_time }}"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <p class="text-xs text-gray-500 mt-1">Time of day to run cleanup (e.g., 03:00 for 3 AM)</p>
+            </div>
+            
+            <div class="flex justify-end">
+                <button type="button" onclick="updateSettings('storage')" 
+                        class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    Save Storage Settings
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Advanced Actions -->
+    <div class="bg-white shadow rounded-lg" x-data="{ open: false }">
+        <div class="px-6 py-4 border-b border-gray-200 cursor-pointer" @click="open = !open">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-xl font-semibold text-gray-900">Advanced</h2>
+                    <p class="text-sm text-gray-600 mt-1">Advanced settings and actions</p>
+                </div>
+                <svg :class="{'rotate-180': open}" class="w-5 h-5 text-gray-500 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+            </div>
+        </div>
+        <div class="p-6" x-show="open" x-collapse>
+            <div class="space-y-4">
+                <div>
+                    <h3 class="text-sm font-medium text-gray-700 mb-2">Reset to Defaults</h3>
+                    <p class="text-xs text-gray-500 mb-3">Reset all settings to their default values</p>
+                    <button type="button" onclick="resetToDefaults()" 
+                            class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500">
+                        Reset All Settings
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

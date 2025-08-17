@@ -30,24 +30,33 @@ class ScheduledTaskManager:
         self.config = self._load_config()
 
     def _load_config(self) -> Dict[str, Any]:
-        """Load scheduled tasks configuration from environment variables"""
+        """Load scheduled tasks configuration from database or environment variables"""
+        from .settings_service import get_settings_service
+        from ..database import get_db
         import os
-
-        # Default configuration with environment variable overrides
-        default_config = {
-            "cache_cleanup": {
-                "enabled": os.getenv("CACHE_CLEANUP_ENABLED", "true").lower() == "true",
-                "schedule": os.getenv("CACHE_CLEANUP_SCHEDULE", "daily"),
-                "time": os.getenv("CACHE_CLEANUP_TIME", "03:00"),  # 3 AM
-                "retention_days": int(os.getenv("CACHE_RETENTION_DAYS", "365")),
-                "max_cache_size_mb": int(os.getenv("CACHE_MAX_SIZE_MB", "5000")),  # 5 GB
-                "dry_run": os.getenv("CACHE_CLEANUP_DRY_RUN", "false").lower() == "true"
-            },
-            "memory_cache_clear": {
-                "enabled": os.getenv("MEMORY_CACHE_CLEAR_ENABLED", "true").lower() == "true",
-                "schedule": os.getenv("MEMORY_CACHE_CLEAR_SCHEDULE", "weekly"),
-                "day": os.getenv("MEMORY_CACHE_CLEAR_DAY", "sunday"),
-                "time": os.getenv("MEMORY_CACHE_CLEAR_TIME", "04:00")
+        
+        # Try to get database session
+        try:
+            db = next(get_db())
+            settings_service = get_settings_service()
+            
+            # Get cache config from settings service (will check DB first, then env)
+            cache_config = settings_service.get_cache_config(db)
+            
+            default_config = {
+                "cache_cleanup": {
+                    "enabled": cache_config['cleanup_enabled'],
+                    "schedule": cache_config['cleanup_schedule'],
+                    "time": cache_config['cleanup_time'],
+                    "retention_days": cache_config['retention_days'],
+                    "max_cache_size_mb": cache_config['max_size_mb'],
+                    "dry_run": os.getenv("CACHE_CLEANUP_DRY_RUN", "false").lower() == "true"
+                },
+                "memory_cache_clear": {
+                    "enabled": os.getenv("MEMORY_CACHE_CLEAR_ENABLED", "true").lower() == "true",
+                    "schedule": os.getenv("MEMORY_CACHE_CLEAR_SCHEDULE", "weekly"),
+                    "day": os.getenv("MEMORY_CACHE_CLEAR_DAY", "sunday"),
+                    "time": os.getenv("MEMORY_CACHE_CLEAR_TIME", "04:00")
             },
             "reports": {
                 "enabled": os.getenv("REPORTS_ENABLED", "true").lower() == "true",
@@ -65,6 +74,55 @@ class ScheduledTaskManager:
             }
         }
 
+            # Optional: Load from config file if exists (overrides env vars)
+            config_file = Path("config/scheduled_tasks.json")
+            if config_file.exists():
+                try:
+                    with open(config_file, 'r') as f:
+                        loaded_config = json.load(f)
+                        # Merge with defaults
+                        for key in default_config:
+                            if key in loaded_config:
+                                default_config[key].update(loaded_config[key])
+                        logger.info("Loaded scheduled tasks config from file")
+                except Exception as e:
+                    logger.warning(f"Could not load config file, using environment variables: {e}")
+
+            db.close()
+        except Exception as e:
+            logger.warning(f"Could not get database settings, using environment variables: {e}")
+            # Fall back to pure environment variables
+            default_config = {
+                "cache_cleanup": {
+                    "enabled": os.getenv("CACHE_CLEANUP_ENABLED", "true").lower() == "true",
+                    "schedule": os.getenv("CACHE_CLEANUP_SCHEDULE", "daily"),
+                    "time": os.getenv("CACHE_CLEANUP_TIME", "03:00"),
+                    "retention_days": int(os.getenv("CACHE_RETENTION_DAYS", "365")),
+                    "max_cache_size_mb": int(os.getenv("CACHE_MAX_SIZE_MB", "5000")),
+                    "dry_run": os.getenv("CACHE_CLEANUP_DRY_RUN", "false").lower() == "true"
+                },
+                "memory_cache_clear": {
+                    "enabled": os.getenv("MEMORY_CACHE_CLEAR_ENABLED", "true").lower() == "true",
+                    "schedule": os.getenv("MEMORY_CACHE_CLEAR_SCHEDULE", "weekly"),
+                    "day": os.getenv("MEMORY_CACHE_CLEAR_DAY", "sunday"),
+                    "time": os.getenv("MEMORY_CACHE_CLEAR_TIME", "04:00")
+                },
+                "reports": {
+                    "enabled": os.getenv("REPORTS_ENABLED", "true").lower() == "true",
+                    "schedule": os.getenv("REPORTS_SCHEDULE", "weekly"),
+                    "day": os.getenv("REPORTS_DAY", "monday"),
+                    "time": os.getenv("REPORTS_TIME", "09:00")
+                },
+                "integrity_check": {
+                    "enabled": os.getenv("INTEGRITY_CHECK_ENABLED", "true").lower() == "true",
+                    "schedule": os.getenv("INTEGRITY_CHECK_SCHEDULE", "weekly"),
+                    "day": os.getenv("INTEGRITY_CHECK_DAY", "sunday"),
+                    "time": os.getenv("INTEGRITY_CHECK_TIME", "02:00"),
+                    "auto_repair": os.getenv("INTEGRITY_AUTO_REPAIR", "true").lower() == "true",
+                    "quick_check_daily": os.getenv("INTEGRITY_QUICK_CHECK", "true").lower() == "true"
+                }
+            }
+        
         # Optional: Load from config file if exists (overrides env vars)
         config_file = Path("config/scheduled_tasks.json")
         if config_file.exists():
@@ -78,7 +136,7 @@ class ScheduledTaskManager:
                     logger.info("Loaded scheduled tasks config from file")
             except Exception as e:
                 logger.warning(f"Could not load config file, using environment variables: {e}")
-
+        
         return default_config
 
     async def start(self):

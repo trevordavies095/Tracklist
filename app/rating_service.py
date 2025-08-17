@@ -261,9 +261,13 @@ class RatingService:
         rated_tracks = sum(1 for track in tracks if track.track_rating is not None)
         completion_pct = RatingCalculator.get_completion_percentage(total_tracks, rated_tracks)
 
-        # Get projected score
+        # Get current album bonus from user settings
+        settings = db.query(UserSettings).filter(UserSettings.user_id == 1).first()
+        current_album_bonus = settings.album_bonus if settings else album.album_bonus
+
+        # Get projected score using current settings
         track_ratings = [track.track_rating for track in tracks]
-        projected_score = RatingCalculator.get_projected_score(track_ratings, album.album_bonus)
+        projected_score = RatingCalculator.get_projected_score(track_ratings, current_album_bonus)
 
         return {
             "album_id": album_id,
@@ -276,7 +280,7 @@ class RatingService:
             "projected_score": projected_score,
             "is_submitted": album.is_rated,
             "final_score": album.rating_score,
-            "album_bonus": album.album_bonus,
+            "album_bonus": current_album_bonus,
             "notes": album.notes
         }
 
@@ -316,9 +320,13 @@ class RatingService:
                 f"Cannot submit incomplete rating. Unrated tracks: {', '.join(track_numbers)}"
             )
 
-        # Calculate final score
+        # Get current album bonus from user settings
+        settings = db.query(UserSettings).filter(UserSettings.user_id == 1).first()
+        current_album_bonus = settings.album_bonus if settings else album.album_bonus
+
+        # Calculate final score using current settings
         track_ratings = [track.track_rating for track in tracks]
-        final_score = RatingCalculator.calculate_album_score(track_ratings, album.album_bonus)
+        final_score = RatingCalculator.calculate_album_score(track_ratings, current_album_bonus)
 
         # Update album
         album.rating_score = final_score
@@ -451,6 +459,10 @@ class RatingService:
         include_tracks: bool = False
     ) -> Dict[str, Any]:
         """Format album for API response"""
+        # Get current album bonus from user settings
+        settings = db.query(UserSettings).filter(UserSettings.user_id == 1).first()
+        current_album_bonus = settings.album_bonus if settings else album.album_bonus
+        
         response = {
             "id": album.id,
             "musicbrainz_id": album.musicbrainz_id,
@@ -465,7 +477,7 @@ class RatingService:
             "total_tracks": album.total_tracks,
             "total_duration_ms": album.total_duration_ms,
             "cover_art_url": album.cover_art_url,
-            "album_bonus": album.album_bonus,
+            "album_bonus": current_album_bonus,
             "is_rated": album.is_rated,
             "rating_score": album.rating_score,
             "notes": album.notes,

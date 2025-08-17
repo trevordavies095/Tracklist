@@ -35,10 +35,27 @@ async def search_page(request: Request):
 
 
 @router.get("/albums", response_class=HTMLResponse)
-async def albums_page(request: Request):
+async def albums_page(request: Request, db: Session = Depends(get_db)):
     """User's albums library page"""
+    from ..models import UserSettings
+    
+    # Get user settings for default sort
+    settings = db.query(UserSettings).filter(UserSettings.user_id == 1).first()
+    default_sort = 'created_desc'  # fallback
+    
+    if settings and settings.default_sort_order:
+        # Map settings sort names to API sort names
+        sort_mapping = {
+            'score_desc': 'rating_desc',
+            'score_asc': 'rating_asc',
+            'name_asc': 'album_asc',
+            'name_desc': 'album_desc'
+        }
+        default_sort = sort_mapping.get(settings.default_sort_order, settings.default_sort_order)
+    
     return templates.TemplateResponse("albums.html", {
-        "request": request
+        "request": request,
+        "default_sort": default_sort
     })
 
 
@@ -47,6 +64,27 @@ async def stats_page(request: Request):
     """User statistics dashboard page"""
     return templates.TemplateResponse("stats.html", {
         "request": request
+    })
+
+
+@router.get("/settings", response_class=HTMLResponse)
+async def settings_page(request: Request, db: Session = Depends(get_db)):
+    """Application settings page"""
+    from ..models import UserSettings
+    
+    # Get current settings or create defaults
+    settings = db.query(UserSettings).filter(UserSettings.user_id == 1).first()
+    
+    if not settings:
+        # Create default settings
+        settings = UserSettings(user_id=1)
+        db.add(settings)
+        db.commit()
+        db.refresh(settings)
+    
+    return templates.TemplateResponse("settings.html", {
+        "request": request,
+        "settings": settings
     })
 
 
