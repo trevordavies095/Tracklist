@@ -132,6 +132,16 @@ class UserSettings(Base):
         user_id: User identifier (default: 1 for single-user mode)
         album_bonus: Default bonus points for albums
         theme: UI theme preference ('light' or 'dark')
+        auto_migrate_artwork: Auto-migrate artwork on album creation
+        cache_retention_days: Days to retain cached artwork
+        cache_max_size_mb: Maximum cache size in MB
+        cache_cleanup_enabled: Enable automatic cache cleanup
+        cache_cleanup_schedule: Cleanup schedule (daily, weekly, monthly)
+        cache_cleanup_time: Time to run cleanup (HH:MM format)
+        default_sort_order: Default sort order for albums
+        date_format: Date display format
+        auto_cache_artwork: Automatically cache artwork
+        migration_batch_size: Batch size for migrations
         created_at: Settings creation timestamp
         updated_at: Last settings modification timestamp
     """
@@ -141,6 +151,23 @@ class UserSettings(Base):
     user_id = Column(Integer, default=1)
     album_bonus = Column(REAL, default=0.33)
     theme = Column(Text, default='light')
+    
+    # Automation Settings
+    auto_migrate_artwork = Column(Boolean, default=True)
+    auto_cache_artwork = Column(Boolean, default=True)
+    migration_batch_size = Column(Integer, default=10)
+    
+    # Cache & Storage Settings
+    cache_retention_days = Column(Integer, default=365)
+    cache_max_size_mb = Column(Integer, default=5000)
+    cache_cleanup_enabled = Column(Boolean, default=True)
+    cache_cleanup_schedule = Column(Text, default='daily')
+    cache_cleanup_time = Column(Text, default='03:00')
+    
+    # Display Settings
+    default_sort_order = Column(Text, default='created_desc')
+    date_format = Column(Text, default='YYYY-MM-DD')
+    
     created_at = Column(DateTime, default=func.current_timestamp())
     updated_at = Column(DateTime, default=func.current_timestamp(), onupdate=func.current_timestamp())
 

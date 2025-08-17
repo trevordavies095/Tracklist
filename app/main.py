@@ -8,7 +8,7 @@ import asyncio
 from .database import create_tables, init_db
 from .exceptions import TracklistException
 from .logging_config import setup_logging
-from .routers import search, albums, templates, reports
+from .routers import search, albums, templates, reports, settings
 
 # Setup logging
 log_level = os.getenv("LOG_LEVEL", "INFO")
@@ -78,6 +78,7 @@ app.include_router(templates.router)  # Template routes (no prefix)
 app.include_router(search.router)     # API routes
 app.include_router(albums.router)     # API routes
 app.include_router(reports.router)    # API routes for reporting
+app.include_router(settings.router)   # API routes for settings
 
 
 async def auto_migrate_artwork_cache():

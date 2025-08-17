@@ -97,17 +97,17 @@
                         <span class="text-sm text-gray-700">Sort:</span>
                         <select id="sort-select" onchange="handleSortChange()" 
                                 class="border border-gray-300 rounded-md px-3 py-1 text-sm bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                            <option value="created_desc">Date Added (Newest)</option>
-                            <option value="created_asc">Date Added (Oldest)</option>
-                            <option value="artist_asc">Artist A→Z</option>
-                            <option value="artist_desc">Artist Z→A</option>
-                            <option value="album_asc">Album A→Z</option>
-                            <option value="album_desc">Album Z→A</option>
-                            <option value="rating_desc">Rating 100→0</option>
-                            <option value="rating_asc">Rating 0→100</option>
-                            <option value="year_desc">Year (Newest)</option>
-                            <option value="year_asc">Year (Oldest)</option>
-                            <option value="rated_desc">Recently Rated</option>
+                            <option value="created_desc" {% if default_sort == 'created_desc' %}selected{% endif %}>Date Added (Newest)</option>
+                            <option value="created_asc" {% if default_sort == 'created_asc' %}selected{% endif %}>Date Added (Oldest)</option>
+                            <option value="artist_asc" {% if default_sort == 'artist_asc' %}selected{% endif %}>Artist A→Z</option>
+                            <option value="artist_desc" {% if default_sort == 'artist_desc' %}selected{% endif %}>Artist Z→A</option>
+                            <option value="album_asc" {% if default_sort == 'album_asc' %}selected{% endif %}>Album A→Z</option>
+                            <option value="album_desc" {% if default_sort == 'album_desc' %}selected{% endif %}>Album Z→A</option>
+                            <option value="rating_desc" {% if default_sort == 'rating_desc' %}selected{% endif %}>Rating 100→0</option>
+                            <option value="rating_asc" {% if default_sort == 'rating_asc' %}selected{% endif %}>Rating 0→100</option>
+                            <option value="year_desc" {% if default_sort == 'year_desc' %}selected{% endif %}>Year (Newest)</option>
+                            <option value="year_asc" {% if default_sort == 'year_asc' %}selected{% endif %}>Year (Oldest)</option>
+                            <option value="rated_desc" {% if default_sort == 'rated_desc' %}selected{% endif %}>Recently Rated</option>
                         </select>
                     </div>
                     
@@ -572,7 +572,7 @@ function updatePaginationButton(data) {
 }
 
 // Global variables
-let currentSort = 'created_desc'; // Default sort
+let currentSort = '{{ default_sort }}'; // Default sort from user settings
 let currentSearch = ''; // Current search query
 let searchTimeout = null; // Debounce search input
 
