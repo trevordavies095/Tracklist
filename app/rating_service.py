@@ -463,6 +463,10 @@ class RatingService:
         settings = db.query(UserSettings).filter(UserSettings.user_id == 1).first()
         current_album_bonus = settings.album_bonus if settings else album.album_bonus
         
+        # Get cached artwork URL if available
+        from .template_utils import get_artwork_url
+        cached_artwork_url = get_artwork_url(album, size='medium')
+        
         response = {
             "id": album.id,
             "musicbrainz_id": album.musicbrainz_id,
@@ -476,7 +480,7 @@ class RatingService:
             "genre": album.genre,
             "total_tracks": album.total_tracks,
             "total_duration_ms": album.total_duration_ms,
-            "cover_art_url": album.cover_art_url,
+            "cover_art_url": cached_artwork_url,
             "album_bonus": current_album_bonus,
             "is_rated": album.is_rated,
             "rating_score": album.rating_score,
@@ -502,6 +506,10 @@ class RatingService:
 
     def _format_album_summary(self, album: Album) -> Dict[str, Any]:
         """Format album summary for lists"""
+        # Get cached artwork URL if available
+        from .template_utils import get_artwork_url
+        cached_artwork_url = get_artwork_url(album, size='medium')
+        
         return {
             "id": album.id,
             "musicbrainz_id": album.musicbrainz_id,
@@ -509,7 +517,7 @@ class RatingService:
             "artist": album.artist.name,
             "artist_id": album.artist.id,
             "year": album.release_year,
-            "cover_art_url": album.cover_art_url,
+            "cover_art_url": cached_artwork_url,
             "is_rated": album.is_rated,
             "rating_score": album.rating_score,
             "rated_at": album.rated_at.isoformat() if album.rated_at else None

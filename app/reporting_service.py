@@ -186,13 +186,17 @@ class ReportingService:
 
     def _format_album_summary(self, album: Album) -> Dict[str, Any]:
         """Format album data for summary response"""
+        # Get cached artwork URL if available
+        from .template_utils import get_artwork_url
+        cached_artwork_url = get_artwork_url(album, size='medium')
+        
         return {
             "id": album.id,
             "name": album.name,
             "artist": album.artist.name if album.artist else "Unknown Artist",
             "year": album.release_year,
             "score": album.rating_score,
-            "cover_art_url": album.cover_art_url,
+            "cover_art_url": cached_artwork_url,
             "rated_at": album.rated_at.isoformat() if album.rated_at else None
         }
 
@@ -212,12 +216,16 @@ class ReportingService:
             if total_tracks > 0 else 0
         )
 
+        # Get cached artwork URL if available
+        from .template_utils import get_artwork_url
+        cached_artwork_url = get_artwork_url(album, size='medium')
+        
         return {
             "id": album.id,
             "name": album.name,
             "artist": album.artist.name if album.artist else "Unknown Artist",
             "year": album.release_year,
-            "cover_art_url": album.cover_art_url,
+            "cover_art_url": cached_artwork_url,
             "progress": {
                 "rated_tracks": rated_tracks,
                 "total_tracks": total_tracks,
@@ -474,6 +482,10 @@ class ReportingService:
             if track.track_rating is not None
         ]
 
+        # Get cached artwork URL if available
+        from .template_utils import get_artwork_url
+        cached_artwork_url = get_artwork_url(album, size='medium')
+
         return {
             "id": album.id,
             "name": album.name,
@@ -481,7 +493,7 @@ class ReportingService:
             "artist_id": album.artist_id,
             "year": album.release_year,
             "score": album.rating_score,
-            "cover_art_url": album.cover_art_url,
+            "cover_art_url": cached_artwork_url,
             "rated_at": album.rated_at.isoformat() if album.rated_at else None,
             "total_tracks": len(album.tracks),
             "average_track_rating": round(sum(track_ratings) / len(track_ratings), 2) if track_ratings else 0,
@@ -613,6 +625,9 @@ class ReportingService:
                 .all()
             )
 
+            # Get cached artwork URLs if available
+            from .template_utils import get_artwork_url
+            
             result = {
                 "artist_name": top_artist.name,
                 "artist_id": top_artist.id,
@@ -624,7 +639,7 @@ class ReportingService:
                         "name": album.name,
                         "year": album.release_year,
                         "score": album.rating_score,
-                        "cover_art_url": album.cover_art_url,
+                        "cover_art_url": get_artwork_url(album, size='medium'),
                         "rated_at": album.rated_at.isoformat() if album.rated_at else None
                     }
                     for album in top_albums
@@ -798,6 +813,9 @@ class ReportingService:
                     .all()
                 )
 
+                # Get cached artwork URLs if available
+                from .template_utils import get_artwork_url
+                
                 artist_data = {
                     "artist_id": artist_stat.id,
                     "artist_name": artist_stat.name,
@@ -809,7 +827,7 @@ class ReportingService:
                             "name": album.name,
                             "year": album.release_year,
                             "score": album.rating_score,
-                            "cover_art_url": album.cover_art_url
+                            "cover_art_url": get_artwork_url(album, size='medium')
                         }
                         for album in top_albums
                     ],
