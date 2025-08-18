@@ -63,6 +63,7 @@
                 // If theme was changed, apply it immediately
                 if (data.theme) {
                     document.documentElement.setAttribute('data-theme', data.theme);
+                    document.documentElement.classList.toggle('dark', data.theme === 'dark');
                     localStorage.setItem('theme', data.theme);
                 }
             } else {
@@ -164,37 +165,37 @@
 
 {% block content %}
 <div class="max-w-4xl mx-auto">
-    <h1 class="text-3xl font-bold text-gray-900 mb-8">Settings</h1>
+    <h1 class="text-3xl font-bold text-primary mb-8">Settings</h1>
     
     <!-- General Settings -->
-    <div class="bg-white shadow rounded-lg mb-6">
-        <div class="px-6 py-4 border-b border-gray-200">
-            <h2 class="text-xl font-semibold text-gray-900">General Settings</h2>
-            <p class="text-sm text-gray-600 mt-1">Configure basic application preferences</p>
+    <div class="bg-surface shadow rounded-lg mb-6">
+        <div class="px-6 py-4 border-b border-default">
+            <h2 class="text-xl font-semibold text-primary">General Settings</h2>
+            <p class="text-sm text-secondary mt-1">Configure basic application preferences</p>
         </div>
         <form id="general-form" class="p-6 space-y-6">
             <!-- Album Bonus -->
             <div>
-                <label for="album_bonus" class="block text-sm font-medium text-gray-700 mb-2">
+                <label for="album_bonus" class="block text-sm font-medium text-primary mb-2">
                     Album Bonus Factor
-                    <span class="text-gray-500 font-normal">(0.1 - 0.4)</span>
+                    <span class="text-muted font-normal">(0.1 - 0.4)</span>
                 </label>
                 <div class="flex items-center space-x-4">
                     <input type="range" id="album_bonus" name="album_bonus" 
                            min="0.1" max="0.4" step="0.01" value="{{ settings.album_bonus }}"
                            class="flex-1">
-                    <span id="album-bonus-value" class="text-sm font-semibold text-gray-700 w-12">{{ settings.album_bonus }}</span>
+                    <span id="album-bonus-value" class="text-sm font-semibold text-primary w-12">{{ settings.album_bonus }}</span>
                 </div>
-                <p class="text-xs text-gray-500 mt-1">Bonus points added to album scores for cohesiveness</p>
+                <p class="text-xs text-muted mt-1">Bonus points added to album scores for cohesiveness</p>
             </div>
             
             <!-- Default Sort Order -->
             <div>
-                <label for="default_sort_order" class="block text-sm font-medium text-gray-700 mb-2">
+                <label for="default_sort_order" class="block text-sm font-medium text-primary mb-2">
                     Default Sort Order
                 </label>
                 <select id="default_sort_order" name="default_sort_order" 
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        class="w-full px-3 py-2 border border-default bg-surface text-primary rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="created_desc" {% if settings.default_sort_order == 'created_desc' %}selected{% endif %}>Recently Added</option>
                     <option value="created_asc" {% if settings.default_sort_order == 'created_asc' %}selected{% endif %}>Oldest First</option>
                     <option value="rated_desc" {% if settings.default_sort_order == 'rated_desc' %}selected{% endif %}>Recently Rated</option>
@@ -218,33 +219,32 @@
     </div>
     
     <!-- Display Settings -->
-    <div class="bg-white shadow rounded-lg mb-6">
-        <div class="px-6 py-4 border-b border-gray-200">
-            <h2 class="text-xl font-semibold text-gray-900">Display Settings</h2>
-            <p class="text-sm text-gray-600 mt-1">Customize the appearance and display options</p>
+    <div class="bg-surface shadow rounded-lg mb-6">
+        <div class="px-6 py-4 border-b border-default">
+            <h2 class="text-xl font-semibold text-primary">Display Settings</h2>
+            <p class="text-sm text-secondary mt-1">Customize the appearance and display options</p>
         </div>
         <form id="display-form" class="p-6 space-y-6">
-            <!-- Theme (Disabled - Dark mode not implemented) -->
-            <div class="opacity-50">
-                <label for="theme" class="block text-sm font-medium text-gray-700 mb-2">
+            <!-- Theme -->
+            <div>
+                <label for="theme" class="block text-sm font-medium text-primary mb-2">
                     Theme
-                    <span class="text-gray-500 font-normal">(Coming Soon)</span>
                 </label>
-                <select id="theme" name="theme" disabled
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed">
-                    <option value="light" selected>Light</option>
-                    <option value="dark">Dark</option>
+                <select id="theme" name="theme"
+                        class="w-full px-3 py-2 border border-default rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-surface text-primary">
+                    <option value="light" {% if settings.theme == 'light' %}selected{% endif %}>Light</option>
+                    <option value="dark" {% if settings.theme == 'dark' %}selected{% endif %}>Dark</option>
                 </select>
-                <p class="text-xs text-gray-500 mt-1">Dark mode is not yet implemented</p>
+                <p class="text-xs text-muted mt-1">Choose between light and dark mode</p>
             </div>
             
             <!-- Date Format -->
             <div>
-                <label for="date_format" class="block text-sm font-medium text-gray-700 mb-2">
+                <label for="date_format" class="block text-sm font-medium text-primary mb-2">
                     Date Format
                 </label>
                 <select id="date_format" name="date_format" 
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        class="w-full px-3 py-2 border border-default bg-surface text-primary rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="YYYY-MM-DD" {% if settings.date_format == 'YYYY-MM-DD' %}selected{% endif %}>YYYY-MM-DD (2025-01-15)</option>
                     <option value="MM/DD/YYYY" {% if settings.date_format == 'MM/DD/YYYY' %}selected{% endif %}>MM/DD/YYYY (01/15/2025)</option>
                     <option value="DD/MM/YYYY" {% if settings.date_format == 'DD/MM/YYYY' %}selected{% endif %}>DD/MM/YYYY (15/01/2025)</option>
@@ -261,14 +261,14 @@
     </div>
     
     <!-- Automation Settings -->
-    <div class="bg-white shadow rounded-lg mb-6" x-data="{ open: false }">
-        <div class="px-6 py-4 border-b border-gray-200 cursor-pointer" @click="open = !open">
+    <div class="bg-surface shadow rounded-lg mb-6" x-data="{ open: false }">
+        <div class="px-6 py-4 border-b border-default cursor-pointer hover:bg-surface-secondary transition-colors" @click="open = !open">
             <div class="flex items-center justify-between">
                 <div>
-                    <h2 class="text-xl font-semibold text-gray-900">Automation Settings</h2>
-                    <p class="text-sm text-gray-600 mt-1">Configure automatic tasks and background processes</p>
+                    <h2 class="text-xl font-semibold text-primary">Automation Settings</h2>
+                    <p class="text-sm text-secondary mt-1">Configure automatic tasks and background processes</p>
                 </div>
-                <svg :class="{'rotate-180': open}" class="w-5 h-5 text-gray-500 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg :class="{'rotate-180': open}" class="w-5 h-5 text-muted transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                 </svg>
             </div>
@@ -277,10 +277,10 @@
             <!-- Auto Cache Artwork -->
             <div class="flex items-center justify-between">
                 <div>
-                    <label for="auto_cache_artwork" class="text-sm font-medium text-gray-700">
+                    <label for="auto_cache_artwork" class="text-sm font-medium text-primary">
                         Auto-Cache Artwork
                     </label>
-                    <p class="text-xs text-gray-500">Automatically download and cache album artwork</p>
+                    <p class="text-xs text-muted">Automatically download and cache album artwork</p>
                 </div>
                 <input type="checkbox" id="auto_cache_artwork" name="auto_cache_artwork" 
                        {% if settings.auto_cache_artwork %}checked{% endif %}
@@ -290,10 +290,10 @@
             <!-- Auto Migrate Artwork -->
             <div class="flex items-center justify-between">
                 <div>
-                    <label for="auto_migrate_artwork" class="text-sm font-medium text-gray-700">
+                    <label for="auto_migrate_artwork" class="text-sm font-medium text-primary">
                         Auto-Migrate Artwork
                     </label>
-                    <p class="text-xs text-gray-500">Automatically migrate artwork on album creation</p>
+                    <p class="text-xs text-muted">Automatically migrate artwork on album creation</p>
                 </div>
                 <input type="checkbox" id="auto_migrate_artwork" name="auto_migrate_artwork" 
                        {% if settings.auto_migrate_artwork %}checked{% endif %}
@@ -302,17 +302,17 @@
             
             <!-- Migration Batch Size -->
             <div>
-                <label for="migration_batch_size" class="block text-sm font-medium text-gray-700 mb-2">
+                <label for="migration_batch_size" class="block text-sm font-medium text-primary mb-2">
                     Migration Batch Size
-                    <span class="text-gray-500 font-normal">(1 - 50)</span>
+                    <span class="text-muted font-normal">(1 - 50)</span>
                 </label>
                 <div class="flex items-center space-x-4">
                     <input type="range" id="migration_batch_size" name="migration_batch_size" 
                            min="1" max="50" step="1" value="{{ settings.migration_batch_size }}"
                            class="flex-1">
-                    <span id="batch-size-value" class="text-sm font-semibold text-gray-700 w-12">{{ settings.migration_batch_size }}</span>
+                    <span id="batch-size-value" class="text-sm font-semibold text-primary w-12">{{ settings.migration_batch_size }}</span>
                 </div>
-                <p class="text-xs text-gray-500 mt-1">Number of albums to process in each batch</p>
+                <p class="text-xs text-muted mt-1">Number of albums to process in each batch</p>
             </div>
             
             <div class="flex justify-end">
@@ -325,14 +325,14 @@
     </div>
     
     <!-- Storage & Cleanup Settings -->
-    <div class="bg-white shadow rounded-lg mb-6" x-data="{ open: false }">
-        <div class="px-6 py-4 border-b border-gray-200 cursor-pointer" @click="open = !open">
+    <div class="bg-surface shadow rounded-lg mb-6" x-data="{ open: false }">
+        <div class="px-6 py-4 border-b border-default cursor-pointer hover:bg-surface-secondary transition-colors" @click="open = !open">
             <div class="flex items-center justify-between">
                 <div>
-                    <h2 class="text-xl font-semibold text-gray-900">Storage & Cleanup</h2>
-                    <p class="text-sm text-gray-600 mt-1">Manage cache storage and cleanup policies</p>
+                    <h2 class="text-xl font-semibold text-primary">Storage & Cleanup</h2>
+                    <p class="text-sm text-secondary mt-1">Manage cache storage and cleanup policies</p>
                 </div>
-                <svg :class="{'rotate-180': open}" class="w-5 h-5 text-gray-500 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg :class="{'rotate-180': open}" class="w-5 h-5 text-muted transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                 </svg>
             </div>
@@ -340,41 +340,41 @@
         <form id="storage-form" class="p-6 space-y-6" x-show="open" x-transition>
             <!-- Cache Retention Days -->
             <div>
-                <label for="cache_retention_days" class="block text-sm font-medium text-gray-700 mb-2">
+                <label for="cache_retention_days" class="block text-sm font-medium text-primary mb-2">
                     Cache Retention Days
-                    <span class="text-gray-500 font-normal">(7 - 3650)</span>
+                    <span class="text-muted font-normal">(7 - 3650)</span>
                 </label>
                 <div class="flex items-center space-x-4">
                     <input type="range" id="cache_retention_days" name="cache_retention_days" 
                            min="7" max="3650" step="1" value="{{ settings.cache_retention_days }}"
                            class="flex-1">
-                    <span id="retention-days-value" class="text-sm font-semibold text-gray-700 w-16">{{ settings.cache_retention_days }}</span>
+                    <span id="retention-days-value" class="text-sm font-semibold text-primary w-16">{{ settings.cache_retention_days }}</span>
                 </div>
-                <p class="text-xs text-gray-500 mt-1">Days to keep cached artwork before cleanup</p>
+                <p class="text-xs text-muted mt-1">Days to keep cached artwork before cleanup</p>
             </div>
             
             <!-- Max Cache Size -->
             <div>
-                <label for="cache_max_size_mb" class="block text-sm font-medium text-gray-700 mb-2">
+                <label for="cache_max_size_mb" class="block text-sm font-medium text-primary mb-2">
                     Max Cache Size (MB)
-                    <span class="text-gray-500 font-normal">(100 - 100000)</span>
+                    <span class="text-muted font-normal">(100 - 100000)</span>
                 </label>
                 <div class="flex items-center space-x-4">
                     <input type="range" id="cache_max_size_mb" name="cache_max_size_mb" 
                            min="100" max="100000" step="100" value="{{ settings.cache_max_size_mb }}"
                            class="flex-1">
-                    <span id="cache-size-value" class="text-sm font-semibold text-gray-700 w-20">{{ settings.cache_max_size_mb }}</span>
+                    <span id="cache-size-value" class="text-sm font-semibold text-primary w-20">{{ settings.cache_max_size_mb }}</span>
                 </div>
-                <p class="text-xs text-gray-500 mt-1">Maximum size of the artwork cache in megabytes</p>
+                <p class="text-xs text-muted mt-1">Maximum size of the artwork cache in megabytes</p>
             </div>
             
             <!-- Cache Cleanup Enabled -->
             <div class="flex items-center justify-between">
                 <div>
-                    <label for="cache_cleanup_enabled" class="text-sm font-medium text-gray-700">
+                    <label for="cache_cleanup_enabled" class="text-sm font-medium text-primary">
                         Enable Automatic Cleanup
                     </label>
-                    <p class="text-xs text-gray-500">Run cache cleanup automatically on schedule</p>
+                    <p class="text-xs text-muted">Run cache cleanup automatically on schedule</p>
                 </div>
                 <input type="checkbox" id="cache_cleanup_enabled" name="cache_cleanup_enabled" 
                        {% if settings.cache_cleanup_enabled %}checked{% endif %}
@@ -383,11 +383,11 @@
             
             <!-- Cleanup Schedule -->
             <div>
-                <label for="cache_cleanup_schedule" class="block text-sm font-medium text-gray-700 mb-2">
+                <label for="cache_cleanup_schedule" class="block text-sm font-medium text-primary mb-2">
                     Cleanup Schedule
                 </label>
                 <select id="cache_cleanup_schedule" name="cache_cleanup_schedule" 
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        class="w-full px-3 py-2 border border-default bg-surface text-primary rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="daily" {% if settings.cache_cleanup_schedule == 'daily' %}selected{% endif %}>Daily</option>
                     <option value="weekly" {% if settings.cache_cleanup_schedule == 'weekly' %}selected{% endif %}>Weekly</option>
                     <option value="monthly" {% if settings.cache_cleanup_schedule == 'monthly' %}selected{% endif %}>Monthly</option>
@@ -396,13 +396,13 @@
             
             <!-- Cleanup Time -->
             <div>
-                <label for="cache_cleanup_time" class="block text-sm font-medium text-gray-700 mb-2">
+                <label for="cache_cleanup_time" class="block text-sm font-medium text-primary mb-2">
                     Cleanup Time (24-hour format)
                 </label>
                 <input type="time" id="cache_cleanup_time" name="cache_cleanup_time" 
                        value="{{ settings.cache_cleanup_time }}"
-                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <p class="text-xs text-gray-500 mt-1">Time of day to run cleanup (e.g., 03:00 for 3 AM)</p>
+                       class="w-full px-3 py-2 border border-default bg-surface text-primary rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <p class="text-xs text-muted mt-1">Time of day to run cleanup (e.g., 03:00 for 3 AM)</p>
             </div>
             
             <div class="flex justify-end">
@@ -415,7 +415,7 @@
     </div>
     
     <!-- Backup & Export -->
-    <div class="bg-white shadow rounded-lg mb-6" x-data="{ 
+    <div class="bg-surface shadow rounded-lg mb-6" x-data="{ 
         open: false, 
         exportStats: null, 
         loading: false,
@@ -432,13 +432,13 @@
             }
         }
     }">
-        <div class="px-6 py-4 border-b border-gray-200 cursor-pointer" @click="open = !open; if(open) { loadStats() }">
+        <div class="px-6 py-4 border-b border-default cursor-pointer hover:bg-surface-secondary transition-colors" @click="open = !open; if(open) { loadStats() }">
             <div class="flex items-center justify-between">
                 <div>
-                    <h2 class="text-xl font-semibold text-gray-900">Export</h2>
-                    <p class="text-sm text-gray-600 mt-1">Create a complete backup of your Tracklist database</p>
+                    <h2 class="text-xl font-semibold text-primary">Export</h2>
+                    <p class="text-sm text-secondary mt-1">Create a complete backup of your Tracklist database</p>
                 </div>
-                <svg :class="{'rotate-180': open}" class="w-5 h-5 text-gray-500 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg :class="{'rotate-180': open}" class="w-5 h-5 text-muted transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                 </svg>
             </div>
@@ -454,31 +454,31 @@
             
             <div x-show="!loading && exportStats" class="space-y-6">
                 <!-- Database Statistics -->
-                <div class="bg-gray-50 rounded-lg p-4">
-                    <h3 class="text-sm font-medium text-gray-700 mb-3">Database Statistics</h3>
+                <div class="bg-background rounded-lg p-4">
+                    <h3 class="text-sm font-medium text-primary mb-3">Database Statistics</h3>
                     <div class="grid grid-cols-2 gap-4 text-sm">
                         <div>
-                            <span class="text-gray-600">Total Artists:</span>
+                            <span class="text-secondary">Total Artists:</span>
                             <span class="font-semibold ml-2" x-text="exportStats?.total_artists || 0"></span>
                         </div>
                         <div>
-                            <span class="text-gray-600">Total Albums:</span>
+                            <span class="text-secondary">Total Albums:</span>
                             <span class="font-semibold ml-2" x-text="exportStats?.total_albums || 0"></span>
                         </div>
                         <div>
-                            <span class="text-gray-600">Rated Albums:</span>
+                            <span class="text-secondary">Rated Albums:</span>
                             <span class="font-semibold ml-2 text-green-600" x-text="exportStats?.rated_albums || 0"></span>
                         </div>
                         <div>
-                            <span class="text-gray-600">Total Tracks:</span>
+                            <span class="text-secondary">Total Tracks:</span>
                             <span class="font-semibold ml-2" x-text="exportStats?.total_tracks || 0"></span>
                         </div>
                         <div>
-                            <span class="text-gray-600">Rated Tracks:</span>
+                            <span class="text-secondary">Rated Tracks:</span>
                             <span class="font-semibold ml-2 text-green-600" x-text="exportStats?.rated_tracks || 0"></span>
                         </div>
                         <div>
-                            <span class="text-gray-600">Estimated Size:</span>
+                            <span class="text-secondary">Estimated Size:</span>
                             <span class="font-semibold ml-2" x-text="Math.round(exportStats?.estimated_export_size_kb || 0) + ' KB'"></span>
                         </div>
                     </div>
@@ -486,9 +486,9 @@
                 
                 <!-- Export Description -->
                 <div class="space-y-4">
-                    <h3 class="text-sm font-medium text-gray-700">What's Included</h3>
+                    <h3 class="text-sm font-medium text-primary">What's Included</h3>
                     
-                    <div class="text-sm text-gray-600 space-y-2">
+                    <div class="text-sm text-secondary space-y-2">
                         <div class="flex items-start">
                             <svg class="w-5 h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
@@ -538,8 +538,8 @@
                         </button>
                     </div>
                     
-                    <div class="text-xs text-gray-500 space-y-1 bg-blue-50 p-3 rounded-md">
-                        <p class="font-semibold text-blue-900">Use this backup to:</p>
+                    <div class="text-xs text-muted space-y-1 bg-blue-50 dark:bg-blue-950/30 p-3 rounded-md">
+                        <p class="font-semibold text-blue-900 dark:text-blue-400">Use this backup to:</p>
                         <p>• Restore your collection after reinstalling Tracklist</p>
                         <p>• Move your data to another server or computer</p>
                         <p>• Share your music ratings with friends</p>
@@ -551,14 +551,14 @@
     </div>
     
     <!-- Advanced Actions -->
-    <div class="bg-white shadow rounded-lg" x-data="{ open: false }">
-        <div class="px-6 py-4 border-b border-gray-200 cursor-pointer" @click="open = !open">
+    <div class="bg-surface shadow rounded-lg" x-data="{ open: false }">
+        <div class="px-6 py-4 border-b border-default cursor-pointer hover:bg-surface-secondary transition-colors" @click="open = !open">
             <div class="flex items-center justify-between">
                 <div>
-                    <h2 class="text-xl font-semibold text-gray-900">Advanced</h2>
-                    <p class="text-sm text-gray-600 mt-1">Advanced settings and actions</p>
+                    <h2 class="text-xl font-semibold text-primary">Advanced</h2>
+                    <p class="text-sm text-secondary mt-1">Advanced settings and actions</p>
                 </div>
-                <svg :class="{'rotate-180': open}" class="w-5 h-5 text-gray-500 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg :class="{'rotate-180': open}" class="w-5 h-5 text-muted transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                 </svg>
             </div>
@@ -566,8 +566,8 @@
         <div class="p-6" x-show="open" x-transition>
             <div class="space-y-4">
                 <div>
-                    <h3 class="text-sm font-medium text-gray-700 mb-2">Reset to Defaults</h3>
-                    <p class="text-xs text-gray-500 mb-3">Reset all settings to their default values</p>
+                    <h3 class="text-sm font-medium text-primary mb-2">Reset to Defaults</h3>
+                    <p class="text-xs text-muted mb-3">Reset all settings to their default values</p>
                     <button type="button" onclick="resetToDefaults()" 
                             class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500">
                         Reset All Settings

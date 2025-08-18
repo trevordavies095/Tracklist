@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full">
+<html lang="en" class="h-full" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,17 +15,30 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Tracklist">
     
+    <!-- CSS Variables for Theming -->
+    <link rel="stylesheet" href="/static/css/variables.css">
+    
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
-                        'rating-skip': '#ef4444',      // Red - Skip (0.0)
-                        'rating-filler': '#f59e0b',    // Orange/Yellow - Filler (0.33)
-                        'rating-good': '#22c55e',      // Light Green - Good (0.67)
-                        'rating-standout': '#15803d',  // Dark Green - Standout (1.0)
+                        'rating-skip': 'rgb(var(--color-rating-skip) / <alpha-value>)',
+                        'rating-filler': 'rgb(var(--color-rating-filler) / <alpha-value>)',
+                        'rating-good': 'rgb(var(--color-rating-good) / <alpha-value>)',
+                        'rating-standout': 'rgb(var(--color-rating-standout) / <alpha-value>)',
+                        'background': 'rgb(var(--color-background) / <alpha-value>)',
+                        'surface': 'rgb(var(--color-surface) / <alpha-value>)',
+                        'surface-secondary': 'rgb(var(--color-surface-secondary) / <alpha-value>)',
+                        'surface-hover': 'rgb(var(--color-surface-hover) / <alpha-value>)',
+                        'primary': 'rgb(var(--color-text-primary) / <alpha-value>)',
+                        'secondary': 'rgb(var(--color-text-secondary) / <alpha-value>)',
+                        'muted': 'rgb(var(--color-text-muted) / <alpha-value>)',
+                        'border': 'rgb(var(--color-border) / <alpha-value>)',
+                        'border-subtle': 'rgb(var(--color-border-subtle) / <alpha-value>)',
                     }
                 }
             }
@@ -37,6 +50,21 @@
     
     <!-- Alpine.js -->
     <script defer src="https://unpkg.com/alpinejs@3.14.1/dist/cdn.min.js"></script>
+    
+    <!-- Theme Manager -->
+    <script>
+        // Theme management
+        (function() {
+            // Get saved theme or default to system preference
+            const savedTheme = localStorage.getItem('theme');
+            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const theme = savedTheme || (systemPrefersDark ? 'dark' : 'light');
+            
+            // Apply theme immediately to prevent flash
+            document.documentElement.setAttribute('data-theme', theme);
+            document.documentElement.classList.toggle('dark', theme === 'dark');
+        })();
+    </script>
     
     <!-- Custom JavaScript Components -->
     <script src="/static/js/components.js"></script>
@@ -54,7 +82,7 @@
     
     {% block head %}{% endblock %}
 </head>
-<body class="h-full flex flex-col bg-gray-50">
+<body class="h-full flex flex-col bg-background text-primary transition-colors duration-200">
     <noscript>
         <style>
             /* Show all images immediately when JS is disabled */
@@ -63,32 +91,32 @@
         </style>
     </noscript>
     <!-- Navigation Header -->
-    <header class="bg-white shadow-sm border-b border-gray-200">
+    <header class="bg-surface shadow-sm border-b border-border transition-colors duration-200">
         <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
                 <!-- Logo / Brand -->
                 <div class="flex-shrink-0">
                     <a href="/" class="flex items-center">
-                        <img src="/static/img/logo.png" alt="Tracklist" class="h-10 w-auto">
+                        <img src="/static/img/logo.png" alt="Tracklist" class="h-10 w-auto dark:invert dark:brightness-90">
                     </a>
                 </div>
                 
                 <!-- Navigation Links -->
                 <div class="hidden md:block">
                     <div class="ml-10 flex items-center space-x-4">
-                        <a href="/" class="{% block nav_home %}text-gray-500 hover:text-gray-900{% endblock %} px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                        <a href="/" class="{% block nav_home %}text-secondary hover:text-primary{% endblock %} px-3 py-2 rounded-md text-sm font-medium transition-colors">
                             Dashboard
                         </a>
-                        <a href="/search" class="{% block nav_search %}text-gray-500 hover:text-gray-900{% endblock %} px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                        <a href="/search" class="{% block nav_search %}text-secondary hover:text-primary{% endblock %} px-3 py-2 rounded-md text-sm font-medium transition-colors">
                             Search Albums
                         </a>
-                        <a href="/albums" class="{% block nav_albums %}text-gray-500 hover:text-gray-900{% endblock %} px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                        <a href="/albums" class="{% block nav_albums %}text-secondary hover:text-primary{% endblock %} px-3 py-2 rounded-md text-sm font-medium transition-colors">
                             My Albums
                         </a>
-                        <a href="/stats" class="{% block nav_stats %}text-gray-500 hover:text-gray-900{% endblock %} px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                        <a href="/stats" class="{% block nav_stats %}text-secondary hover:text-primary{% endblock %} px-3 py-2 rounded-md text-sm font-medium transition-colors">
                             Statistics
                         </a>
-                        <a href="/settings" class="{% block nav_settings %}text-gray-500 hover:text-gray-900{% endblock %} px-3 py-2 rounded-md text-sm font-medium transition-colors" title="Settings">
+                        <a href="/settings" class="{% block nav_settings %}text-secondary hover:text-primary{% endblock %} px-3 py-2 rounded-md text-sm font-medium transition-colors" title="Settings">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
@@ -99,7 +127,8 @@
                 
                 <!-- Mobile menu button -->
                 <div class="md:hidden" x-data="{ open: false }">
-                    <button @click="open = !open" class="text-gray-500 hover:text-gray-900 focus:outline-none focus:text-gray-900">
+                    
+                    <button @click="open = !open" class="text-secondary hover:text-primary focus:outline-none focus:text-primary">
                         <svg class="h-6 w-6 fill-current" viewBox="0 0 24 24">
                             <path x-show="!open" d="M4 6h16M4 12h16M4 18h16"></path>
                             <path x-show="open" d="M6 18L18 6M6 6l12 12"></path>
@@ -114,12 +143,12 @@
                          x-transition:leave="transition ease-in duration-75"
                          x-transition:leave-start="transform opacity-100 scale-100"
                          x-transition:leave-end="transform opacity-0 scale-95"
-                         class="absolute top-16 right-0 mt-2 w-56 bg-white rounded-md shadow-lg py-1 z-50 mr-4">
-                        <a href="/" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Dashboard</a>
-                        <a href="/search" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Search Albums</a>
-                        <a href="/albums" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">My Albums</a>
-                        <a href="/stats" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Statistics</a>
-                        <a href="/settings" class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                         class="absolute top-16 right-0 mt-2 w-56 bg-surface rounded-md shadow-lg py-1 z-50 mr-4 border border-border">
+                        <a href="/" class="block px-4 py-2 text-sm text-primary hover:bg-surface-hover">Dashboard</a>
+                        <a href="/search" class="block px-4 py-2 text-sm text-primary hover:bg-surface-hover">Search Albums</a>
+                        <a href="/albums" class="block px-4 py-2 text-sm text-primary hover:bg-surface-hover">My Albums</a>
+                        <a href="/stats" class="block px-4 py-2 text-sm text-primary hover:bg-surface-hover">Statistics</a>
+                        <a href="/settings" class="flex items-center px-4 py-2 text-sm text-primary hover:bg-surface-hover">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
@@ -149,15 +178,15 @@
     </div>
     
     <!-- Footer -->
-    <footer class="bg-white border-t border-gray-200 py-8">
+    <footer class="bg-surface border-t border-border py-8 transition-colors duration-200">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center">
-                <div class="text-sm text-gray-500">
+                <div class="text-sm text-muted">
                     2025 Tracklist - Self-hostable Album Rating System
                 </div>
                 <div class="flex space-x-4">
-                    <a href="/api/v1/docs" class="text-sm text-gray-500 hover:text-gray-900">API Docs</a>
-                    <a href="/health" class="text-sm text-gray-500 hover:text-gray-900">Health Check</a>
+                    <a href="/api/v1/docs" class="text-sm text-muted hover:text-primary transition-colors">API Docs</a>
+                    <a href="/health" class="text-sm text-muted hover:text-primary transition-colors">Health Check</a>
                 </div>
             </div>
         </div>
@@ -175,6 +204,70 @@
     </div>
     
     {% block scripts %}{% endblock %}
+    
+    <!-- Theme Toggle Component -->
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('themeToggle', () => ({
+                theme: localStorage.getItem('theme') || 'light',
+                
+                init() {
+                    // Apply saved theme
+                    this.applyTheme();
+                    
+                    // Listen for system preference changes
+                    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+                        if (!localStorage.getItem('theme')) {
+                            this.theme = e.matches ? 'dark' : 'light';
+                            this.applyTheme();
+                        }
+                    });
+                },
+                
+                toggle() {
+                    this.theme = this.theme === 'light' ? 'dark' : 'light';
+                    this.applyTheme();
+                    this.savePreference();
+                },
+                
+                applyTheme() {
+                    // Add transitioning class to prevent flash
+                    document.documentElement.classList.add('theme-transitioning');
+                    
+                    // Apply theme
+                    document.documentElement.setAttribute('data-theme', this.theme);
+                    document.documentElement.classList.toggle('dark', this.theme === 'dark');
+                    
+                    // Remove transitioning class after a short delay
+                    setTimeout(() => {
+                        document.documentElement.classList.remove('theme-transitioning');
+                    }, 50);
+                },
+                
+                async savePreference() {
+                    // Save to localStorage
+                    localStorage.setItem('theme', this.theme);
+                    
+                    // Save to backend if user is logged in
+                    try {
+                        const response = await fetch('/api/v1/settings/theme', {
+                            method: 'PATCH',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ theme: this.theme })
+                        });
+                        
+                        if (response.ok) {
+                            showNotification('Theme preference saved', 'success');
+                        }
+                    } catch (error) {
+                        console.error('Failed to save theme preference:', error);
+                    }
+                }
+            }))
+        });
+    </script>
     
     <!-- Global Notification System -->
     <script>

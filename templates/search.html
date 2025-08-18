@@ -8,21 +8,21 @@
 <div class="max-w-4xl mx-auto">
     <!-- Page Header -->
     <div class="text-center mb-8">
-        <h1 class="text-3xl font-bold text-gray-900 mb-4">Find Albums to Rate</h1>
-        <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+        <h1 class="text-3xl font-bold text-primary mb-4">Find Albums to Rate</h1>
+        <p class="text-lg text-secondary max-w-2xl mx-auto">
             Search for albums from the MusicBrainz database and start rating them track by track.
         </p>
     </div>
     
     <!-- Search Form -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+    <div class="bg-surface rounded-lg shadow-sm border border-default p-6 mb-8">
         <form class="space-y-4"
               x-data="searchForm()"
               @submit.prevent="submitForm($el)">
             
             <!-- General Search Input -->
             <div class="relative">
-                <label for="search-query" class="block text-sm font-medium text-gray-700 mb-2">
+                <label for="search-query" class="block text-sm font-medium text-primary mb-2">
                     General Search
                 </label>
                 <div class="relative">
@@ -31,54 +31,54 @@
                            name="q" 
                            x-model="query"
                            @keyup.debounce.500ms="if (query && !usingAdvanced()) { submitForm($el.form) }"
-                           class="search-input block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                           class="search-input block w-full pl-10 pr-3 py-3 border border-default rounded-md leading-5 bg-surface text-primary placeholder-muted focus:outline-none focus:placeholder-secondary focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                            placeholder='Try "OK Computer" or "Radiohead"'
                            autocomplete="off">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="h-5 w-5 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                         </svg>
                     </div>
                 </div>
-                <p class="mt-2 text-sm text-gray-500">
+                <p class="mt-2 text-sm text-muted">
                     Search is powered by MusicBrainz - the open music encyclopedia
                 </p>
             </div>
             
             <!-- Advanced Search Options -->
             <details class="cursor-pointer" x-data="{ open: false }" x-model="open">
-                <summary class="text-sm font-medium text-gray-700 hover:text-gray-900 py-2">
+                <summary class="text-sm font-medium text-primary hover:text-primary py-2">
                     🔧 Advanced Search Options
                 </summary>
-                <div class="mt-4 space-y-4 p-4 bg-gray-50 rounded-lg">
+                <div class="mt-4 space-y-4 p-4 bg-background rounded-lg">
                     <!-- Structured Search Fields -->
-                    <div class="border-b border-gray-200 pb-4">
-                        <h4 class="text-sm font-semibold text-gray-800 mb-3">Structured Search</h4>
+                    <div class="border-b border-default pb-4">
+                        <h4 class="text-sm font-semibold text-primary mb-3">Structured Search</h4>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label for="artist" class="block text-sm font-medium text-gray-700 mb-1">Artist Name</label>
+                                <label for="artist" class="block text-sm font-medium text-primary mb-1">Artist Name</label>
                                 <input type="text" 
                                        name="artist" 
                                        id="artist"
                                        x-model="artist"
                                        @input="clearGeneralIfAdvanced()"
-                                       class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                                       class="block w-full rounded-md border-default bg-surface text-primary placeholder-muted shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                                        placeholder="e.g., Perfume Genius">
                             </div>
                             <div>
-                                <label for="album" class="block text-sm font-medium text-gray-700 mb-1">Album Title</label>
+                                <label for="album" class="block text-sm font-medium text-primary mb-1">Album Title</label>
                                 <input type="text" 
                                        name="album" 
                                        id="album"
                                        x-model="album"
                                        @input="clearGeneralIfAdvanced()"
-                                       class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                                       class="block w-full rounded-md border-default bg-surface text-primary placeholder-muted shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                                        placeholder="e.g., Glory">
                             </div>
                             <div>
-                                <label for="year" class="block text-sm font-medium text-gray-700 mb-1">
+                                <label for="year" class="block text-sm font-medium text-primary mb-1">
                                     Release Year
-                                    <span class="text-xs text-gray-500 font-normal">(optional)</span>
+                                    <span class="text-xs text-muted font-normal">(optional)</span>
                                 </label>
                                 <input type="number" 
                                        name="year" 
@@ -87,22 +87,22 @@
                                        @input="clearGeneralIfAdvanced(); validateYear()"
                                        min="1900"
                                        :max="new Date().getFullYear() + 1"
-                                       class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                                       class="block w-full rounded-md border-default bg-surface text-primary placeholder-muted shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                                        :class="{'border-red-300': yearError}"
                                        placeholder="e.g., 2020">
                                 <p x-show="yearError" x-text="yearError" class="mt-1 text-xs text-red-600"></p>
-                                <p x-show="!yearError" class="mt-1 text-xs text-gray-500">Helps find specific release/reissue</p>
+                                <p x-show="!yearError" class="mt-1 text-xs text-muted">Helps find specific release/reissue</p>
                             </div>
                         </div>
                     </div>
                     
                     <!-- Direct MusicBrainz ID Lookup -->
-                    <div class="border-b border-gray-200 pb-4">
-                        <h4 class="text-sm font-semibold text-gray-800 mb-3">Direct Album Lookup</h4>
+                    <div class="border-b border-default pb-4">
+                        <h4 class="text-sm font-semibold text-primary mb-3">Direct Album Lookup</h4>
                         <div>
-                            <label for="mbid" class="block text-sm font-medium text-gray-700 mb-1">
+                            <label for="mbid" class="block text-sm font-medium text-primary mb-1">
                                 MusicBrainz Release ID
-                                <a href="https://musicbrainz.org" target="_blank" class="text-blue-600 hover:text-blue-700 ml-1">
+                                <a href="https://musicbrainz.org" target="_blank" class="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 ml-1">
                                     <svg class="inline-block w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
                                     </svg>
@@ -113,31 +113,31 @@
                                    id="mbid"
                                    x-model="mbid"
                                    @input="clearOtherFields(); validateMBID()"
-                                   class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 py-2 px-3 text-base md:text-sm"
+                                   class="block w-full rounded-md border-default bg-surface text-primary placeholder-muted shadow-sm focus:border-blue-500 focus:ring-blue-500 py-2 px-3 text-base md:text-sm"
                                    :class="{'border-red-300': mbidError}"
                                    placeholder="e.g., 7f9e8590-5d8f-4234-8b23-5f1234567890"
                                    pattern="[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}">
                             <p x-show="mbidError" x-text="mbidError" class="mt-1 text-xs text-red-600"></p>
-                            <p x-show="!mbidError" class="mt-1 text-xs text-gray-500">36-character UUID for direct album lookup</p>
+                            <p x-show="!mbidError" class="mt-1 text-xs text-muted">36-character UUID for direct album lookup</p>
                         </div>
                     </div>
                     
                     <!-- Search Settings -->
                     <div>
-                        <h4 class="text-sm font-semibold text-gray-800 mb-3">Display Settings</h4>
+                        <h4 class="text-sm font-semibold text-primary mb-3">Display Settings</h4>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                             <div>
-                                <label for="limit" class="block text-sm font-medium text-gray-700 mb-1">Results per page</label>
-                                <select name="limit" id="limit" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 py-2 px-3 text-base md:text-sm">
+                                <label for="limit" class="block text-sm font-medium text-primary mb-1">Results per page</label>
+                                <select name="limit" id="limit" class="block w-full rounded-md border-default bg-surface text-primary shadow-sm focus:border-blue-500 focus:ring-blue-500 py-2 px-3 text-base md:text-sm">
                                     <option value="10">10 results</option>
                                     <option value="25" selected>25 results</option>
                                     <option value="50">50 results</option>
                                 </select>
                             </div>
                             <div>
-                                <label for="offset" class="block text-sm font-medium text-gray-700 mb-1">Start from result</label>
+                                <label for="offset" class="block text-sm font-medium text-primary mb-1">Start from result</label>
                                 <input type="number" name="offset" id="offset" value="0" min="0" step="10"
-                                       class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 py-2 px-3 text-base md:text-sm">
+                                       class="block w-full rounded-md border-default bg-surface text-primary shadow-sm focus:border-blue-500 focus:ring-blue-500 py-2 px-3 text-base md:text-sm">
                             </div>
                         </div>
                     </div>
@@ -148,7 +148,7 @@
             <div class="flex justify-center">
                 <button type="submit" 
                         :disabled="cannotSearch()"
-                        class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors">
+                        class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-muted disabled:cursor-not-allowed transition-colors">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                     </svg>
@@ -161,7 +161,7 @@
     <!-- Search Loading -->
     <div id="search-loading" class="htmx-indicator">
         <div class="text-center py-8">
-            <div class="inline-flex items-center px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg text-blue-800">
+            <div class="inline-flex items-center px-4 py-2 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/50 rounded-lg text-blue-800 dark:text-blue-400">
                 <svg class="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -174,8 +174,8 @@
     <!-- Search Results -->
     <div id="search-results">
         <!-- Results will be loaded here via HTMX -->
-        <div class="text-center py-12 text-gray-500">
-            <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="text-center py-12 text-secondary">
+            <svg class="w-16 h-16 mx-auto mb-4 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
             </svg>
             <p class="text-lg">Start typing to search for albums...</p>
@@ -184,12 +184,12 @@
     </div>
     
     <!-- Search Tips -->
-    <div class="mt-12 bg-gray-50 rounded-lg p-6">
-        <h3 class="text-lg font-semibold text-gray-900 mb-4">💡 Search Tips</h3>
+    <div class="mt-12 bg-background rounded-lg p-6">
+        <h3 class="text-lg font-semibold text-primary mb-4">💡 Search Tips</h3>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-                <h4 class="font-medium text-gray-800 mb-2">What you can search for:</h4>
-                <ul class="text-sm text-gray-600 space-y-1">
+                <h4 class="font-medium text-primary mb-2">What you can search for:</h4>
+                <ul class="text-sm text-secondary space-y-1">
                     <li>• Album titles: "OK Computer", "Abbey Road"</li>
                     <li>• Artist names: "Radiohead", "The Beatles"</li>
                     <li>• Combined: "Radiohead OK Computer"</li>
@@ -197,8 +197,8 @@
                 </ul>
             </div>
             <div>
-                <h4 class="font-medium text-gray-800 mb-2">Getting better results:</h4>
-                <ul class="text-sm text-gray-600 space-y-1">
+                <h4 class="font-medium text-primary mb-2">Getting better results:</h4>
+                <ul class="text-sm text-secondary space-y-1">
                     <li>• Use specific album names when possible</li>
                     <li>• Try different variations if not found</li>
                     <li>• Check spelling and try shorter terms</li>

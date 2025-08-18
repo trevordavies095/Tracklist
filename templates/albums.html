@@ -9,8 +9,8 @@
     <!-- Page Header -->
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
         <div>
-            <h1 class="text-3xl font-bold text-gray-900 mb-2">My Albums</h1>
-            <p class="text-gray-600">Manage your album ratings and track your music journey</p>
+            <h1 class="text-3xl font-bold text-primary mb-2">My Albums</h1>
+            <p class="text-secondary">Manage your album ratings and track your music journey</p>
         </div>
         <div class="mt-4 sm:mt-0 flex gap-3">
             <button onclick="updateCoverArt()" 
@@ -32,26 +32,26 @@
     </div>
     
     <!-- Filters and Search -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+    <div class="bg-surface rounded-lg shadow-sm border border-default p-4 mb-6">
         <div class="flex flex-col space-y-4">
             <!-- Search Bar -->
             <div class="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
                 <div class="flex-1 relative">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="h-4 w-4 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                         </svg>
                     </div>
                     <input type="text" 
                            id="search-input" 
                            placeholder="Search albums by title or artist..." 
-                           class="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                           class="block w-full pl-10 pr-10 py-2 border border-default rounded-md leading-5 bg-surface placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm"
                            oninput="handleSearchInput()"
                            onkeypress="handleSearchKeypress(event)">
                     <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
                         <button id="clear-search" 
                                 onclick="clearSearch()" 
-                                class="h-4 w-4 text-gray-400 hover:text-gray-600 hidden">
+                                class="h-4 w-4 text-muted hover:text-secondary hidden">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                             </svg>
@@ -74,17 +74,17 @@
                 <!-- Filter Tabs -->
                 <div class="flex space-x-1" x-data="{ activeFilter: new URLSearchParams(window.location.search).get('filter') || 'all' }" x-init="$watch('activeFilter', value => loadAlbums(value))">
                     <button @click="activeFilter = 'all'; loadAlbums('all')"
-                            :class="activeFilter === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                            :class="activeFilter === 'all' ? 'bg-blue-600 text-white' : 'bg-surface-secondary text-primary hover:bg-surface-hover'"
                             class="px-4 py-2 rounded-md text-sm font-medium transition-colors">
                         All Albums
                     </button>
                     <button @click="activeFilter = 'completed'; loadAlbums('completed')"
-                            :class="activeFilter === 'completed' ? 'bg-green-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                            :class="activeFilter === 'completed' ? 'bg-green-600 text-white' : 'bg-surface-secondary text-primary hover:bg-surface-hover'"
                             class="px-4 py-2 rounded-md text-sm font-medium transition-colors">
                         Completed
                     </button>
                     <button @click="activeFilter = 'in-progress'; loadAlbums('in-progress')"
-                            :class="activeFilter === 'in-progress' ? 'bg-amber-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                            :class="activeFilter === 'in-progress' ? 'bg-amber-600 text-white' : 'bg-surface-secondary text-primary hover:bg-surface-hover'"
                             class="px-4 py-2 rounded-md text-sm font-medium transition-colors">
                         In Progress
                     </button>
@@ -94,9 +94,9 @@
                 <div class="flex items-center space-x-4">
                     <!-- Sort Dropdown -->
                     <div class="flex items-center space-x-2">
-                        <span class="text-sm text-gray-700">Sort:</span>
+                        <span class="text-sm text-primary">Sort:</span>
                         <select id="sort-select" onchange="handleSortChange()" 
-                                class="border border-gray-300 rounded-md px-3 py-1 text-sm bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                class="border border-default rounded-md px-3 py-1 text-sm bg-surface text-primary focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                             <option value="created_desc" {% if default_sort == 'created_desc' %}selected{% endif %}>Date Added (Newest)</option>
                             <option value="created_asc" {% if default_sort == 'created_asc' %}selected{% endif %}>Date Added (Oldest)</option>
                             <option value="artist_asc" {% if default_sort == 'artist_asc' %}selected{% endif %}>Artist A→Z</option>
@@ -122,7 +122,7 @@
         <!-- Loading State -->
         <div id="albums-loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {% for i in range(6) %}
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div class="bg-surface rounded-lg shadow-sm border border-default p-6">
                 <div class="loading-skeleton h-16 w-16 rounded-lg mb-4"></div>
                 <div class="loading-skeleton h-5 w-full mb-2"></div>
                 <div class="loading-skeleton h-4 w-3/4 mb-4"></div>
@@ -138,11 +138,11 @@
     <!-- Empty State -->
     <div id="empty-state" class="hidden text-center py-12">
         <div class="max-w-sm mx-auto">
-            <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-16 h-16 mx-auto mb-4 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
             </svg>
-            <h3 class="text-lg font-medium text-gray-900 mb-2">No albums yet</h3>
-            <p class="text-gray-600 mb-6">Start building your music library by searching for albums to rate</p>
+            <h3 class="text-lg font-medium text-primary mb-2">No albums yet</h3>
+            <p class="text-secondary mb-6">Start building your music library by searching for albums to rate</p>
             <a href="/search" 
                class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition-colors">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -266,7 +266,7 @@ function renderAlbums(data) {
         if (isMobile) {
             const url = album.is_rated ? `/albums/${album.id}/completed` : `/albums/${album.id}/rate`;
             return `
-                    <a href="${url}" class="block bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md hover:border-gray-300 transition-all duration-200 active:scale-[0.98]">
+                    <a href="${url}" class="block bg-surface rounded-lg shadow-sm border border-default hover:shadow-md hover:border-default transition-all duration-200 active:scale-[0.98]">
                         <div class="flex items-center p-3">
                             <!-- Compact Album Art -->
                             ${album.cover_art_url ? `
@@ -276,14 +276,14 @@ function renderAlbums(data) {
                                          class="w-full h-full object-cover"
                                          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                     <div class="w-12 h-12 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg flex items-center justify-center" style="display:none;">
-                                        <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg class="w-6 h-6 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
                                         </svg>
                                     </div>
                                 </div>
                             ` : `
                                 <div class="w-12 h-12 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg flex items-center justify-center flex-shrink-0">
-                                    <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg class="w-6 h-6 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
                                     </svg>
                                 </div>
@@ -291,9 +291,9 @@ function renderAlbums(data) {
                             
                             <!-- Album Info -->
                             <div class="flex-1 min-w-0 ml-3">
-                                <h3 class="font-semibold text-gray-900 text-sm truncate" title="${album.title}">${album.title}</h3>
-                                <p class="text-xs text-gray-600 truncate mb-1" title="${album.artist}">${album.artist}</p>
-                                ${album.year ? `<p class="text-xs text-gray-500">${album.year}</p>` : ''}
+                                <h3 class="font-semibold text-primary text-sm truncate" title="${album.title}">${album.title}</h3>
+                                <p class="text-xs text-secondary truncate mb-1" title="${album.artist}">${album.artist}</p>
+                                ${album.year ? `<p class="text-xs text-muted">${album.year}</p>` : ''}
                                 
                                 <!-- Status -->
                                 <div class="flex items-center">
@@ -307,7 +307,7 @@ function renderAlbums(data) {
                             </div>
                             
                             <!-- Arrow indicator -->
-                            <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-4 h-4 text-muted flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                             </svg>
                         </div>
@@ -318,7 +318,7 @@ function renderAlbums(data) {
             // Desktop layout (clickable card style)
             const url = album.is_rated ? `/albums/${album.id}/completed` : `/albums/${album.id}/rate`;
             return `
-                <a href="${url}" class="block album-card bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md hover:border-gray-300 transition-all duration-200 hover:-translate-y-1">
+                <a href="${url}" class="block album-card bg-surface rounded-lg shadow-sm border border-default hover:shadow-md hover:border-default transition-all duration-200 hover:-translate-y-1">
                     <div class="p-4">
                         <div class="flex space-x-3 mb-3">
                             <!-- Album Art -->
@@ -329,14 +329,14 @@ function renderAlbums(data) {
                                          class="w-full h-full object-cover"
                                          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                     <div class="w-12 h-12 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg flex items-center justify-center" style="display:none;">
-                                        <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg class="w-6 h-6 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
                                         </svg>
                                     </div>
                                 </div>
                             ` : `
                                 <div class="w-12 h-12 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg flex items-center justify-center flex-shrink-0">
-                                    <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg class="w-6 h-6 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
                                     </svg>
                                 </div>
@@ -344,9 +344,9 @@ function renderAlbums(data) {
                             
                             <!-- Album Info -->
                             <div class="flex-1 min-w-0">
-                                <h3 class="font-semibold text-gray-900 truncate" title="${album.title}">${album.title}</h3>
-                                <p class="text-sm text-gray-600 truncate" title="${album.artist}">${album.artist}</p>
-                                ${album.year ? `<p class="text-xs text-gray-500">${album.year}</p>` : ''}
+                                <h3 class="font-semibold text-primary truncate" title="${album.title}">${album.title}</h3>
+                                <p class="text-sm text-secondary truncate" title="${album.artist}">${album.artist}</p>
+                                ${album.year ? `<p class="text-xs text-muted">${album.year}</p>` : ''}
                             </div>
                         </div>
                         
@@ -354,13 +354,13 @@ function renderAlbums(data) {
                         <div>
                             ${album.is_rated ? `
                                 <div class="flex items-center justify-between">
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-950/40 text-green-800 dark:text-green-400">
                                         ✓ Completed
                                     </span>
                                     <span class="text-lg font-bold ${getScoreColorClass(album.rating_score)}">${album.rating_score}/100</span>
                                 </div>
                             ` : `
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-400">
                                     ⏳ In Progress
                                 </span>
                             `}
@@ -408,7 +408,7 @@ async function loadMoreAlbums(offset) {
             } else {
                 // No more albums to load
                 const paginationContainer = document.getElementById('pagination-container');
-                paginationContainer.innerHTML = '<p class="text-center text-gray-500">No more albums</p>';
+                paginationContainer.innerHTML = '<p class="text-center text-muted">No more albums</p>';
             }
         } else {
             console.error('Failed to load more albums:', response.status);
@@ -452,7 +452,7 @@ function appendAlbumsToGrid(data) {
         if (isMobile) {
             const url = album.is_rated ? `/albums/${album.id}/completed` : `/albums/${album.id}/rate`;
             return `
-                    <a href="${url}" class="block bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md hover:border-gray-300 transition-all duration-200 active:scale-[0.98]">
+                    <a href="${url}" class="block bg-surface rounded-lg shadow-sm border border-default hover:shadow-md hover:border-default transition-all duration-200 active:scale-[0.98]">
                         <div class="flex items-center p-3">
                             <!-- Compact Album Art -->
                             ${album.cover_art_url ? `
@@ -462,14 +462,14 @@ function appendAlbumsToGrid(data) {
                                          class="w-full h-full object-cover"
                                          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                     <div class="w-12 h-12 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg flex items-center justify-center" style="display:none;">
-                                        <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg class="w-6 h-6 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
                                         </svg>
                                     </div>
                                 </div>
                             ` : `
                                 <div class="w-12 h-12 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg flex items-center justify-center flex-shrink-0">
-                                    <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg class="w-6 h-6 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
                                     </svg>
                                 </div>
@@ -477,9 +477,9 @@ function appendAlbumsToGrid(data) {
                             
                             <!-- Album Info -->
                             <div class="flex-1 min-w-0 ml-3">
-                                <h3 class="font-semibold text-gray-900 text-sm truncate" title="${album.title}">${album.title}</h3>
-                                <p class="text-xs text-gray-600 truncate mb-1" title="${album.artist}">${album.artist}</p>
-                                ${album.year ? `<p class="text-xs text-gray-500">${album.year}</p>` : ''}
+                                <h3 class="font-semibold text-primary text-sm truncate" title="${album.title}">${album.title}</h3>
+                                <p class="text-xs text-secondary truncate mb-1" title="${album.artist}">${album.artist}</p>
+                                ${album.year ? `<p class="text-xs text-muted">${album.year}</p>` : ''}
                                 
                                 <!-- Status -->
                                 <div class="flex items-center">
@@ -493,7 +493,7 @@ function appendAlbumsToGrid(data) {
                             </div>
                             
                             <!-- Arrow indicator -->
-                            <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-4 h-4 text-muted flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                             </svg>
                         </div>
@@ -504,7 +504,7 @@ function appendAlbumsToGrid(data) {
             // Desktop layout (clickable card style)
             const url = album.is_rated ? `/albums/${album.id}/completed` : `/albums/${album.id}/rate`;
             return `
-                <a href="${url}" class="block album-card bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md hover:border-gray-300 transition-all duration-200 hover:-translate-y-1">
+                <a href="${url}" class="block album-card bg-surface rounded-lg shadow-sm border border-default hover:shadow-md hover:border-default transition-all duration-200 hover:-translate-y-1">
                     <div class="p-4">
                         <div class="flex space-x-3 mb-3">
                             <!-- Album Art -->
@@ -515,14 +515,14 @@ function appendAlbumsToGrid(data) {
                                          class="w-full h-full object-cover"
                                          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                     <div class="w-12 h-12 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg flex items-center justify-center" style="display:none;">
-                                        <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg class="w-6 h-6 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
                                         </svg>
                                     </div>
                                 </div>
                             ` : `
                                 <div class="w-12 h-12 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg flex items-center justify-center flex-shrink-0">
-                                    <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg class="w-6 h-6 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
                                     </svg>
                                 </div>
@@ -530,19 +530,19 @@ function appendAlbumsToGrid(data) {
                             
                             <!-- Album Info -->
                             <div class="flex-1 min-w-0">
-                                <h3 class="font-semibold text-gray-900 truncate" title="${album.title}">${album.title}</h3>
-                                <p class="text-sm text-gray-600 truncate" title="${album.artist}">${album.artist}</p>
-                                ${album.year ? `<p class="text-xs text-gray-500">${album.year}</p>` : ''}
+                                <h3 class="font-semibold text-primary truncate" title="${album.title}">${album.title}</h3>
+                                <p class="text-sm text-secondary truncate" title="${album.artist}">${album.artist}</p>
+                                ${album.year ? `<p class="text-xs text-muted">${album.year}</p>` : ''}
                             </div>
                         </div>
                         <div>
                             ${album.is_rated ? `
                                 <div class="flex items-center justify-between">
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">✓ Completed</span>
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-950/40 text-green-800 dark:text-green-400">✓ Completed</span>
                                     <span class="text-lg font-bold ${getScoreColorClass(album.rating_score)}">${album.rating_score}/100</span>
                                 </div>
                             ` : `
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">⏳ In Progress</span>
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-400">⏳ In Progress</span>
                             `}
                         </div>
                     </div>
@@ -567,7 +567,7 @@ function updatePaginationButton(data) {
             </div>
         `;
     } else {
-        paginationContainer.innerHTML = '<p class="text-center text-gray-500">No more albums</p>';
+        paginationContainer.innerHTML = '<p class="text-center text-muted">No more albums</p>';
     }
 }
 
