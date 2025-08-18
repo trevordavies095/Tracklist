@@ -170,6 +170,7 @@
 .bg-accent-blue { background-color: rgb(var(--color-accent-blue)); }
 .bg-accent-indigo { background-color: rgb(var(--color-accent-indigo)); }
 .bg-accent-purple { background-color: rgb(var(--color-accent-purple)); }
+.bg-success { background-color: rgb(var(--color-success)); }
 
 /* Hover states with alpha */
 .hover\:bg-info-light:hover { background-color: rgba(var(--color-info), 0.1); }
