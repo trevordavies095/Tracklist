@@ -5,7 +5,7 @@
 {% block content %}
 <div class="max-w-4xl mx-auto">
     <!-- Album Header with Score -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-8">
+    <div class="bg-surface rounded-lg shadow-sm border border-default mb-8">
         <div class="p-8">
             <div class="flex flex-col lg:flex-row lg:items-center space-y-6 lg:space-y-0 lg:space-x-8">
                 <!-- Album Artwork -->
@@ -14,44 +14,44 @@
                         <img src="{{ get_artwork_url(album, 'large') }}" 
                              alt="{{ album.title }} cover" 
                              class="w-full h-full object-cover"
-                             onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'w-48 h-48 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg flex items-center justify-center\'><svg class=\'w-24 h-24 text-gray-400\' fill=\'none\' stroke=\'currentColor\' viewBox=\'0 0 24 24\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3\'></path></svg></div>';">
+                             onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'w-48 h-48 bg-gradient-to-br from-surface-secondary to-surface-hover rounded-lg flex items-center justify-center\'><svg class=\'w-24 h-24 text-muted\' fill=\'none\' stroke=\'currentColor\' viewBox=\'0 0 24 24\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3\'></path></svg></div>';">
                     </div>
                 </div>
                 
                 <!-- Album Info & Score -->
                 <div class="flex-1">
                     <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between mb-2">
-                        <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 lg:mb-0">
+                        <h1 class="text-2xl sm:text-3xl font-bold text-primary mb-2 lg:mb-0">
                             {{ album.title }}
                             {% if album.year %}
-                            <span class="text-xl sm:text-2xl font-normal text-gray-500">(<a href="/years/{{ album.year }}/albums" class="hover:text-blue-600 hover:underline transition-colors">{{ album.year }}</a>)</span>
+                            <span class="text-xl sm:text-2xl font-normal text-muted">(<a href="/years/{{ album.year }}/albums" class="hover:text-blue-600 hover:underline transition-colors">{{ album.year }}</a>)</span>
                             {% endif %}
                         </h1>
                         <!-- Action Buttons - Hidden on mobile, shown on desktop -->
                         <div class="hidden lg:flex items-center space-x-2 ml-4">
                             <button onclick="editRating()" 
                                     title="Edit Rating"
-                                    class="p-2 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all duration-200 group relative">
+                                    class="p-2 text-muted hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/30 rounded-lg transition-all duration-200 group relative">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                                 </svg>
-                                <span class="absolute -bottom-8 right-0 text-xs bg-gray-800 text-white px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Edit Rating</span>
+                                <span class="absolute -bottom-8 right-0 text-xs bg-surface-hover text-primary px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap border border-default">Edit Rating</span>
                             </button>
                             <button onclick="openRetagModal()" 
                                     title="Change Release Version"
-                                    class="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all duration-200 group relative">
+                                    class="p-2 text-muted hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/30 rounded-lg transition-all duration-200 group relative">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
                                 </svg>
-                                <span class="absolute -bottom-8 right-0 text-xs bg-gray-800 text-white px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Change Release</span>
+                                <span class="absolute -bottom-8 right-0 text-xs bg-surface-hover text-primary px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap border border-default">Change Release</span>
                             </button>
                             <button onclick="refreshArtwork(event)" 
                                     title="Refresh Artwork"
-                                    class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 group relative">
+                                    class="p-2 text-muted hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30 rounded-lg transition-all duration-200 group relative">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                                 </svg>
-                                <span class="absolute -bottom-8 right-0 text-xs bg-gray-800 text-white px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Refresh Artwork</span>
+                                <span class="absolute -bottom-8 right-0 text-xs bg-surface-hover text-primary px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap border border-default">Refresh Artwork</span>
                             </button>
                             <button onclick="openComparisonModal({{ album.id }})" 
                                     title="Compare Album"
@@ -64,35 +64,35 @@
                             <a href="https://musicbrainz.org/release/{{ album.musicbrainz_id }}" 
                                target="_blank"
                                title="View on MusicBrainz"
-                               class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 group relative">
+                               class="p-2 text-muted hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30 rounded-lg transition-all duration-200 group relative">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
                                 </svg>
-                                <span class="absolute -bottom-8 right-0 text-xs bg-gray-800 text-white px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">MusicBrainz</span>
+                                <span class="absolute -bottom-8 right-0 text-xs bg-surface-hover text-primary px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap border border-default">MusicBrainz</span>
                             </a>
                             <button onclick="confirmDeleteAlbum()" 
                                     title="Delete Album"
-                                    class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 group relative">
+                                    class="p-2 text-muted hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-all duration-200 group relative">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                 </svg>
-                                <span class="absolute -bottom-8 right-0 text-xs bg-gray-800 text-white px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Delete Album</span>
+                                <span class="absolute -bottom-8 right-0 text-xs bg-surface-hover text-primary px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap border border-default">Delete Album</span>
                             </button>
                         </div>
                     </div>
-                    <p class="text-xl text-gray-600 mb-6">by <a href="/artists/{{ album.artist.id }}/albums" class="hover:text-blue-600 hover:underline transition-colors">{{ album.artist.name }}</a></p>
+                    <p class="text-xl text-secondary mb-6">by <a href="/artists/{{ album.artist.id }}/albums" class="hover:text-blue-600 hover:underline transition-colors">{{ album.artist.name }}</a></p>
                     
                     <!-- Final Score Display -->
-                    <div class="bg-gradient-to-r from-blue-50 to-green-50 rounded-lg p-4 mb-6">
+                    <div class="bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-950/30 dark:to-green-950/30 rounded-lg p-4 mb-6">
                         <div class="text-center">
                             <div class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-green-600 mb-1 group relative inline-block cursor-help">
                                 {{ album.rating_score }}
-                                <span class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-xs bg-gray-800 text-white px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
+                                <span class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-xs bg-surface-hover text-primary px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10 border border-default">
                                     Rated: <span id="formatted-date"></span>
                                 </span>
                             </div>
-                            <div class="text-base text-gray-600 mb-1">out of 100</div>
-                            <div class="text-sm text-gray-500">
+                            <div class="text-base text-secondary mb-1">out of 100</div>
+                            <div class="text-sm text-muted">
                                 {% if album.rating_score == 100 %}
                                 Masterpiece
                                 {% elif album.rating_score >= 90 %}
@@ -117,21 +117,21 @@
                     <!-- Mobile Action Buttons - Shown only on mobile/tablet -->
                     <div class="lg:hidden grid grid-cols-3 sm:flex sm:flex-wrap gap-2 mb-6">
                         <button onclick="editRating()" 
-                                class="flex flex-col items-center justify-center p-3 text-gray-600 bg-white border border-gray-200 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all duration-200">
+                                class="flex flex-col items-center justify-center p-3 text-secondary bg-surface border border-default hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/30 rounded-lg transition-all duration-200">
                             <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                             </svg>
                             <span class="text-xs">Edit</span>
                         </button>
                         <button onclick="openRetagModal()" 
-                                class="flex flex-col items-center justify-center p-3 text-gray-600 bg-white border border-gray-200 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all duration-200">
+                                class="flex flex-col items-center justify-center p-3 text-secondary bg-surface border border-default hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/30 rounded-lg transition-all duration-200">
                             <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
                             </svg>
                             <span class="text-xs">Release</span>
                         </button>
                         <button onclick="refreshArtwork(event)" 
-                                class="flex flex-col items-center justify-center p-3 text-gray-600 bg-white border border-gray-200 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200">
+                                class="flex flex-col items-center justify-center p-3 text-secondary bg-surface border border-default hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30 rounded-lg transition-all duration-200">
                             <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                             </svg>
@@ -139,14 +139,14 @@
                         </button>
                         <a href="https://musicbrainz.org/release/{{ album.musicbrainz_id }}" 
                            target="_blank"
-                           class="flex flex-col items-center justify-center p-3 text-gray-600 bg-white border border-gray-200 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200">
+                           class="flex flex-col items-center justify-center p-3 text-secondary bg-surface border border-default hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30 rounded-lg transition-all duration-200">
                             <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
                             </svg>
                             <span class="text-xs">MusicBrainz</span>
                         </a>
                         <button onclick="confirmDeleteAlbum()" 
-                                class="flex flex-col items-center justify-center p-3 text-gray-600 bg-white border border-gray-200 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200">
+                                class="flex flex-col items-center justify-center p-3 text-secondary bg-surface border border-default hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-all duration-200">
                             <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                             </svg>
@@ -161,21 +161,21 @@
     
     <!-- Album Notes (if present) -->
     {% if album.notes %}
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-8">
+    <div class="bg-surface rounded-lg shadow-sm border border-default mb-8">
         <div class="p-6">
             <details class="cursor-pointer group">
-                <summary class="flex items-center justify-between text-xl font-semibold text-gray-900 hover:text-gray-700 select-none list-none">
+                <summary class="flex items-center justify-between text-xl font-semibold text-primary hover:text-primary select-none list-none">
                     <span class="flex items-center">
                         <svg class="w-5 h-5 mr-2 transform transition-transform duration-200 group-open:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                         </svg>
                         Album Notes
                     </span>
-                    <span class="text-sm font-normal text-gray-500 group-open:hidden">Click to expand</span>
+                    <span class="text-sm font-normal text-muted group-open:hidden">Click to expand</span>
                 </summary>
-                <div class="mt-4 pt-4 border-t border-gray-100">
+                <div class="mt-4 pt-4 border-t border-subtle">
                     <div class="prose prose-gray max-w-none">
-                        <p class="text-gray-700 whitespace-pre-wrap">{{ album.notes }}</p>
+                        <p class="text-primary whitespace-pre-wrap">{{ album.notes }}</p>
                     </div>
                 </div>
             </details>
@@ -184,11 +184,11 @@
     {% endif %}
     
     <!-- Track Ratings Summary -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-8">
+    <div class="bg-surface rounded-lg shadow-sm border border-default mb-8">
         <div class="p-6">
             <div class="flex items-baseline justify-between mb-6">
-                <h3 class="text-xl font-semibold text-gray-900">Track Ratings</h3>
-                <span class="text-xs text-gray-500">Album Bonus: +{{ album.album_bonus }}</span>
+                <h3 class="text-xl font-semibold text-primary">Track Ratings</h3>
+                <span class="text-xs text-muted">Album Bonus: +{{ album.album_bonus }}</span>
             </div>
             
             <!-- Rating Distribution -->
@@ -202,23 +202,23 @@
                     {% endif %}
                 {% endfor %}
                 
-                <div class="text-center p-4 bg-green-100 rounded-lg">
-                    <div class="text-2xl font-bold text-green-800">{{ rating_counts.standout }}</div>
+                <div class="text-center p-4 bg-green-100 dark:bg-green-950/40 rounded-lg">
+                    <div class="text-2xl font-bold text-green-800 dark:text-green-400">{{ rating_counts.standout }}</div>
                     <div class="text-sm text-green-600">Standout Tracks</div>
                 </div>
                 
-                <div class="text-center p-4 bg-green-50 rounded-lg">
-                    <div class="text-2xl font-bold text-green-700">{{ rating_counts.good }}</div>
+                <div class="text-center p-4 bg-green-50 dark:bg-green-950/30 rounded-lg">
+                    <div class="text-2xl font-bold text-green-700 dark:text-green-400">{{ rating_counts.good }}</div>
                     <div class="text-sm text-green-600">Good Tracks</div>
                 </div>
                 
-                <div class="text-center p-4 bg-amber-50 rounded-lg">
-                    <div class="text-2xl font-bold text-amber-700">{{ rating_counts.filler }}</div>
+                <div class="text-center p-4 bg-amber-50 dark:bg-amber-950/30 rounded-lg">
+                    <div class="text-2xl font-bold text-amber-700 dark:text-amber-400">{{ rating_counts.filler }}</div>
                     <div class="text-sm text-amber-600">Filler Tracks</div>
                 </div>
                 
-                <div class="text-center p-4 bg-red-50 rounded-lg">
-                    <div class="text-2xl font-bold text-red-700">{{ rating_counts.skip }}</div>
+                <div class="text-center p-4 bg-red-50 dark:bg-red-950/30 rounded-lg">
+                    <div class="text-2xl font-bold text-red-700 dark:text-red-400">{{ rating_counts.skip }}</div>
                     <div class="text-sm text-red-600">Skip Tracks</div>
                 </div>
             </div>
@@ -226,26 +226,26 @@
             <!-- Individual Track List -->
             <div class="space-y-3">
                 {% for track in tracks %}
-                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                <div class="flex items-center justify-between p-4 bg-surface-secondary rounded-lg">
                     <div class="flex items-center space-x-4">
-                        <span class="flex-shrink-0 w-8 h-8 bg-white rounded-full flex items-center justify-center text-sm font-medium text-gray-600 shadow-sm">
+                        <span class="flex-shrink-0 w-8 h-8 bg-surface rounded-full flex items-center justify-center text-sm font-medium text-secondary shadow-sm">
                             {{ track.track_number }}
                         </span>
                         <div>
-                            <h4 class="font-medium text-gray-900">{{ track.title }}</h4>
+                            <h4 class="font-medium text-primary">{{ track.title }}</h4>
                             {% if track.duration_ms %}
-                            <p class="text-sm text-gray-500">{{ track.duration_ms | format_duration }}</p>
+                            <p class="text-sm text-muted">{{ track.duration_ms | format_duration }}</p>
                             {% endif %}
                         </div>
                     </div>
                     
                     <div class="flex items-center space-x-3">
                         <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
-                            {% if track.rating == 1.0 %}bg-green-800 text-white
-                            {% elif track.rating == 0.67 %}bg-green-600 text-white
-                            {% elif track.rating == 0.33 %}bg-amber-600 text-white
-                            {% elif track.rating == 0.0 %}bg-red-600 text-white
-                            {% else %}bg-gray-600 text-white{% endif %}">
+                            {% if track.rating == 1.0 %}bg-green-800 text-primary
+                            {% elif track.rating == 0.67 %}bg-green-600 text-primary
+                            {% elif track.rating == 0.33 %}bg-amber-600 text-primary
+                            {% elif track.rating == 0.0 %}bg-red-600 text-primary
+                            {% else %}bg-gray-600 text-primary{% endif %}">
                             {{ track.rating | format_rating_label }}
                         </span>
                         <span class="text-lg font-semibold {{ track.rating | rating_color_class }}">
@@ -264,17 +264,17 @@
 // Modal HTML
 const retagModalHTML = `
 <div id="retagModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full z-50">
-    <div class="relative top-20 mx-auto p-5 border w-11/12 max-w-2xl shadow-lg rounded-md bg-white">
+    <div class="relative top-20 mx-auto p-5 border w-11/12 max-w-2xl shadow-lg rounded-md bg-surface">
         <!-- Close button -->
-        <button onclick="closeRetagModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors">
+        <button onclick="closeRetagModal()" class="absolute top-4 right-4 text-muted hover:text-secondary transition-colors">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
             </svg>
         </button>
         
         <div class="mb-4">
-            <h3 class="text-lg font-bold text-gray-900">Retag MusicBrainz ID</h3>
-            <p class="text-sm text-gray-600 mt-2">Select a different release from the same release group. Only releases with {{ album.total_tracks }} tracks are shown.</p>
+            <h3 class="text-lg font-bold text-primary">Retag MusicBrainz ID</h3>
+            <p class="text-sm text-secondary mt-2">Select a different release from the same release group. Only releases with {{ album.total_tracks }} tracks are shown.</p>
         </div>
         
         <div id="retagLoading" class="text-center py-8">
@@ -283,7 +283,7 @@ const retagModalHTML = `
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                <span class="text-gray-600">Loading releases...</span>
+                <span class="text-secondary">Loading releases...</span>
             </div>
         </div>
         
@@ -294,23 +294,23 @@ const retagModalHTML = `
             
             <div class="flex justify-end space-x-3">
                 <button onclick="closeRetagModal()" 
-                        class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-colors">
+                        class="px-4 py-2 bg-surface-secondary text-primary rounded-md hover:bg-surface-hover transition-colors">
                     Cancel
                 </button>
                 <button id="confirmRetagBtn" onclick="confirmRetag()" 
                         disabled
-                        class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors">
+                        class="px-4 py-2 bg-blue-600 text-primary rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors">
                     Confirm Change
                 </button>
             </div>
         </div>
         
         <div id="retagError" class="hidden">
-            <div class="bg-red-50 border border-red-200 rounded-md p-4 mb-4">
-                <p class="text-red-700" id="retagErrorMessage"></p>
+            <div class="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 rounded-md p-4 mb-4">
+                <p class="text-red-700 dark:text-red-400" id="retagErrorMessage"></p>
             </div>
             <button onclick="closeRetagModal()" 
-                    class="w-full px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-colors">
+                    class="w-full px-4 py-2 bg-surface-secondary text-primary rounded-md hover:bg-surface-hover transition-colors">
                 Close
             </button>
         </div>
@@ -395,7 +395,7 @@ function displayReleases(releases) {
     const currentMbid = "{{ album.musicbrainz_id }}";
     
     const releasesHTML = releases.map(release => `
-        <label class="block p-4 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors ${release.musicbrainz_id === currentMbid ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}">
+        <label class="block p-4 border rounded-lg cursor-pointer hover:bg-surface-secondary transition-colors ${release.musicbrainz_id === currentMbid ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30' : 'border-default'}">
             <input type="radio" 
                    name="releaseSelection" 
                    value="${release.musicbrainz_id}"
@@ -410,8 +410,8 @@ function displayReleases(releases) {
                             <img class="w-full h-full object-cover hidden" 
                                  alt="${release.title} cover" 
                                  onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                            <div class="artwork-placeholder w-16 h-16 bg-gradient-to-br from-gray-200 to-gray-300 rounded-md flex items-center justify-center">
-                                <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div class="artwork-placeholder w-16 h-16 bg-gradient-to-br from-surface-secondary to-surface-hover rounded-md flex items-center justify-center">
+                                <svg class="w-8 h-8 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
                                 </svg>
                             </div>
@@ -420,15 +420,15 @@ function displayReleases(releases) {
                     
                     <!-- Release Info -->
                     <div class="flex-1 min-w-0">
-                        <div class="font-medium text-gray-900">
+                        <div class="font-medium text-primary">
                             ${release.title} ${release.year ? `(${release.year})` : ''}
                         </div>
-                        <div class="text-sm text-gray-600 mt-1">
+                        <div class="text-sm text-secondary mt-1">
                             ${release.artist} • ${release.track_count} tracks
                             ${release.musicbrainz_id === currentMbid ? '<span class="ml-2 text-blue-600 font-medium">(Current)</span>' : ''}
                         </div>
                         ${release.format || release.country ? `
-                            <div class="text-xs text-gray-500 mt-1">
+                            <div class="text-xs text-muted mt-1">
                                 ${release.format ? `Format: ${release.format}` : ''}
                                 ${release.format && release.country ? ' • ' : ''}
                                 ${release.country ? `Country: ${release.country}` : ''}
@@ -444,7 +444,7 @@ function displayReleases(releases) {
                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
                         </svg>
                     ` : `
-                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 20 20">
+                        <svg class="w-5 h-5 text-muted" fill="none" stroke="currentColor" viewBox="0 0 20 20">
                             <circle cx="10" cy="10" r="8" stroke-width="2"></circle>
                         </svg>
                     `}
@@ -471,8 +471,8 @@ function selectRelease(mbid) {
         
         if (input.value === mbid) {
             // Selected state
-            label.classList.add('border-blue-500', 'bg-blue-50');
-            label.classList.remove('border-gray-200');
+            label.classList.add('border-blue-500', 'bg-blue-50', 'dark:bg-blue-950/30');
+            label.classList.remove('border-default');
             svgContainer.innerHTML = `
                 <svg class="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
@@ -480,10 +480,10 @@ function selectRelease(mbid) {
             `;
         } else {
             // Unselected state
-            label.classList.remove('border-blue-500', 'bg-blue-50');
-            label.classList.add('border-gray-200');
+            label.classList.remove('border-blue-500', 'bg-blue-50', 'dark:bg-blue-950/30');
+            label.classList.add('border-default');
             svgContainer.innerHTML = `
-                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 20 20">
+                <svg class="w-5 h-5 text-muted" fill="none" stroke="currentColor" viewBox="0 0 20 20">
                     <circle cx="10" cy="10" r="8" stroke-width="2"></circle>
                 </svg>
             `;
@@ -738,7 +738,7 @@ function confirmDeleteAlbum() {
     modal.id = 'delete-modal';
     modal.className = 'fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4';
     modal.innerHTML = `
-        <div class="bg-white rounded-lg shadow-xl max-w-md w-full" onclick="event.stopPropagation()">
+        <div class="bg-surface rounded-lg shadow-xl max-w-md w-full" onclick="event.stopPropagation()">
             <div class="p-6">
                 <div class="flex items-center mb-4">
                     <div class="flex-shrink-0">
@@ -747,23 +747,23 @@ function confirmDeleteAlbum() {
                         </svg>
                     </div>
                     <div class="ml-3">
-                        <h3 class="text-lg font-medium text-gray-900">Delete Album</h3>
-                        <p class="text-sm text-gray-500">This action cannot be undone.</p>
+                        <h3 class="text-lg font-medium text-primary">Delete Album</h3>
+                        <p class="text-sm text-muted">This action cannot be undone.</p>
                     </div>
                 </div>
                 
                 <div class="mb-6">
-                    <p class="text-gray-700">Are you sure you want to permanently delete <strong>"${albumTitle}"</strong> by ${artistName}?</p>
-                    <p class="text-sm text-gray-500 mt-2">This will remove the album, all track ratings, and scores from your library.</p>
+                    <p class="text-primary">Are you sure you want to permanently delete <strong>"${albumTitle}"</strong> by ${artistName}?</p>
+                    <p class="text-sm text-muted mt-2">This will remove the album, all track ratings, and scores from your library.</p>
                 </div>
                 
                 <div class="flex flex-col sm:flex-row gap-3">
                     <button onclick="closeDeleteModal()" 
-                            class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 px-4 rounded-md text-sm font-medium transition-colors">
+                            class="flex-1 bg-surface-secondary hover:bg-surface-hover text-primary py-2 px-4 rounded-md text-sm font-medium transition-colors">
                         Cancel
                     </button>
                     <button onclick="executeDelete(${albumId})" 
-                            class="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-md text-sm font-medium transition-colors">
+                            class="flex-1 bg-red-600 hover:bg-red-700 text-primary py-2 px-4 rounded-md text-sm font-medium transition-colors">
                         Delete Permanently
                     </button>
                 </div>
@@ -794,7 +794,7 @@ async function executeDelete(albumId) {
     
     // Show loading state
     deleteBtn.innerHTML = `
-        <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline" fill="none" viewBox="0 0 24 24">
+        <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-primary inline" fill="none" viewBox="0 0 24 24">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
         </svg>

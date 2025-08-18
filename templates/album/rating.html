@@ -7,7 +7,7 @@
 {% block content %}
 <div class="max-w-6xl mx-auto">
     <!-- Album Header -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 mb-4 md:mb-6">
+    <div class="bg-surface rounded-lg shadow-sm border border-default mb-4 md:mb-6">
         <div class="p-4 sm:p-6 md:p-8">
             <div class="flex flex-col lg:flex-row lg:items-center space-y-4 sm:space-y-6 lg:space-y-0 lg:space-x-8">
                 <!-- Album Artwork -->
@@ -16,20 +16,20 @@
                         <img src="{{ get_artwork_url(album, 'large') }}" 
                              alt="{{ album.title }} cover" 
                              class="w-full h-full object-cover"
-                             onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg flex items-center justify-center\'><svg class=\'w-12 sm:w-16 md:w-20 lg:w-24 h-12 sm:h-16 md:h-20 lg:h-24 text-gray-400\' fill=\'none\' stroke=\'currentColor\' viewBox=\'0 0 24 24\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3\'></path></svg></div>';">
+                             onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'w-full h-full bg-gradient-to-br from-surface-secondary to-surface-hover rounded-lg flex items-center justify-center\'><svg class=\'w-12 sm:w-16 md:w-20 lg:w-24 h-12 sm:h-16 md:h-20 lg:h-24 text-muted\' fill=\'none\' stroke=\'currentColor\' viewBox=\'0 0 24 24\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3\'></path></svg></div>';">
                     </div>
                 </div>
                 
                 <!-- Album Info -->
                 <div class="flex-1 text-center lg:text-left">
                     <div class="flex flex-col sm:flex-row items-start justify-between mb-2">
-                        <h1 class="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 group relative inline-block{% if album.genre %} cursor-help{% endif %}">
+                        <h1 class="text-xl sm:text-2xl md:text-3xl font-bold text-primary group relative inline-block{% if album.genre %} cursor-help{% endif %}">
                             {{ album.title }}
                             {% if album.year %}
-                            <span class="text-lg sm:text-xl md:text-2xl font-normal text-gray-500">(<a href="/years/{{ album.year }}/albums" class="hover:text-blue-600 hover:underline transition-colors">{{ album.year }}</a>)</span>
+                            <span class="text-lg sm:text-xl md:text-2xl font-normal text-secondary">(<a href="/years/{{ album.year }}/albums" class="hover:text-blue-600 hover:underline transition-colors">{{ album.year }}</a>)</span>
                             {% endif %}
                             {% if album.genre %}
-                            <span class="absolute -bottom-8 left-0 text-xs bg-gray-800 text-white px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
+                            <span class="absolute -bottom-8 left-0 text-xs bg-surface-hover text-primary px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10 border border-default">
                                 Origin: {{ album.genre }}
                             </span>
                             {% endif %}
@@ -38,37 +38,37 @@
                         <div class="hidden lg:flex items-center space-x-2 mt-2 sm:mt-0 sm:ml-4">
                             <button onclick="openRetagModal()" 
                                     title="Change Release Version"
-                                    class="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all duration-200 group relative">
+                                    class="p-2 text-muted hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/30 rounded-lg transition-all duration-200 group relative">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
                                 </svg>
-                                <span class="absolute -bottom-8 right-0 text-xs bg-gray-800 text-white px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Change Release</span>
+                                <span class="absolute -bottom-8 right-0 text-xs bg-surface-hover text-primary px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap border border-default">Change Release</span>
                             </button>
                             <a href="https://musicbrainz.org/release/{{ album.musicbrainz_id }}" 
                                target="_blank"
                                title="View on MusicBrainz"
-                               class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 group relative">
+                               class="p-2 text-muted hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30 rounded-lg transition-all duration-200 group relative">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
                                 </svg>
-                                <span class="absolute -bottom-8 right-0 text-xs bg-gray-800 text-white px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">MusicBrainz</span>
+                                <span class="absolute -bottom-8 right-0 text-xs bg-surface-hover text-primary px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap border border-default">MusicBrainz</span>
                             </a>
                             <button onclick="confirmDeleteAlbum()" 
                                     title="Delete Album"
-                                    class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 group relative">
+                                    class="p-2 text-muted hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-all duration-200 group relative">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                 </svg>
-                                <span class="absolute -bottom-8 right-0 text-xs bg-gray-800 text-white px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Delete Album</span>
+                                <span class="absolute -bottom-8 right-0 text-xs bg-surface-hover text-primary px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap border border-default">Delete Album</span>
                             </button>
                         </div>
                     </div>
-                    <p class="text-base sm:text-lg md:text-xl text-gray-600 mb-4 md:mb-6">by <a href="/artists/{{ album.artist.id }}/albums" class="hover:text-blue-600 hover:underline transition-colors">{{ album.artist.name }}</a></p>
+                    <p class="text-base sm:text-lg md:text-xl text-secondary mb-4 md:mb-6">by <a href="/artists/{{ album.artist.id }}/albums" class="hover:text-blue-600 hover:underline transition-colors">{{ album.artist.name }}</a></p>
                     
                     <!-- Rating Status -->
-                    <div class="bg-amber-50 border border-amber-200 rounded-lg p-3 md:p-4">
+                    <div class="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 rounded-lg p-3 md:p-4">
                         <div class="text-center lg:text-left">
-                            <div class="text-base md:text-lg font-semibold text-amber-800 mb-0.5 md:mb-1">Rating in Progress</div>
+                            <div class="text-base md:text-lg font-semibold text-amber-800 dark:text-amber-400 mb-0.5 md:mb-1">Rating in Progress</div>
                             <div class="text-xs sm:text-sm text-amber-600">Rate each track below to complete</div>
                         </div>
                     </div>
@@ -76,7 +76,7 @@
                     <!-- Mobile Action Buttons - Shown only on mobile/tablet -->
                     <div class="lg:hidden grid grid-cols-2 gap-2 mt-4">
                         <button onclick="openRetagModal()" 
-                                class="flex flex-col items-center justify-center p-3 text-gray-600 bg-white border border-gray-200 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all duration-200">
+                                class="flex flex-col items-center justify-center p-3 text-secondary bg-surface border border-default hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/30 rounded-lg transition-all duration-200">
                             <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
                             </svg>
@@ -84,14 +84,14 @@
                         </button>
                         <a href="https://musicbrainz.org/release/{{ album.musicbrainz_id }}" 
                            target="_blank"
-                           class="flex flex-col items-center justify-center p-3 text-gray-600 bg-white border border-gray-200 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200">
+                           class="flex flex-col items-center justify-center p-3 text-secondary bg-surface border border-default hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30 rounded-lg transition-all duration-200">
                             <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
                             </svg>
                             <span class="text-xs">MusicBrainz</span>
                         </a>
                         <button onclick="confirmDeleteAlbum()" 
-                                class="flex flex-col items-center justify-center p-3 text-gray-600 bg-white border border-gray-200 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 col-span-2">
+                                class="flex flex-col items-center justify-center p-3 text-secondary bg-surface border border-default hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-all duration-200 col-span-2">
                             <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                             </svg>
@@ -108,18 +108,18 @@
     {% include 'components/progress_bar.html' %}
     
     <!-- Rating Instructions -->
-    <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 md:p-4 mb-4 md:mb-6">
+    <div class="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/50 rounded-lg p-3 md:p-4 mb-4 md:mb-6">
         <div class="flex items-start">
             <svg class="w-5 h-5 text-blue-400 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
             </svg>
             <div>
-                <h3 class="text-sm font-semibold text-blue-800 mb-1">How to Rate Tracks</h3>
-                <div class="text-xs sm:text-sm text-blue-700 space-y-0.5 sm:space-y-1">
+                <h3 class="text-sm font-semibold text-blue-800 dark:text-blue-400 mb-1">How to Rate Tracks</h3>
+                <div class="text-xs sm:text-sm text-blue-700 dark:text-blue-400 space-y-0.5 sm:space-y-1">
                     <p><span class="font-medium text-red-600">Skip (0.0)</span> - Worst songs you'd never want to hear</p>
                     <p><span class="font-medium text-amber-600">Filler (0.33)</span> - Tolerable but not enjoyable, won't skip</p>
                     <p><span class="font-medium text-green-600">Good (0.67)</span> - Like the track, playlist-worthy</p>
-                    <p><span class="font-medium text-green-800">Standout (1.0)</span> - Love it, album highlights</p>
+                    <p><span class="font-medium text-green-800 dark:text-green-400">Standout (1.0)</span> - Love it, album highlights</p>
                 </div>
                 <p class="text-xs text-blue-600 mt-2">💾 Ratings are automatically saved as you click!</p>
             </div>
@@ -127,31 +127,31 @@
     </div>
     
     <!-- Track List -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+    <div class="bg-surface rounded-lg shadow-sm border border-default">
         <div class="p-4 md:p-6">
             <div class="flex items-baseline justify-between mb-4 md:mb-6">
-                <h2 class="text-lg md:text-xl font-semibold text-gray-900">Rate Each Track</h2>
+                <h2 class="text-lg md:text-xl font-semibold text-primary">Rate Each Track</h2>
                 {% if album.total_duration_ms %}
-                <span class="text-xs text-gray-500">Total Duration: {{ (album.total_duration_ms / 60000) | round(0) | int }} min</span>
+                <span class="text-xs text-muted">Total Duration: {{ (album.total_duration_ms / 60000) | round(0) | int }} min</span>
                 {% endif %}
             </div>
             
             <div class="space-y-3 md:space-y-4">
                 {% for track in tracks %}
-                <div class="track-row{% if track.rating is not none %} rated{% endif %} p-3 md:p-4 rounded-lg border border-gray-100" 
+                <div class="track-row{% if track.rating is not none %} rated{% endif %} p-3 md:p-4 rounded-lg border border-subtle" 
                      id="track-{{ track.id }}-row">
                     
                     <!-- Track Info -->
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between space-y-3 sm:space-y-0 sm:space-x-4">
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center space-x-2 sm:space-x-3">
-                                <span class="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 bg-gray-100 rounded-full flex items-center justify-center text-xs sm:text-sm font-medium text-gray-600">
+                                <span class="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 bg-surface-secondary rounded-full flex items-center justify-center text-xs sm:text-sm font-medium text-secondary">
                                     {{ track.track_number }}
                                 </span>
                                 <div class="min-w-0 flex-1">
-                                    <h3 class="text-sm sm:text-base font-medium text-gray-900 truncate">{{ track.title }}</h3>
+                                    <h3 class="text-sm sm:text-base font-medium text-primary truncate">{{ track.title }}</h3>
                                     {% if track.duration_ms %}
-                                    <p class="text-xs sm:text-sm text-gray-500">{{ track.duration_ms | format_duration }}</p>
+                                    <p class="text-xs sm:text-sm text-muted">{{ track.duration_ms | format_duration }}</p>
                                     {% endif %}
                                 </div>
                             </div>
@@ -172,11 +172,11 @@
     </div>
     
     <!-- Notes Section -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 mt-6">
+    <div class="bg-surface rounded-lg shadow-sm border border-default mt-6">
         <div class="p-6">
             <div class="flex items-center justify-between mb-4">
-                <h2 class="text-xl font-semibold text-gray-900">Album Notes</h2>
-                <span id="notesCharCount" class="text-sm text-gray-500">0 / 5000</span>
+                <h2 class="text-xl font-semibold text-primary">Album Notes</h2>
+                <span id="notesCharCount" class="text-sm text-muted">0 / 5000</span>
             </div>
             
             <textarea 
@@ -185,28 +185,28 @@
                 placeholder="Add your thoughts, reflections, or memorable moments about this album..."
                 maxlength="5000"
                 rows="4"
-                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                class="w-full px-4 py-3 bg-surface border border-default rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-primary placeholder-muted"
                 oninput="updateNotesCharCount(); autoSaveNotes();">{{ album.notes or '' }}</textarea>
             
             <div class="flex items-center justify-between mt-3">
-                <div id="notesSaveStatus" class="text-sm text-gray-500"></div>
-                <p class="text-xs text-gray-500">Notes are automatically saved as you type</p>
+                <div id="notesSaveStatus" class="text-sm text-muted"></div>
+                <p class="text-xs text-muted">Notes are automatically saved as you type</p>
             </div>
         </div>
     </div>
     
     <!-- Keyboard Shortcuts Help -->
-    <div class="mt-8 bg-gray-50 rounded-lg p-4">
+    <div class="mt-8 bg-surface-secondary rounded-lg p-4">
         <details class="cursor-pointer">
-            <summary class="text-sm font-medium text-gray-700 hover:text-gray-900">
+            <summary class="text-sm font-medium text-secondary hover:text-primary">
                 ⌨️ Keyboard Shortcuts
             </summary>
-            <div class="mt-3 text-sm text-gray-600 space-y-1">
-                <p><kbd class="px-2 py-1 bg-gray-200 rounded text-xs">1</kbd> - Skip (0.0)</p>
-                <p><kbd class="px-2 py-1 bg-gray-200 rounded text-xs">2</kbd> - Filler (0.33)</p>
-                <p><kbd class="px-2 py-1 bg-gray-200 rounded text-xs">3</kbd> - Good (0.67)</p>
-                <p><kbd class="px-2 py-1 bg-gray-200 rounded text-xs">4</kbd> - Standout (1.0)</p>
-                <p><kbd class="px-2 py-1 bg-gray-200 rounded text-xs">Enter</kbd> - Submit (when 100% complete)</p>
+            <div class="mt-3 text-sm text-secondary space-y-1">
+                <p><kbd class="px-2 py-1 bg-surface-hover rounded text-xs">1</kbd> - Skip (0.0)</p>
+                <p><kbd class="px-2 py-1 bg-surface-hover rounded text-xs">2</kbd> - Filler (0.33)</p>
+                <p><kbd class="px-2 py-1 bg-surface-hover rounded text-xs">3</kbd> - Good (0.67)</p>
+                <p><kbd class="px-2 py-1 bg-surface-hover rounded text-xs">4</kbd> - Standout (1.0)</p>
+                <p><kbd class="px-2 py-1 bg-surface-hover rounded text-xs">Enter</kbd> - Submit (when 100% complete)</p>
             </div>
         </details>
     </div>
@@ -318,7 +318,7 @@ const retagModalHTML = `
             
             <div class="flex justify-end space-x-3">
                 <button onclick="closeRetagModal()" 
-                        class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-colors">
+                        class="px-4 py-2 bg-surface-secondary text-primary rounded-md hover:bg-surface-hover transition-colors">
                     Cancel
                 </button>
                 <button id="confirmRetagBtn" onclick="confirmRetag()" 
@@ -330,11 +330,11 @@ const retagModalHTML = `
         </div>
         
         <div id="retagError" class="hidden">
-            <div class="bg-red-50 border border-red-200 rounded-md p-4 mb-4">
-                <p class="text-red-700" id="retagErrorMessage"></p>
+            <div class="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 rounded-md p-4 mb-4">
+                <p class="text-red-700 dark:text-red-400" id="retagErrorMessage"></p>
             </div>
             <button onclick="closeRetagModal()" 
-                    class="w-full px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-colors">
+                    class="w-full px-4 py-2 bg-surface-secondary text-primary rounded-md hover:bg-surface-hover transition-colors">
                 Close
             </button>
         </div>
@@ -398,7 +398,7 @@ function displayReleases(releases) {
     const currentMbid = "{{ album.musicbrainz_id }}";
     
     const releasesHTML = releases.map(release => `
-        <label class="block p-4 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors ${release.musicbrainz_id === currentMbid ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}">
+        <label class="block p-4 border rounded-lg cursor-pointer hover:bg-surface-secondary transition-colors ${release.musicbrainz_id === currentMbid ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30' : 'border-gray-200'}">
             <input type="radio" 
                    name="releaseSelection" 
                    value="${release.musicbrainz_id}"
@@ -474,7 +474,7 @@ function selectRelease(mbid) {
         
         if (input.value === mbid) {
             // Selected state
-            label.classList.add('border-blue-500', 'bg-blue-50');
+            label.classList.add('border-blue-500', 'bg-blue-50', 'dark:bg-blue-950/30');
             label.classList.remove('border-gray-200');
             svgContainer.innerHTML = `
                 <svg class="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
@@ -483,7 +483,7 @@ function selectRelease(mbid) {
             `;
         } else {
             // Unselected state
-            label.classList.remove('border-blue-500', 'bg-blue-50');
+            label.classList.remove('border-blue-500', 'bg-blue-50', 'dark:bg-blue-950/30');
             label.classList.add('border-gray-200');
             svgContainer.innerHTML = `
                 <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 20 20">
@@ -765,7 +765,7 @@ function confirmDeleteAlbum() {
                 
                 <div class="flex flex-col sm:flex-row gap-3">
                     <button onclick="closeDeleteModal()" 
-                            class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 px-4 rounded-md text-sm font-medium transition-colors">
+                            class="flex-1 bg-gray-300 hover:bg-surface-hover text-primary py-2 px-4 rounded-md text-sm font-medium transition-colors">
                         Cancel
                     </button>
                     <button onclick="executeDelete(${albumId})" 

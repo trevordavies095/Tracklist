@@ -7,14 +7,14 @@
     <!-- Page Header -->
     <div class="mb-8">
         <div class="flex items-center mb-4">
-            <a href="/albums" class="text-gray-500 hover:text-gray-700 mr-3">
+            <a href="/albums" class="text-muted hover:text-primary mr-3">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                 </svg>
             </a>
-            <h1 class="text-3xl font-bold text-gray-900">{{ year }}</h1>
+            <h1 class="text-3xl font-bold text-primary">{{ year }}</h1>
         </div>
-        <p class="text-gray-600">All albums from {{ year }} in your library</p>
+        <p class="text-secondary">All albums from {{ year }} in your library</p>
     </div>
     
     <!-- Albums Container -->
@@ -22,7 +22,7 @@
         <!-- Loading State -->
         <div id="albums-loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {% for i in range(6) %}
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div class="bg-surface rounded-lg shadow-sm border border-default p-6">
                 <div class="loading-skeleton h-16 w-16 rounded-lg mb-4"></div>
                 <div class="loading-skeleton h-5 w-full mb-2"></div>
                 <div class="loading-skeleton h-4 w-3/4 mb-4"></div>
@@ -38,11 +38,11 @@
     <!-- Empty State -->
     <div id="empty-state" class="hidden text-center py-12">
         <div class="max-w-sm mx-auto">
-            <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-16 h-16 mx-auto mb-4 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
             </svg>
-            <h3 class="text-lg font-medium text-gray-900 mb-2">No albums from {{ year }}</h3>
-            <p class="text-gray-600 mb-6">You haven't rated any albums from {{ year }} yet</p>
+            <h3 class="text-lg font-medium text-primary mb-2">No albums from {{ year }}</h3>
+            <p class="text-secondary mb-6">You haven't rated any albums from {{ year }} yet</p>
             <a href="/search" 
                class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition-colors">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -131,7 +131,7 @@ function renderAlbums(data) {
     
     // Grid view
     const albumCards = albums.map(album => `
-        <div class="album-card bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200">
+        <div class="album-card bg-surface rounded-lg shadow-sm border border-default hover:shadow-md transition-all duration-200">
             <div class="p-4">
                 <div class="flex space-x-3 mb-3">
                     <!-- Album Art -->
@@ -157,7 +157,7 @@ function renderAlbums(data) {
                     
                     <!-- Album Info -->
                     <div class="flex-1 min-w-0">
-                        <h3 class="font-semibold text-gray-900 truncate" title="${album.title}">${album.title}</h3>
+                        <h3 class="font-semibold text-primary truncate" title="${album.title}">${album.title}</h3>
                         <p class="text-sm text-gray-500">
                             <a href="/artists/${album.artist_id}/albums" class="hover:underline">${album.artist}</a>
                         </p>
@@ -168,13 +168,13 @@ function renderAlbums(data) {
                 <div class="mb-4">
                     ${album.is_rated ? `
                         <div class="flex items-center justify-between">
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-950/40 text-green-800 dark:text-green-400">
                                 ✓ Completed
                             </span>
                             <span class="text-lg font-bold ${getScoreColorClass(album.rating_score)}">${album.rating_score}/100</span>
                         </div>
                     ` : `
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-400">
                             ⏳ In Progress
                         </span>
                     `}
@@ -214,7 +214,7 @@ function appendAlbumsToGrid(data) {
     
     // Grid view - append new cards
     const newAlbumCards = albums.map(album => `
-        <div class="album-card bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200">
+        <div class="album-card bg-surface rounded-lg shadow-sm border border-default hover:shadow-md transition-all duration-200">
             <div class="p-6">
                 ${album.cover_art_url ? `
                     <div class="w-16 h-16 rounded-lg mb-4 overflow-hidden relative">
@@ -235,18 +235,18 @@ function appendAlbumsToGrid(data) {
                         </svg>
                     </div>
                 `}
-                <h3 class="font-semibold text-gray-900 mb-1 truncate" title="${album.title}">${album.title}</h3>
+                <h3 class="font-semibold text-primary mb-1 truncate" title="${album.title}">${album.title}</h3>
                 <p class="text-sm text-gray-500 mb-4">
                     <a href="/artists/${album.artist_id}/albums" class="hover:underline">${album.artist}</a>
                 </p>
                 <div class="mb-4">
                     ${album.is_rated ? `
                         <div class="flex items-center justify-between">
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">✓ Completed</span>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-950/40 text-green-800 dark:text-green-400">✓ Completed</span>
                             <span class="text-lg font-bold ${getScoreColorClass(album.rating_score)}">${album.rating_score}/100</span>
                         </div>
                     ` : `
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">⏳ In Progress</span>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-400">⏳ In Progress</span>
                     `}
                 </div>
                 <div class="flex space-x-2">

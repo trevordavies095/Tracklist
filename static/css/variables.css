@@ -1,0 +1,104 @@
+:root {
+  /* Light theme (default) */
+  --color-background: 255 255 255;
+  --color-surface: 249 250 251;
+  --color-surface-secondary: 243 244 246;
+  --color-surface-hover: 229 231 235;
+  --color-text-primary: 17 24 39;
+  --color-text-secondary: 107 114 128;
+  --color-text-muted: 156 163 175;
+  --color-border: 229 231 235;
+  --color-border-subtle: 243 244 246;
+  
+  /* Shadow colors */
+  --color-shadow: 0 0 0;
+  --shadow-opacity: 0.1;
+  
+  /* Component colors */
+  --color-input-bg: 255 255 255;
+  --color-input-border: 209 213 219;
+  --color-input-focus: 59 130 246;
+  
+  /* Semantic colors (consistent across themes) */
+  --color-rating-skip: 239 68 68;
+  --color-rating-filler: 245 158 11;
+  --color-rating-good: 34 197 94;
+  --color-rating-standout: 21 128 61;
+  
+  /* Status colors */
+  --color-success: 34 197 94;
+  --color-error: 239 68 68;
+  --color-warning: 245 158 11;
+  --color-info: 59 130 246;
+  
+  /* Chart colors */
+  --color-chart-bg: 243 244 246;
+  --color-chart-border: 209 213 219;
+}
+
+[data-theme="dark"] {
+  /* Dark theme */
+  --color-background: 15 23 42;
+  --color-surface: 30 41 59;
+  --color-surface-secondary: 51 65 85;
+  --color-surface-hover: 71 85 105;
+  --color-text-primary: 241 245 249;
+  --color-text-secondary: 148 163 184;
+  --color-text-muted: 100 116 139;
+  --color-border: 51 65 85;
+  --color-border-subtle: 30 41 59;
+  
+  /* Shadow colors */
+  --color-shadow: 0 0 0;
+  --shadow-opacity: 0.3;
+  
+  /* Component colors */
+  --color-input-bg: 30 41 59;
+  --color-input-border: 71 85 105;
+  --color-input-focus: 96 165 250;
+  
+  /* Semantic colors (slightly adjusted for dark mode) */
+  --color-rating-skip: 239 68 68;
+  --color-rating-filler: 245 158 11;
+  --color-rating-good: 34 197 94;
+  --color-rating-standout: 34 197 94;
+  
+  /* Status colors (slightly brighter for dark mode) */
+  --color-success: 74 222 128;
+  --color-error: 248 113 113;
+  --color-warning: 251 191 36;
+  --color-info: 96 165 250;
+  
+  /* Chart colors */
+  --color-chart-bg: 30 41 59;
+  --color-chart-border: 71 85 105;
+}
+
+/* Utility classes for RGB colors */
+.bg-background { background-color: rgb(var(--color-background)); }
+.bg-surface { background-color: rgb(var(--color-surface)); }
+.bg-surface-secondary { background-color: rgb(var(--color-surface-secondary)); }
+.bg-surface-hover { background-color: rgb(var(--color-surface-hover)); }
+
+.text-primary { color: rgb(var(--color-text-primary)); }
+.text-secondary { color: rgb(var(--color-text-secondary)); }
+.text-muted { color: rgb(var(--color-text-muted)); }
+
+.border-default { border-color: rgb(var(--color-border)); }
+.border-subtle { border-color: rgb(var(--color-border-subtle)); }
+
+/* Rating colors */
+.bg-rating-skip { background-color: rgb(var(--color-rating-skip)); }
+.bg-rating-filler { background-color: rgb(var(--color-rating-filler)); }
+.bg-rating-good { background-color: rgb(var(--color-rating-good)); }
+.bg-rating-standout { background-color: rgb(var(--color-rating-standout)); }
+
+/* Smooth theme transitions */
+* {
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+/* Disable transitions during theme switch to prevent flash */
+.theme-transitioning * {
+  transition: none !important;
+}
