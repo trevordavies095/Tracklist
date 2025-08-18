@@ -53,6 +53,14 @@
                                 </svg>
                                 <span class="absolute -bottom-8 right-0 text-xs bg-surface-hover text-primary px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap border border-default">Refresh Artwork</span>
                             </button>
+                            <button onclick="openComparisonModal({{ album.id }})" 
+                                    title="Compare Album"
+                                    class="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all duration-200 group relative">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h2a2 2 0 01-2-2z"></path>
+                                </svg>
+                                <span class="absolute -bottom-8 right-0 text-xs bg-gray-800 text-white px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Compare Album</span>
+                            </button>
                             <a href="https://musicbrainz.org/release/{{ album.musicbrainz_id }}" 
                                target="_blank"
                                title="View on MusicBrainz"
@@ -251,6 +259,7 @@
     </div>
 </div>
 
+<script src="/static/js/comparison.js"></script>
 <script>
 // Modal HTML
 const retagModalHTML = `
