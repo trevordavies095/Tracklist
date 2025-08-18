@@ -2,7 +2,7 @@
 
 {% block title %}Statistics - Tracklist{% endblock %}
 
-{% block nav_stats %}text-blue-600 border-b-2 border-blue-600{% endblock %}
+{% block nav_stats %}text-accent-blue border-b-2 border-accent-blue{% endblock %}
 
 {% block content %}
 <div class="max-w-7xl mx-auto">
@@ -148,7 +148,7 @@
                     <label class="text-xs sm:text-sm text-secondary">Min albums:</label>
                     <input type="number" id="minAlbumsInput" min="1" max="10" value="3" 
                            onchange="loadHighestRatedArtists(this.value)"
-                           class="w-16 px-2 py-1 bg-surface text-primary border border-default rounded text-center text-xs sm:text-sm hover:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                           class="w-16 px-2 py-1 bg-surface text-primary border border-default rounded text-center text-xs sm:text-sm hover:border-accent-blue focus:ring-2 focus:ring-accent-blue focus:border-transparent">
                 </div>
             </div>
             <div class="bg-surface rounded-lg shadow-sm border border-default p-4 md:p-6">
@@ -174,7 +174,7 @@
             <h2 class="text-xl md:text-2xl font-semibold text-primary mb-2 md:mb-3">No Statistics Yet</h2>
             <p class="text-sm md:text-base text-secondary mb-6 md:mb-8">Start rating albums to see your statistics and insights</p>
             <div class="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center">
-                <a href="/search" class="inline-flex items-center justify-center px-4 py-2 md:px-6 md:py-3 bg-blue-600 hover:bg-blue-700 text-white text-sm md:text-base font-medium rounded-lg transition-colors">
+                <a href="/search" class="inline-flex items-center justify-center px-4 py-2 md:px-6 md:py-3 bg-accent-blue hover:opacity-90 text-white text-sm md:text-base font-medium rounded-lg transition-colors">
                     <svg class="w-4 h-4 md:w-5 md:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                     </svg>
@@ -195,10 +195,10 @@
 // Utility function to get score color
 function getScoreColor(score) {
     if (score === null || score === undefined) return 'text-muted';
-    if (score === 100) return 'text-green-800';
-    if (score >= 67) return 'text-green-600';
-    if (score >= 33) return 'text-amber-600';
-    return 'text-red-600';
+    if (score === 100) return 'text-success';
+    if (score >= 67) return 'text-success';
+    if (score >= 33) return 'text-warning';
+    return 'text-error';
 }
 
 // Utility function to format numbers
@@ -282,12 +282,12 @@ async function loadStatistics() {
         document.getElementById('stats-content').style.display = 'none';
         document.getElementById('stats-loading').style.display = 'block';
         document.getElementById('stats-loading').innerHTML = `
-            <div class="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-                <svg class="w-12 h-12 mx-auto mb-3 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="bg-error-light border border-error rounded-lg p-6 text-center">
+                <svg class="w-12 h-12 mx-auto mb-3 text-error" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
                 </svg>
-                <h3 class="text-lg font-semibold text-red-800 mb-2">Error Loading Statistics</h3>
-                <p class="text-red-600">Unable to load your statistics. Please try again later.</p>
+                <h3 class="text-lg font-semibold text-error mb-2">Error Loading Statistics</h3>
+                <p class="text-error">Unable to load your statistics. Please try again later.</p>
             </div>
         `;
     }
@@ -361,20 +361,20 @@ function renderOverviewCards(data, noSkipsData) {
     // Define color classes for light and dark modes
     const colorClasses = {
         blue: {
-            bg: 'bg-blue-100 dark:bg-blue-950/30',
-            text: 'text-blue-600 dark:text-blue-400'
+            bg: 'bg-info-light',
+            text: 'text-info'
         },
         green: {
-            bg: 'bg-green-100 dark:bg-green-950/30',
-            text: 'text-green-600 dark:text-green-400'
+            bg: 'bg-success-light',
+            text: 'text-success'
         },
         red: {
-            bg: 'bg-red-100 dark:bg-red-950/30',
-            text: 'text-red-600 dark:text-red-400'
+            bg: 'bg-error-light',
+            text: 'text-error'
         },
         purple: {
-            bg: 'bg-purple-100 dark:bg-purple-950/30',
-            text: 'text-purple-600 dark:text-purple-400'
+            bg: 'bg-accent-purple-light',
+            text: 'text-accent-purple'
         }
     };
     
@@ -469,10 +469,10 @@ function renderNoSkipAlbums(noSkipsData) {
 function renderRatingDistribution(distribution) {
     const total = Object.values(distribution).reduce((sum, count) => sum + count, 0);
     const ratings = [
-        { name: 'Standout', count: distribution.standout, color: 'bg-green-600', percent: 0 },
-        { name: 'Good', count: distribution.good, color: 'bg-green-400', percent: 0 },
-        { name: 'Filler', count: distribution.filler, color: 'bg-amber-500', percent: 0 },
-        { name: 'Skip', count: distribution.skip, color: 'bg-red-500', percent: 0 }
+        { name: 'Standout', count: distribution.standout, color: 'bg-rating-standout', percent: 0 },
+        { name: 'Good', count: distribution.good, color: 'bg-rating-good', percent: 0 },
+        { name: 'Filler', count: distribution.filler, color: 'bg-rating-filler', percent: 0 },
+        { name: 'Skip', count: distribution.skip, color: 'bg-rating-skip', percent: 0 }
     ];
     
     // Calculate percentages

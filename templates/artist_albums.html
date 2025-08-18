@@ -44,7 +44,7 @@
             <h3 class="text-lg font-medium text-primary mb-2">No albums by {{ artist.name }}</h3>
             <p class="text-secondary mb-6">You haven't rated any albums by this artist yet</p>
             <a href="/search" 
-               class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition-colors">
+               class="inline-flex items-center px-4 py-2 bg-accent-blue hover:opacity-90 text-white text-sm font-medium rounded-md transition-colors">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                 </svg>
@@ -139,15 +139,15 @@ function renderAlbums(data) {
                                  alt="${album.title} cover" 
                                  class="w-full h-full object-cover"
                                  onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                            <div class="w-12 h-12 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg flex items-center justify-center" style="display:none;">
-                                <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div class="w-12 h-12 bg-gradient-to-br from-surface-secondary to-surface-hover rounded-lg flex items-center justify-center" style="display:none;">
+                                <svg class="w-6 h-6 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
                                 </svg>
                             </div>
                         </div>
                     ` : `
-                        <div class="w-12 h-12 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg flex items-center justify-center flex-shrink-0">
-                            <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="w-12 h-12 bg-gradient-to-br from-surface-secondary to-surface-hover rounded-lg flex items-center justify-center flex-shrink-0">
+                            <svg class="w-6 h-6 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
                             </svg>
                         </div>
@@ -156,7 +156,7 @@ function renderAlbums(data) {
                     <!-- Album Info -->
                     <div class="flex-1 min-w-0">
                         <h3 class="font-semibold text-primary truncate" title="${album.title}">${album.title}</h3>
-                        ${album.year ? `<p class="text-sm text-gray-500"><a href="/years/${album.year}/albums" class="hover:text-blue-600 hover:underline transition-colors">${album.year}</a></p>` : ''}
+                        ${album.year ? `<p class="text-sm text-secondary"><a href="/years/${album.year}/albums" class="hover:text-accent-blue hover:underline transition-colors">${album.year}</a></p>` : ''}
                     </div>
                 </div>
                 
@@ -164,13 +164,13 @@ function renderAlbums(data) {
                 <div class="mb-4">
                     ${album.is_rated ? `
                         <div class="flex items-center justify-between">
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-950/40 text-green-800 dark:text-green-400">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-success-light text-success">
                                 ✓ Completed
                             </span>
                             <span class="text-lg font-bold ${getScoreColorClass(album.rating_score)}">${album.rating_score}/100</span>
                         </div>
                     ` : `
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-400">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-warning-light text-warning">
                             ⏳ In Progress
                         </span>
                     `}

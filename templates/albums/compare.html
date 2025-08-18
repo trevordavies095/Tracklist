@@ -12,19 +12,19 @@ Compare Albums - Tracklist
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <!-- Comparison Header -->
     <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-900 mb-4">Album Comparison</h1>
+        <h1 class="text-3xl font-bold text-primary mb-4">Album Comparison</h1>
         
         <!-- Album Selection Controls -->
-        <div class="bg-white rounded-lg shadow-sm border p-4 mb-6">
+        <div class="bg-surface rounded-lg shadow-sm border border-default p-4 mb-6">
             <div class="flex flex-col lg:flex-row lg:items-center space-y-4 lg:space-y-0 lg:space-x-4">
                 <!-- First Album Search -->
                 <div class="flex-1">
-                    <label for="album1-search" class="block text-sm font-medium text-gray-700 mb-1">First Album</label>
+                    <label for="album1-search" class="block text-sm font-medium text-secondary mb-1">First Album</label>
                     <div class="relative">
                         <input type="text" 
                                id="album1-search" 
                                placeholder="Search for first album..."
-                               class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pr-10"
+                               class="w-full rounded-md border-default bg-surface text-primary shadow-sm focus:border-accent-blue focus:ring-accent-blue pr-10"
                                autocomplete="off"
                                data-selected-id=""
                                role="combobox"
@@ -32,40 +32,40 @@ Compare Albums - Tracklist
                                aria-autocomplete="list"
                                aria-describedby="album1-help">
                         <div class="absolute inset-y-0 right-0 flex items-center pr-3">
-                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-5 h-5 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                             </svg>
                         </div>
                         <button type="button" 
                                 id="album1-clear" 
-                                class="absolute inset-y-0 right-8 flex items-center pr-3 text-gray-400 hover:text-gray-600 hidden"
+                                class="absolute inset-y-0 right-8 flex items-center pr-3 text-muted hover:text-secondary hidden"
                                 onclick="clearAlbumSelection(1)">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                             </svg>
                         </button>
                         <div id="album1-results" 
-                             class="absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg hidden max-h-64 overflow-y-auto mt-1"
+                             class="absolute z-10 w-full bg-surface border border-default rounded-md shadow-lg hidden max-h-64 overflow-y-auto mt-1"
                              role="listbox"
                              aria-label="Album search results"></div>
                     </div>
-                    <div id="album1-help" class="text-xs text-gray-500 mt-1">Start typing to search your rated albums</div>
+                    <div id="album1-help" class="text-xs text-muted mt-1">Start typing to search your rated albums</div>
                 </div>
                 
-                <div class="text-center text-gray-500 font-medium pt-6 lg:pt-0">
-                    <div class="bg-gray-100 rounded-full w-12 h-12 flex items-center justify-center mx-auto">
+                <div class="text-center text-muted font-medium pt-6 lg:pt-0">
+                    <div class="bg-surface-secondary rounded-full w-12 h-12 flex items-center justify-center mx-auto">
                         <span class="text-lg font-bold">VS</span>
                     </div>
                 </div>
                 
                 <!-- Second Album Search -->
                 <div class="flex-1">
-                    <label for="album2-search" class="block text-sm font-medium text-gray-700 mb-1">Second Album</label>
+                    <label for="album2-search" class="block text-sm font-medium text-secondary mb-1">Second Album</label>
                     <div class="relative">
                         <input type="text" 
                                id="album2-search" 
                                placeholder="Search for second album..."
-                               class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pr-10"
+                               class="w-full rounded-md border-default bg-surface text-primary shadow-sm focus:border-accent-blue focus:ring-accent-blue pr-10"
                                autocomplete="off"
                                data-selected-id=""
                                role="combobox"
@@ -73,31 +73,31 @@ Compare Albums - Tracklist
                                aria-autocomplete="list"
                                aria-describedby="album2-help">
                         <div class="absolute inset-y-0 right-0 flex items-center pr-3">
-                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-5 h-5 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                             </svg>
                         </div>
                         <button type="button" 
                                 id="album2-clear" 
-                                class="absolute inset-y-0 right-8 flex items-center pr-3 text-gray-400 hover:text-gray-600 hidden"
+                                class="absolute inset-y-0 right-8 flex items-center pr-3 text-muted hover:text-secondary hidden"
                                 onclick="clearAlbumSelection(2)">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                             </svg>
                         </button>
                         <div id="album2-results" 
-                             class="absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg hidden max-h-64 overflow-y-auto mt-1"
+                             class="absolute z-10 w-full bg-surface border border-default rounded-md shadow-lg hidden max-h-64 overflow-y-auto mt-1"
                              role="listbox"
                              aria-label="Album search results"></div>
                     </div>
-                    <div id="album2-help" class="text-xs text-gray-500 mt-1">Start typing to search your rated albums</div>
+                    <div id="album2-help" class="text-xs text-muted mt-1">Start typing to search your rated albums</div>
                 </div>
                 
                 <div class="pt-6 lg:pt-0">
                     <button onclick="compareAlbums()" 
                             id="compare-button"
                             disabled
-                            class="w-full lg:w-auto px-6 py-2 bg-blue-600 text-white font-medium rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors">
+                            class="w-full lg:w-auto px-6 py-2 bg-accent-blue text-white font-medium rounded-md shadow-sm hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-accent-blue focus:ring-offset-2 disabled:bg-surface-hover disabled:text-muted disabled:cursor-not-allowed transition-colors">
                         Compare Albums
                     </button>
                 </div>
@@ -109,107 +109,107 @@ Compare Albums - Tracklist
     <!-- Albums Overview -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         <!-- Album 1 Card -->
-        <div class="bg-white rounded-lg shadow-sm border p-6">
+        <div class="bg-surface rounded-lg shadow-sm border border-default p-6">
             <div class="flex items-start space-x-4 mb-4">
                 <div class="flex-shrink-0">
                     <img src="{{ comparison.albums.album1.cover_art_url or '/static/img/album-placeholder.svg' }}" 
                          alt="{{ comparison.albums.album1.name }} cover" 
-                         class="w-24 h-24 rounded-lg object-cover border border-gray-200">
+                         class="w-24 h-24 rounded-lg object-cover border border-default">
                 </div>
                 <div class="flex-1 min-w-0">
-                    <h2 class="text-xl font-bold text-gray-900 truncate">{{ comparison.albums.album1.name }}</h2>
-                    <p class="text-lg text-gray-600 truncate">{{ comparison.albums.album1.artist.name }}</p>
+                    <h2 class="text-xl font-bold text-primary truncate">{{ comparison.albums.album1.name }}</h2>
+                    <p class="text-lg text-secondary truncate">{{ comparison.albums.album1.artist.name }}</p>
                     {% if comparison.albums.album1.year %}
-                    <p class="text-sm text-gray-500">{{ comparison.albums.album1.year }}</p>
+                    <p class="text-sm text-muted">{{ comparison.albums.album1.year }}</p>
                     {% endif %}
                 </div>
             </div>
             
             <div class="space-y-3">
                 <div class="flex justify-between items-center">
-                    <span class="text-sm font-medium text-gray-700">Album Score</span>
+                    <span class="text-sm font-medium text-secondary">Album Score</span>
                     <span class="text-2xl font-bold 
-                        {% if comparison.albums.album1.rating_score == 100 %}text-green-800
-                        {% elif comparison.albums.album1.rating_score >= 67 %}text-green-600
-                        {% elif comparison.albums.album1.rating_score >= 33 %}text-amber-600
-                        {% else %}text-red-600{% endif %}">{{ comparison.albums.album1.rating_score }}</span>
+                        {% if comparison.albums.album1.rating_score == 100 %}text-success
+                        {% elif comparison.albums.album1.rating_score >= 67 %}text-success-secondary
+                        {% elif comparison.albums.album1.rating_score >= 33 %}text-warning
+                        {% else %}text-error{% endif %}">{{ comparison.albums.album1.rating_score }}</span>
                 </div>
                 <div class="flex justify-between items-center">
-                    <span class="text-sm font-medium text-gray-700">Avg Track Rating</span>
-                    <span class="text-lg font-semibold text-gray-800">{{ "%.2f"|format(comparison.albums.album1.average_track_rating) }}</span>
+                    <span class="text-sm font-medium text-secondary">Avg Track Rating</span>
+                    <span class="text-lg font-semibold text-primary">{{ "%.2f"|format(comparison.albums.album1.average_track_rating) }}</span>
                 </div>
                 <div class="flex justify-between items-center">
-                    <span class="text-sm font-medium text-gray-700">Total Tracks</span>
-                    <span class="text-lg font-semibold text-gray-800">{{ comparison.albums.album1.total_tracks }}</span>
+                    <span class="text-sm font-medium text-secondary">Total Tracks</span>
+                    <span class="text-lg font-semibold text-primary">{{ comparison.albums.album1.total_tracks }}</span>
                 </div>
             </div>
         </div>
         
         <!-- Album 2 Card -->
-        <div class="bg-white rounded-lg shadow-sm border p-6">
+        <div class="bg-surface rounded-lg shadow-sm border border-default p-6">
             <div class="flex items-start space-x-4 mb-4">
                 <div class="flex-shrink-0">
                     <img src="{{ comparison.albums.album2.cover_art_url or '/static/img/album-placeholder.svg' }}" 
                          alt="{{ comparison.albums.album2.name }} cover" 
-                         class="w-24 h-24 rounded-lg object-cover border border-gray-200">
+                         class="w-24 h-24 rounded-lg object-cover border border-default">
                 </div>
                 <div class="flex-1 min-w-0">
-                    <h2 class="text-xl font-bold text-gray-900 truncate">{{ comparison.albums.album2.name }}</h2>
-                    <p class="text-lg text-gray-600 truncate">{{ comparison.albums.album2.artist.name }}</p>
+                    <h2 class="text-xl font-bold text-primary truncate">{{ comparison.albums.album2.name }}</h2>
+                    <p class="text-lg text-secondary truncate">{{ comparison.albums.album2.artist.name }}</p>
                     {% if comparison.albums.album2.year %}
-                    <p class="text-sm text-gray-500">{{ comparison.albums.album2.year }}</p>
+                    <p class="text-sm text-muted">{{ comparison.albums.album2.year }}</p>
                     {% endif %}
                 </div>
             </div>
             
             <div class="space-y-3">
                 <div class="flex justify-between items-center">
-                    <span class="text-sm font-medium text-gray-700">Album Score</span>
+                    <span class="text-sm font-medium text-secondary">Album Score</span>
                     <span class="text-2xl font-bold 
-                        {% if comparison.albums.album2.rating_score == 100 %}text-green-800
-                        {% elif comparison.albums.album2.rating_score >= 67 %}text-green-600
-                        {% elif comparison.albums.album2.rating_score >= 33 %}text-amber-600
-                        {% else %}text-red-600{% endif %}">{{ comparison.albums.album2.rating_score }}</span>
+                        {% if comparison.albums.album2.rating_score == 100 %}text-success
+                        {% elif comparison.albums.album2.rating_score >= 67 %}text-success-secondary
+                        {% elif comparison.albums.album2.rating_score >= 33 %}text-warning
+                        {% else %}text-error{% endif %}">{{ comparison.albums.album2.rating_score }}</span>
                 </div>
                 <div class="flex justify-between items-center">
-                    <span class="text-sm font-medium text-gray-700">Avg Track Rating</span>
-                    <span class="text-lg font-semibold text-gray-800">{{ "%.2f"|format(comparison.albums.album2.average_track_rating) }}</span>
+                    <span class="text-sm font-medium text-secondary">Avg Track Rating</span>
+                    <span class="text-lg font-semibold text-primary">{{ "%.2f"|format(comparison.albums.album2.average_track_rating) }}</span>
                 </div>
                 <div class="flex justify-between items-center">
-                    <span class="text-sm font-medium text-gray-700">Total Tracks</span>
-                    <span class="text-lg font-semibold text-gray-800">{{ comparison.albums.album2.total_tracks }}</span>
+                    <span class="text-sm font-medium text-secondary">Total Tracks</span>
+                    <span class="text-lg font-semibold text-primary">{{ comparison.albums.album2.total_tracks }}</span>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Comparison Statistics -->
-    <div class="bg-white rounded-lg shadow-sm border p-6 mb-8">
-        <h2 class="text-xl font-semibold mb-6">Comparison Summary</h2>
+    <div class="bg-surface rounded-lg shadow-sm border border-default p-6 mb-8">
+        <h2 class="text-xl font-semibold text-primary mb-6">Comparison Summary</h2>
         
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             <!-- Winner -->
             <div class="text-center">
-                <div class="text-sm font-medium text-gray-500 mb-1">Winner</div>
+                <div class="text-sm font-medium text-muted mb-1">Winner</div>
                 {% if comparison.statistics.winner.album == "tie" %}
-                <div class="text-2xl font-bold text-gray-600">Tie</div>
-                <div class="text-sm text-gray-500">Close match!</div>
+                <div class="text-2xl font-bold text-secondary">Tie</div>
+                <div class="text-sm text-muted">Close match!</div>
                 {% elif comparison.statistics.winner.album == "album1" %}
-                <div class="text-2xl font-bold text-green-600">{{ comparison.albums.album1.name }}</div>
-                <div class="text-sm text-gray-500">+{{ comparison.statistics.winner.score_difference }} points</div>
+                <div class="text-2xl font-bold text-success">{{ comparison.albums.album1.name }}</div>
+                <div class="text-sm text-muted">+{{ comparison.statistics.winner.score_difference }} points</div>
                 {% else %}
-                <div class="text-2xl font-bold text-green-600">{{ comparison.albums.album2.name }}</div>
-                <div class="text-sm text-gray-500">+{{ comparison.statistics.winner.score_difference|abs }} points</div>
+                <div class="text-2xl font-bold text-success">{{ comparison.albums.album2.name }}</div>
+                <div class="text-sm text-muted">+{{ comparison.statistics.winner.score_difference|abs }} points</div>
                 {% endif %}
             </div>
             
             <!-- Track Wins -->
             <div class="text-center">
-                <div class="text-sm font-medium text-gray-500 mb-1">Track Wins</div>
-                <div class="text-lg font-semibold text-gray-800">
+                <div class="text-sm font-medium text-muted mb-1">Track Wins</div>
+                <div class="text-lg font-semibold text-primary">
                     {{ comparison.statistics.track_wins.album1_wins }} - {{ comparison.statistics.track_wins.album2_wins }}
                 </div>
-                <div class="text-sm text-gray-500">
+                <div class="text-sm text-muted">
                     {{ comparison.statistics.track_wins.ties }} ties
                 </div>
             </div>
@@ -217,23 +217,23 @@ Compare Albums - Tracklist
             <!-- Rating Spread -->
             {% if comparison.statistics.rating_differences %}
             <div class="text-center">
-                <div class="text-sm font-medium text-gray-500 mb-1">Max Difference</div>
-                <div class="text-lg font-semibold text-gray-800">
+                <div class="text-sm font-medium text-muted mb-1">Max Difference</div>
+                <div class="text-lg font-semibold text-primary">
                     {{ "%.2f"|format(comparison.statistics.rating_differences.max|abs) }}
                 </div>
-                <div class="text-sm text-gray-500">rating points</div>
+                <div class="text-sm text-muted">rating points</div>
             </div>
             {% endif %}
         </div>
         
         <!-- Insights -->
-        <div class="border-t pt-4">
-            <h3 class="font-medium text-gray-900 mb-2">{{ comparison.insights.summary }}</h3>
+        <div class="border-t border-default pt-4">
+            <h3 class="font-medium text-primary mb-2">{{ comparison.insights.summary }}</h3>
             {% if comparison.insights.highlights %}
-            <ul class="text-sm text-gray-600 space-y-1">
+            <ul class="text-sm text-secondary space-y-1">
                 {% for highlight in comparison.insights.highlights %}
                 <li class="flex items-center">
-                    <svg class="w-4 h-4 text-blue-500 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <svg class="w-4 h-4 text-accent-blue mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
                     </svg>
                     {{ highlight }}
@@ -245,33 +245,33 @@ Compare Albums - Tracklist
     </div>
 
     <!-- Track-by-Track Comparison -->
-    <div class="bg-white rounded-lg shadow-sm border p-6">
-        <h2 class="text-xl font-semibold mb-6">Track Comparison</h2>
+    <div class="bg-surface rounded-lg shadow-sm border border-default p-6">
+        <h2 class="text-xl font-semibold text-primary mb-6">Track Comparison</h2>
         
         <!-- Desktop: Table View -->
         <div class="hidden lg:block overflow-x-auto">
             <table class="w-full">
                 <thead>
-                    <tr class="border-b">
-                        <th class="text-left py-3 px-2 font-medium text-gray-700">#</th>
-                        <th class="text-left py-3 px-4 font-medium text-gray-700">{{ comparison.albums.album1.name }}</th>
-                        <th class="text-center py-3 px-2 font-medium text-gray-700">Rating</th>
-                        <th class="text-center py-3 px-4 font-medium text-gray-700">Difference</th>
-                        <th class="text-center py-3 px-2 font-medium text-gray-700">Rating</th>
-                        <th class="text-left py-3 px-4 font-medium text-gray-700">{{ comparison.albums.album2.name }}</th>
+                    <tr class="border-b border-default">
+                        <th class="text-left py-3 px-2 font-medium text-secondary">#</th>
+                        <th class="text-left py-3 px-4 font-medium text-secondary">{{ comparison.albums.album1.name }}</th>
+                        <th class="text-center py-3 px-2 font-medium text-secondary">Rating</th>
+                        <th class="text-center py-3 px-4 font-medium text-secondary">Difference</th>
+                        <th class="text-center py-3 px-2 font-medium text-secondary">Rating</th>
+                        <th class="text-left py-3 px-4 font-medium text-secondary">{{ comparison.albums.album2.name }}</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for track in comparison.track_comparison %}
-                    <tr class="border-b hover:bg-gray-50 comparison-row" data-difference="{{ track.rating_difference or 0 }}">
-                        <td class="py-3 px-2 text-sm text-gray-500">{{ track.track_number }}</td>
+                    <tr class="border-b border-default hover:bg-surface-secondary comparison-row" data-difference="{{ track.rating_difference or 0 }}">
+                        <td class="py-3 px-2 text-sm text-muted">{{ track.track_number }}</td>
                         
                         <!-- Album 1 Track -->
                         <td class="py-3 px-4">
                             {% if track.album1_track %}
-                            <div class="text-sm font-medium text-gray-900">{{ track.album1_track.name }}</div>
+                            <div class="text-sm font-medium text-primary">{{ track.album1_track.name }}</div>
                             {% else %}
-                            <div class="text-sm text-gray-400 italic">No track</div>
+                            <div class="text-sm text-muted italic">No track</div>
                             {% endif %}
                         </td>
                         
@@ -282,7 +282,7 @@ Compare Albums - Tracklist
                                 {{ track.album1_track.rating }}
                             </span>
                             {% else %}
-                            <span class="text-gray-400">-</span>
+                            <span class="text-muted">-</span>
                             {% endif %}
                         </td>
                         
@@ -291,16 +291,16 @@ Compare Albums - Tracklist
                             {% if track.rating_difference is not none %}
                                 {% set abs_diff = track.rating_difference|abs %}
                                 {% if track.difference_category == 'significant' %}
-                                    {% set diff_class = 'text-green-600' if track.rating_difference > 0 else 'text-red-600' %}
+                                    {% set diff_class = 'text-success' if track.rating_difference > 0 else 'text-error' %}
                                     {% set arrow = '↑↑' if track.rating_difference > 0 else '↓↓' %}
                                 {% elif track.difference_category == 'moderate' %}
-                                    {% set diff_class = 'text-green-500' if track.rating_difference > 0 else 'text-orange-600' %}
+                                    {% set diff_class = 'text-success-secondary' if track.rating_difference > 0 else 'text-warning' %}
                                     {% set arrow = '↑' if track.rating_difference > 0 else '↓' %}
                                 {% elif track.difference_category == 'slight' %}
-                                    {% set diff_class = 'text-lime-600' if track.rating_difference > 0 else 'text-yellow-600' %}
+                                    {% set diff_class = 'text-success-secondary' if track.rating_difference > 0 else 'text-accent-amber' %}
                                     {% set arrow = '↗' if track.rating_difference > 0 else '↘' %}
                                 {% else %}
-                                    {% set diff_class = 'text-gray-500' %}
+                                    {% set diff_class = 'text-muted' %}
                                     {% set arrow = '=' %}
                                 {% endif %}
                                 
@@ -311,7 +311,7 @@ Compare Albums - Tracklist
                                 <span class="{{ diff_class }} text-xs">{{ arrow }}</span>
                             </div>
                             {% else %}
-                            <span class="text-gray-400">-</span>
+                            <span class="text-muted">-</span>
                             {% endif %}
                         </td>
                         
@@ -322,16 +322,16 @@ Compare Albums - Tracklist
                                 {{ track.album2_track.rating }}
                             </span>
                             {% else %}
-                            <span class="text-gray-400">-</span>
+                            <span class="text-muted">-</span>
                             {% endif %}
                         </td>
                         
                         <!-- Album 2 Track -->
                         <td class="py-3 px-4">
                             {% if track.album2_track %}
-                            <div class="text-sm font-medium text-gray-900">{{ track.album2_track.name }}</div>
+                            <div class="text-sm font-medium text-primary">{{ track.album2_track.name }}</div>
                             {% else %}
-                            <div class="text-sm text-gray-400 italic">No track</div>
+                            <div class="text-sm text-muted italic">No track</div>
                             {% endif %}
                         </td>
                     </tr>
@@ -343,19 +343,19 @@ Compare Albums - Tracklist
         <!-- Mobile: Card View -->
         <div class="lg:hidden space-y-4">
             {% for track in comparison.track_comparison %}
-            <div class="border rounded-lg p-4">
+            <div class="border border-default rounded-lg p-4">
                 <div class="flex items-center justify-between mb-3">
-                    <span class="text-sm font-medium text-gray-500">Track {{ track.track_number }}</span>
+                    <span class="text-sm font-medium text-muted">Track {{ track.track_number }}</span>
                     {% if track.rating_difference is not none %}
                         {% set abs_diff = track.rating_difference|abs %}
                         {% if track.difference_category == 'significant' %}
-                            {% set diff_class = 'text-green-600 bg-green-50' if track.rating_difference > 0 else 'text-red-600 bg-red-50' %}
+                            {% set diff_class = 'text-success bg-success-light' if track.rating_difference > 0 else 'text-error bg-error-light' %}
                         {% elif track.difference_category == 'moderate' %}
-                            {% set diff_class = 'text-green-500 bg-green-50' if track.rating_difference > 0 else 'text-orange-600 bg-orange-50' %}
+                            {% set diff_class = 'text-success-secondary bg-success-secondary' if track.rating_difference > 0 else 'text-warning bg-warning-light' %}
                         {% elif track.difference_category == 'slight' %}
-                            {% set diff_class = 'text-lime-600 bg-lime-50' if track.rating_difference > 0 else 'text-yellow-600 bg-yellow-50' %}
+                            {% set diff_class = 'text-success-secondary bg-success-secondary' if track.rating_difference > 0 else 'text-accent-amber bg-warning-light' %}
                         {% else %}
-                            {% set diff_class = 'text-gray-500 bg-gray-50' %}
+                            {% set diff_class = 'text-muted bg-surface-secondary' %}
                         {% endif %}
                     <span class="px-2 py-1 rounded text-xs font-medium {{ diff_class }}">
                         Δ {{ "%.2f"|format(abs_diff) }}
@@ -367,11 +367,11 @@ Compare Albums - Tracklist
                     <!-- Album 1 Track -->
                     <div class="flex items-center justify-between">
                         <div class="flex-1 min-w-0">
-                            <div class="text-sm font-medium text-gray-600">{{ comparison.albums.album1.name }}</div>
+                            <div class="text-sm font-medium text-secondary">{{ comparison.albums.album1.name }}</div>
                             {% if track.album1_track %}
-                            <div class="text-sm text-gray-900 truncate">{{ track.album1_track.name }}</div>
+                            <div class="text-sm text-primary truncate">{{ track.album1_track.name }}</div>
                             {% else %}
-                            <div class="text-sm text-gray-400 italic">No track</div>
+                            <div class="text-sm text-muted italic">No track</div>
                             {% endif %}
                         </div>
                         <div class="ml-4">
@@ -380,7 +380,7 @@ Compare Albums - Tracklist
                                 {{ track.album1_track.rating }}
                             </span>
                             {% else %}
-                            <span class="text-gray-400">-</span>
+                            <span class="text-muted">-</span>
                             {% endif %}
                         </div>
                     </div>
@@ -388,11 +388,11 @@ Compare Albums - Tracklist
                     <!-- Album 2 Track -->
                     <div class="flex items-center justify-between">
                         <div class="flex-1 min-w-0">
-                            <div class="text-sm font-medium text-gray-600">{{ comparison.albums.album2.name }}</div>
+                            <div class="text-sm font-medium text-secondary">{{ comparison.albums.album2.name }}</div>
                             {% if track.album2_track %}
-                            <div class="text-sm text-gray-900 truncate">{{ track.album2_track.name }}</div>
+                            <div class="text-sm text-primary truncate">{{ track.album2_track.name }}</div>
                             {% else %}
-                            <div class="text-sm text-gray-400 italic">No track</div>
+                            <div class="text-sm text-muted italic">No track</div>
                             {% endif %}
                         </div>
                         <div class="ml-4">
@@ -401,7 +401,7 @@ Compare Albums - Tracklist
                                 {{ track.album2_track.rating }}
                             </span>
                             {% else %}
-                            <span class="text-gray-400">-</span>
+                            <span class="text-muted">-</span>
                             {% endif %}
                         </div>
                     </div>
@@ -412,23 +412,23 @@ Compare Albums - Tracklist
     </div>
     
     <!-- Scoring Explanation -->
-    <div class="bg-blue-50 rounded-lg shadow-sm border border-blue-200 p-6 mt-8">
-        <h2 class="text-xl font-semibold mb-4 text-blue-900">How Scoring Works</h2>
+    <div class="bg-info-light rounded-lg shadow-sm border border-default p-6 mt-8">
+        <h2 class="text-xl font-semibold mb-4 text-info">How Scoring Works</h2>
         
-        <div class="space-y-4 text-sm text-gray-700">
+        <div class="space-y-4 text-sm text-secondary">
             <div>
-                <h3 class="font-semibold text-gray-900 mb-2">Overall Winner & Score Difference</h3>
+                <h3 class="font-semibold text-primary mb-2">Overall Winner & Score Difference</h3>
                 <p>The overall winner is determined by each album's total score (0-100), which is calculated from the average of all track ratings plus any album bonus points. The score difference shows how many points separate the two albums.</p>
             </div>
             
             <div>
-                <h3 class="font-semibold text-gray-900 mb-2">Track Wins</h3>
+                <h3 class="font-semibold text-primary mb-2">Track Wins</h3>
                 <p>Track wins only count head-to-head comparisons. When albums have different numbers of tracks, only tracks at the same position are compared. For example, if Album A has 8 tracks and Album B has 14 tracks, only tracks 1-8 are compared directly. Tracks 9-14 of Album B are not counted as "wins" since there's nothing to compare them against.</p>
                 <p class="mt-2">A track "wins" when its rating is higher than the corresponding track on the other album by more than 0.05 points (the tie threshold).</p>
             </div>
             
             <div>
-                <h3 class="font-semibold text-gray-900 mb-2">Rating Differences</h3>
+                <h3 class="font-semibold text-primary mb-2">Rating Differences</h3>
                 <ul class="space-y-1 ml-4">
                     <li><span class="font-medium">Significant (↑↑ or ↓↓):</span> 0.34+ points difference (a full rating level)</li>
                     <li><span class="font-medium">Moderate (↑ or ↓):</span> 0.20-0.33 points difference</li>
@@ -438,7 +438,7 @@ Compare Albums - Tracklist
             </div>
             
             <div>
-                <h3 class="font-semibold text-gray-900 mb-2">Why Different Track Counts Don't Affect Fairness</h3>
+                <h3 class="font-semibold text-primary mb-2">Why Different Track Counts Don't Affect Fairness</h3>
                 <p>Albums are judged on their overall quality, not quantity. The album score reflects the average quality of all tracks, so having more tracks doesn't automatically give an advantage. In fact, more tracks can be a disadvantage if some are weaker, as they'll bring down the average.</p>
             </div>
         </div>
@@ -447,11 +447,11 @@ Compare Albums - Tracklist
     {% else %}
     <!-- No Comparison State -->
     <div class="text-center py-12">
-        <svg class="mx-auto h-24 w-24 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="mx-auto h-24 w-24 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h2a2 2 0 01-2-2z"></path>
         </svg>
-        <h3 class="mt-4 text-lg font-medium text-gray-900">Select Albums to Compare</h3>
-        <p class="mt-2 text-gray-500">Choose two rated albums from the dropdowns above to see a detailed comparison.</p>
+        <h3 class="mt-4 text-lg font-medium text-primary">Select Albums to Compare</h3>
+        <p class="mt-2 text-muted">Choose two rated albums from the dropdowns above to see a detailed comparison.</p>
     </div>
     {% endif %}
 </div>
@@ -469,23 +469,23 @@ Compare Albums - Tracklist
 }
 
 .rating-0 {
-    background-color: #fee2e2;
-    color: #dc2626;
+    background-color: rgba(var(--color-rating-skip), 0.15);
+    color: rgb(var(--color-rating-skip));
 }
 
 .rating-33 {
-    background-color: #fef3c7;
-    color: #d97706;
+    background-color: rgba(var(--color-rating-filler), 0.15);
+    color: rgb(var(--color-rating-filler));
 }
 
 .rating-67 {
-    background-color: #d1fae5;
-    color: #059669;
+    background-color: rgba(var(--color-rating-good), 0.15);
+    color: rgb(var(--color-rating-good));
 }
 
 .rating-100 {
-    background-color: #dbeafe;
-    color: #2563eb;
+    background-color: rgba(var(--color-rating-standout), 0.2);
+    color: rgb(var(--color-rating-standout));
 }
 
 /* Comparison Row Highlighting */
@@ -494,7 +494,7 @@ Compare Albums - Tracklist
 }
 
 .comparison-row[data-difference]:hover {
-    background-color: #f9fafb;
+    background-color: rgb(var(--color-surface-hover));
 }
 
 /* Search Results Styling */
@@ -502,13 +502,12 @@ Compare Albums - Tracklist
     transition: background-color 0.15s ease-in-out;
 }
 
-.result-item:hover,
-.result-item.active {
-    background-color: #f3f4f6 !important;
+.result-item:hover {
+    background-color: rgb(var(--color-surface-secondary)) !important;
 }
 
 .result-item.active {
-    background-color: #dbeafe !important;
+    background-color: rgba(var(--color-info), 0.15) !important;
 }
 
 /* Search Input Styling */
@@ -536,8 +535,8 @@ Compare Albums - Tracklist
     transform: translate(-50%, -50%);
     width: 20px;
     height: 20px;
-    border: 2px solid #e5e7eb;
-    border-top: 2px solid #3b82f6;
+    border: 2px solid rgb(var(--color-border));
+    border-top: 2px solid rgb(var(--color-accent-blue));
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }

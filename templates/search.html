@@ -2,7 +2,7 @@
 
 {% block title %}Search Albums - Tracklist{% endblock %}
 
-{% block nav_search %}text-blue-600 border-b-2 border-blue-600{% endblock %}
+{% block nav_search %}text-accent-blue border-b-2 border-accent-blue{% endblock %}
 
 {% block content %}
 <div class="max-w-4xl mx-auto">
@@ -31,7 +31,7 @@
                            name="q" 
                            x-model="query"
                            @keyup.debounce.500ms="if (query && !usingAdvanced()) { submitForm($el.form) }"
-                           class="search-input block w-full pl-10 pr-3 py-3 border border-default rounded-md leading-5 bg-surface text-primary placeholder-muted focus:outline-none focus:placeholder-secondary focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                           class="search-input block w-full pl-10 pr-3 py-3 border border-default rounded-md leading-5 bg-surface text-primary placeholder-muted focus:outline-none focus:placeholder-secondary focus:ring-1 focus:ring-accent-blue focus:border-accent-blue sm:text-sm"
                            placeholder='Try "OK Computer" or "Radiohead"'
                            autocomplete="off">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -62,7 +62,7 @@
                                        id="artist"
                                        x-model="artist"
                                        @input="clearGeneralIfAdvanced()"
-                                       class="block w-full rounded-md border-default bg-surface text-primary placeholder-muted shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                                       class="block w-full rounded-md border-default bg-surface text-primary placeholder-muted shadow-sm focus:border-accent-blue focus:ring-accent-blue sm:text-sm"
                                        placeholder="e.g., Perfume Genius">
                             </div>
                             <div>
@@ -72,7 +72,7 @@
                                        id="album"
                                        x-model="album"
                                        @input="clearGeneralIfAdvanced()"
-                                       class="block w-full rounded-md border-default bg-surface text-primary placeholder-muted shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                                       class="block w-full rounded-md border-default bg-surface text-primary placeholder-muted shadow-sm focus:border-accent-blue focus:ring-accent-blue sm:text-sm"
                                        placeholder="e.g., Glory">
                             </div>
                             <div>
@@ -87,10 +87,10 @@
                                        @input="clearGeneralIfAdvanced(); validateYear()"
                                        min="1900"
                                        :max="new Date().getFullYear() + 1"
-                                       class="block w-full rounded-md border-default bg-surface text-primary placeholder-muted shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                                       class="block w-full rounded-md border-default bg-surface text-primary placeholder-muted shadow-sm focus:border-accent-blue focus:ring-accent-blue sm:text-sm"
                                        :class="{'border-red-300': yearError}"
                                        placeholder="e.g., 2020">
-                                <p x-show="yearError" x-text="yearError" class="mt-1 text-xs text-red-600"></p>
+                                <p x-show="yearError" x-text="yearError" class="mt-1 text-xs text-error"></p>
                                 <p x-show="!yearError" class="mt-1 text-xs text-muted">Helps find specific release/reissue</p>
                             </div>
                         </div>
@@ -102,7 +102,7 @@
                         <div>
                             <label for="mbid" class="block text-sm font-medium text-primary mb-1">
                                 MusicBrainz Release ID
-                                <a href="https://musicbrainz.org" target="_blank" class="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 ml-1">
+                                <a href="https://musicbrainz.org" target="_blank" class="text-accent-blue hover:opacity-80 ml-1">
                                     <svg class="inline-block w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
                                     </svg>
@@ -113,11 +113,11 @@
                                    id="mbid"
                                    x-model="mbid"
                                    @input="clearOtherFields(); validateMBID()"
-                                   class="block w-full rounded-md border-default bg-surface text-primary placeholder-muted shadow-sm focus:border-blue-500 focus:ring-blue-500 py-2 px-3 text-base md:text-sm"
+                                   class="block w-full rounded-md border-default bg-surface text-primary placeholder-muted shadow-sm focus:border-accent-blue focus:ring-accent-blue py-2 px-3 text-base md:text-sm"
                                    :class="{'border-red-300': mbidError}"
                                    placeholder="e.g., 7f9e8590-5d8f-4234-8b23-5f1234567890"
                                    pattern="[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}">
-                            <p x-show="mbidError" x-text="mbidError" class="mt-1 text-xs text-red-600"></p>
+                            <p x-show="mbidError" x-text="mbidError" class="mt-1 text-xs text-error"></p>
                             <p x-show="!mbidError" class="mt-1 text-xs text-muted">36-character UUID for direct album lookup</p>
                         </div>
                     </div>

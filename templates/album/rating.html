@@ -26,7 +26,7 @@
                         <h1 class="text-xl sm:text-2xl md:text-3xl font-bold text-primary group relative inline-block{% if album.genre %} cursor-help{% endif %}">
                             {{ album.title }}
                             {% if album.year %}
-                            <span class="text-lg sm:text-xl md:text-2xl font-normal text-secondary">(<a href="/years/{{ album.year }}/albums" class="hover:text-blue-600 hover:underline transition-colors">{{ album.year }}</a>)</span>
+                            <span class="text-lg sm:text-xl md:text-2xl font-normal text-secondary">(<a href="/years/{{ album.year }}/albums" class="hover:text-accent-blue hover:underline transition-colors">{{ album.year }}</a>)</span>
                             {% endif %}
                             {% if album.genre %}
                             <span class="absolute -bottom-8 left-0 text-xs bg-surface-hover text-primary px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10 border border-default">
@@ -38,7 +38,7 @@
                         <div class="hidden lg:flex items-center space-x-2 mt-2 sm:mt-0 sm:ml-4">
                             <button onclick="openRetagModal()" 
                                     title="Change Release Version"
-                                    class="p-2 text-muted hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/30 rounded-lg transition-all duration-200 group relative">
+                                    class="p-2 text-muted hover:text-accent-purple hover:bg-accent-purple-light rounded-lg transition-all duration-200 group relative">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
                                 </svg>
@@ -47,7 +47,7 @@
                             <a href="https://musicbrainz.org/release/{{ album.musicbrainz_id }}" 
                                target="_blank"
                                title="View on MusicBrainz"
-                               class="p-2 text-muted hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30 rounded-lg transition-all duration-200 group relative">
+                               class="p-2 text-muted hover:text-accent-blue hover:bg-info-light rounded-lg transition-all duration-200 group relative">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
                                 </svg>
@@ -55,7 +55,7 @@
                             </a>
                             <button onclick="confirmDeleteAlbum()" 
                                     title="Delete Album"
-                                    class="p-2 text-muted hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-all duration-200 group relative">
+                                    class="p-2 text-muted hover:text-error hover:bg-error-light rounded-lg transition-all duration-200 group relative">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                 </svg>
@@ -63,20 +63,20 @@
                             </button>
                         </div>
                     </div>
-                    <p class="text-base sm:text-lg md:text-xl text-secondary mb-4 md:mb-6">by <a href="/artists/{{ album.artist.id }}/albums" class="hover:text-blue-600 hover:underline transition-colors">{{ album.artist.name }}</a></p>
+                    <p class="text-base sm:text-lg md:text-xl text-secondary mb-4 md:mb-6">by <a href="/artists/{{ album.artist.id }}/albums" class="hover:text-accent-blue hover:underline transition-colors">{{ album.artist.name }}</a></p>
                     
                     <!-- Rating Status -->
-                    <div class="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 rounded-lg p-3 md:p-4">
+                    <div class="bg-warning-light border border-warning rounded-lg p-3 md:p-4">
                         <div class="text-center lg:text-left">
-                            <div class="text-base md:text-lg font-semibold text-amber-800 dark:text-amber-400 mb-0.5 md:mb-1">Rating in Progress</div>
-                            <div class="text-xs sm:text-sm text-amber-600">Rate each track below to complete</div>
+                            <div class="text-base md:text-lg font-semibold text-warning mb-0.5 md:mb-1">Rating in Progress</div>
+                            <div class="text-xs sm:text-sm text-warning">Rate each track below to complete</div>
                         </div>
                     </div>
                     
                     <!-- Mobile Action Buttons - Shown only on mobile/tablet -->
                     <div class="lg:hidden grid grid-cols-2 gap-2 mt-4">
                         <button onclick="openRetagModal()" 
-                                class="flex flex-col items-center justify-center p-3 text-secondary bg-surface border border-default hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/30 rounded-lg transition-all duration-200">
+                                class="flex flex-col items-center justify-center p-3 text-secondary bg-surface border border-default hover:text-accent-purple hover:bg-accent-purple-light rounded-lg transition-all duration-200">
                             <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
                             </svg>
@@ -84,14 +84,14 @@
                         </button>
                         <a href="https://musicbrainz.org/release/{{ album.musicbrainz_id }}" 
                            target="_blank"
-                           class="flex flex-col items-center justify-center p-3 text-secondary bg-surface border border-default hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30 rounded-lg transition-all duration-200">
+                           class="flex flex-col items-center justify-center p-3 text-secondary bg-surface border border-default hover:text-accent-blue hover:bg-info-light rounded-lg transition-all duration-200">
                             <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
                             </svg>
                             <span class="text-xs">MusicBrainz</span>
                         </a>
                         <button onclick="confirmDeleteAlbum()" 
-                                class="flex flex-col items-center justify-center p-3 text-secondary bg-surface border border-default hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-all duration-200 col-span-2">
+                                class="flex flex-col items-center justify-center p-3 text-secondary bg-surface border border-default hover:text-error hover:bg-error-light rounded-lg transition-all duration-200 col-span-2">
                             <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                             </svg>
@@ -108,20 +108,20 @@
     {% include 'components/progress_bar.html' %}
     
     <!-- Rating Instructions -->
-    <div class="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/50 rounded-lg p-3 md:p-4 mb-4 md:mb-6">
+    <div class="bg-info-light border border-info rounded-lg p-3 md:p-4 mb-4 md:mb-6">
         <div class="flex items-start">
-            <svg class="w-5 h-5 text-blue-400 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-5 h-5 text-info mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
             </svg>
             <div>
-                <h3 class="text-sm font-semibold text-blue-800 dark:text-blue-400 mb-1">How to Rate Tracks</h3>
-                <div class="text-xs sm:text-sm text-blue-700 dark:text-blue-400 space-y-0.5 sm:space-y-1">
-                    <p><span class="font-medium text-red-600">Skip (0.0)</span> - Worst songs you'd never want to hear</p>
-                    <p><span class="font-medium text-amber-600">Filler (0.33)</span> - Tolerable but not enjoyable, won't skip</p>
-                    <p><span class="font-medium text-green-600">Good (0.67)</span> - Like the track, playlist-worthy</p>
-                    <p><span class="font-medium text-green-800 dark:text-green-400">Standout (1.0)</span> - Love it, album highlights</p>
+                <h3 class="text-sm font-semibold text-info mb-1">How to Rate Tracks</h3>
+                <div class="text-xs sm:text-sm text-info space-y-0.5 sm:space-y-1">
+                    <p><span class="font-medium text-error">Skip (0.0)</span> - Worst songs you'd never want to hear</p>
+                    <p><span class="font-medium text-warning">Filler (0.33)</span> - Tolerable but not enjoyable, won't skip</p>
+                    <p><span class="font-medium text-success">Good (0.67)</span> - Like the track, playlist-worthy</p>
+                    <p><span class="font-medium text-success">Standout (1.0)</span> - Love it, album highlights</p>
                 </div>
-                <p class="text-xs text-blue-600 mt-2">💾 Ratings are automatically saved as you click!</p>
+                <p class="text-xs text-info mt-2">💾 Ratings are automatically saved as you click!</p>
             </div>
         </div>
     </div>

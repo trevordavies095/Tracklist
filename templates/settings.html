@@ -2,16 +2,16 @@
 
 {% block title %}Settings - Tracklist{% endblock %}
 
-{% block nav_settings %}text-blue-600 border-b-2 border-blue-600{% endblock %}
+{% block nav_settings %}text-accent-blue border-b-2 border-accent-blue{% endblock %}
 
 {% block head %}
 <script>
     function showNotification(message, type = 'success') {
         const container = document.getElementById('notification-container');
         const notification = document.createElement('div');
-        let bgColor = 'bg-green-500';
-        if (type === 'error') bgColor = 'bg-red-500';
-        else if (type === 'info') bgColor = 'bg-blue-500';
+        let bgColor = 'bg-success';
+        if (type === 'error') bgColor = 'bg-error';
+        else if (type === 'info') bgColor = 'bg-info';
         
         notification.className = `${bgColor} text-white px-4 py-3 rounded shadow-lg transition-opacity duration-500`;
         notification.textContent = message;

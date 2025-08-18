@@ -34,6 +34,32 @@
   /* Chart colors */
   --color-chart-bg: 243 244 246;
   --color-chart-border: 209 213 219;
+  
+  /* Additional UI colors for light theme */
+  --color-accent-blue: 59 130 246;
+  --color-accent-indigo: 99 102 241;
+  --color-accent-purple: 139 92 246;
+  --color-accent-amber: 245 158 11;
+  --color-accent-red: 239 68 68;
+  
+  /* Backgrounds for colored sections */
+  --color-success-bg: 220 252 231;
+  --color-success-bg-secondary: 240 253 244;
+  --color-warning-bg: 254 243 199;
+  --color-error-bg: 254 226 226;
+  --color-info-bg: 219 234 254;
+  --color-purple-bg: 237 233 254;
+  
+  /* Text colors for colored sections */
+  --color-success-text: 21 128 61;
+  --color-success-text-secondary: 22 163 74;
+  --color-warning-text: 180 83 9;
+  --color-error-text: 185 28 28;
+  --color-info-text: 30 64 175;
+  
+  /* Modal overlay */
+  --color-overlay: 0 0 0;
+  --overlay-opacity: 0.5;
 }
 
 [data-theme="dark"] {
@@ -72,6 +98,32 @@
   /* Chart colors */
   --color-chart-bg: 30 41 59;
   --color-chart-border: 71 85 105;
+  
+  /* Additional UI colors for dark theme */
+  --color-accent-blue: 96 165 250;
+  --color-accent-indigo: 129 140 248;
+  --color-accent-purple: 167 139 250;
+  --color-accent-amber: 251 191 36;
+  --color-accent-red: 248 113 113;
+  
+  /* Backgrounds for colored sections (darker, muted) */
+  --color-success-bg: 20 83 45;
+  --color-success-bg-secondary: 21 128 61;
+  --color-warning-bg: 120 53 15;
+  --color-error-bg: 127 29 29;
+  --color-info-bg: 30 58 138;
+  --color-purple-bg: 59 7 100;
+  
+  /* Text colors for colored sections (brighter for dark mode) */
+  --color-success-text: 134 239 172;
+  --color-success-text-secondary: 74 222 128;
+  --color-warning-text: 252 211 77;
+  --color-error-text: 252 165 165;
+  --color-info-text: 147 197 253;
+  
+  /* Modal overlay */
+  --color-overlay: 0 0 0;
+  --overlay-opacity: 0.7;
 }
 
 /* Utility classes for RGB colors */
@@ -92,6 +144,43 @@
 .bg-rating-filler { background-color: rgb(var(--color-rating-filler)); }
 .bg-rating-good { background-color: rgb(var(--color-rating-good)); }
 .bg-rating-standout { background-color: rgb(var(--color-rating-standout)); }
+
+/* Status backgrounds */
+.bg-success-light { background-color: rgb(var(--color-success-bg)); }
+.bg-success-secondary { background-color: rgb(var(--color-success-bg-secondary)); }
+.bg-warning-light { background-color: rgb(var(--color-warning-bg)); }
+.bg-error-light { background-color: rgb(var(--color-error-bg)); }
+.bg-info-light { background-color: rgb(var(--color-info-bg)); }
+.bg-accent-purple-light { background-color: rgb(var(--color-purple-bg)); }
+
+/* Status text colors */
+.text-success { color: rgb(var(--color-success-text)); }
+.text-success-secondary { color: rgb(var(--color-success-text-secondary)); }
+.text-warning { color: rgb(var(--color-warning-text)); }
+.text-error { color: rgb(var(--color-error-text)); }
+.text-info { color: rgb(var(--color-info-text)); }
+
+/* Accent colors */
+.text-accent-blue { color: rgb(var(--color-accent-blue)); }
+.text-accent-indigo { color: rgb(var(--color-accent-indigo)); }
+.text-accent-purple { color: rgb(var(--color-accent-purple)); }
+.text-accent-amber { color: rgb(var(--color-accent-amber)); }
+.text-accent-red { color: rgb(var(--color-accent-red)); }
+
+.bg-accent-blue { background-color: rgb(var(--color-accent-blue)); }
+.bg-accent-indigo { background-color: rgb(var(--color-accent-indigo)); }
+.bg-accent-purple { background-color: rgb(var(--color-accent-purple)); }
+
+/* Hover states with alpha */
+.hover\:bg-info-light:hover { background-color: rgba(var(--color-info), 0.1); }
+.hover\:bg-success-light:hover { background-color: rgba(var(--color-success), 0.1); }
+.hover\:bg-warning-light:hover { background-color: rgba(var(--color-warning), 0.1); }
+.hover\:bg-error-light:hover { background-color: rgba(var(--color-error), 0.1); }
+.hover\:bg-accent-indigo-light:hover { background-color: rgba(var(--color-accent-indigo), 0.1); }
+.hover\:bg-accent-purple-light:hover { background-color: rgba(var(--color-accent-purple), 0.1); }
+
+/* Modal overlay */
+.bg-overlay { background-color: rgba(var(--color-overlay), var(--overlay-opacity)); }
 
 /* Smooth theme transitions */
 * {

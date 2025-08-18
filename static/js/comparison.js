@@ -246,7 +246,7 @@ class AlbumComparison {
         }
         
         if (results.length === 0) {
-            resultsContainer.innerHTML = '<div class="p-3 text-gray-500 text-sm">No albums found</div>';
+            resultsContainer.innerHTML = '<div class="p-3 text-muted text-sm">No albums found</div>';
             resultsContainer.classList.remove('hidden');
             searchInput.setAttribute('aria-expanded', 'true');
             return;
@@ -270,21 +270,21 @@ class AlbumComparison {
     
     createResultItem(album, index) {
         return `
-            <div class="result-item p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0" 
+            <div class="result-item p-3 hover:bg-surface-secondary cursor-pointer border-b border-default last:border-b-0" 
                  data-album='${JSON.stringify(album)}'
                  role="option"
                  aria-selected="false"
                  id="album-option-${album.id}">
                 <div class="flex items-center space-x-3">
                     <div class="flex-shrink-0">
-                        <div class="w-10 h-10 bg-gray-200 rounded flex items-center justify-center text-xs text-gray-500">
+                        <div class="w-10 h-10 bg-surface-secondary rounded flex items-center justify-center text-xs text-muted">
                             ${album.score || 0}
                         </div>
                     </div>
                     <div class="flex-1 min-w-0">
-                        <div class="text-sm font-medium text-gray-900 truncate">${album.name || 'Unknown Album'}</div>
-                        <div class="text-sm text-gray-500 truncate">${album.artist || 'Unknown Artist'}</div>
-                        ${album.year ? `<div class="text-xs text-gray-400">${album.year}</div>` : ''}
+                        <div class="text-sm font-medium text-primary truncate">${album.name || 'Unknown Album'}</div>
+                        <div class="text-sm text-muted truncate">${album.artist || 'Unknown Artist'}</div>
+                        ${album.year ? `<div class="text-xs text-secondary">${album.year}</div>` : ''}
                     </div>
                     <div class="flex-shrink-0">
                         <div class="text-lg font-semibold text-blue-600">${album.score || 0}</div>
@@ -543,11 +543,11 @@ class AlbumComparison {
             if (!document.getElementById('comparison-loading')) {
                 const loadingDiv = document.createElement('div');
                 loadingDiv.id = 'comparison-loading';
-                loadingDiv.className = 'fixed inset-0 bg-white bg-opacity-75 flex items-center justify-center z-50';
+                loadingDiv.className = 'fixed inset-0 bg-background bg-opacity-75 dark:bg-opacity-90 flex items-center justify-center z-50';
                 loadingDiv.innerHTML = `
                     <div class="text-center">
                         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                        <p class="text-gray-600">Loading albums for comparison...</p>
+                        <p class="text-secondary">Loading albums for comparison...</p>
                     </div>
                 `;
                 document.body.appendChild(loadingDiv);
@@ -584,13 +584,13 @@ class AlbumComparison {
         
         const errorDiv = document.createElement('div');
         errorDiv.id = 'comparison-error';
-        errorDiv.className = 'bg-red-50 border border-red-200 rounded-md p-4 mb-4';
+        errorDiv.className = 'bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-md p-4 mb-4';
         errorDiv.innerHTML = `
             <div class="flex items-center">
                 <svg class="w-5 h-5 text-red-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
                 </svg>
-                <span class="text-red-800 text-sm font-medium">${message}</span>
+                <span class="text-red-800 dark:text-red-400 text-sm font-medium">${message}</span>
             </div>
         `;
         
