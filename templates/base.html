@@ -12,8 +12,12 @@
     <link rel="apple-touch-icon" href="/static/img/logo-512.png">
     <link rel="apple-touch-icon" sizes="512x512" href="/static/img/logo-512.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Tracklist">
+    
+    <!-- PWA Theme Color - dynamically updated based on theme -->
+    <meta name="theme-color" content="#ffffff" id="theme-color-meta">
+    <meta name="msapplication-navbutton-color" content="#ffffff" id="ms-navbutton-color">
     
     <!-- CSS Variables for Theming -->
     <link rel="stylesheet" href="/static/css/variables.css">
@@ -63,6 +67,17 @@
             // Apply theme immediately to prevent flash
             document.documentElement.setAttribute('data-theme', theme);
             document.documentElement.classList.toggle('dark', theme === 'dark');
+            
+            // Update theme-color meta tags for PWA
+            const themeColorMeta = document.getElementById('theme-color-meta');
+            const msNavButtonColor = document.getElementById('ms-navbutton-color');
+            if (themeColorMeta && msNavButtonColor) {
+                // Use colors from CSS variables - matching the surface color for better integration
+                // Light: rgb(249, 250, 251) = #f9fafb, Dark: rgb(30, 41, 59) = #1e293b
+                const themeColor = theme === 'dark' ? '#1e293b' : '#f9fafb';
+                themeColorMeta.setAttribute('content', themeColor);
+                msNavButtonColor.setAttribute('content', themeColor);
+            }
         })();
     </script>
     
@@ -266,6 +281,17 @@
                     // Apply theme
                     document.documentElement.setAttribute('data-theme', this.theme);
                     document.documentElement.classList.toggle('dark', this.theme === 'dark');
+                    
+                    // Update theme-color meta tags for PWA
+                    const themeColorMeta = document.getElementById('theme-color-meta');
+                    const msNavButtonColor = document.getElementById('ms-navbutton-color');
+                    if (themeColorMeta && msNavButtonColor) {
+                        // Use colors from CSS variables - matching the surface color for better integration
+                        // Light: rgb(249, 250, 251) = #f9fafb, Dark: rgb(30, 41, 59) = #1e293b
+                        const themeColor = this.theme === 'dark' ? '#1e293b' : '#f9fafb';
+                        themeColorMeta.setAttribute('content', themeColor);
+                        msNavButtonColor.setAttribute('content', themeColor);
+                    }
                     
                     // Remove transitioning class after a short delay
                     setTimeout(() => {
