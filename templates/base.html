@@ -57,26 +57,51 @@
     
     <!-- Theme Manager -->
     <script>
-        // Theme management
+        // Theme management with database sync
         (function() {
-            // Get saved theme or default to system preference
-            const savedTheme = localStorage.getItem('theme');
+            // Get saved theme from localStorage as initial fallback
+            const localTheme = localStorage.getItem('theme');
             const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            const theme = savedTheme || (systemPrefersDark ? 'dark' : 'light');
             
-            // Apply theme immediately to prevent flash
-            document.documentElement.setAttribute('data-theme', theme);
-            document.documentElement.classList.toggle('dark', theme === 'dark');
+            // Apply initial theme to prevent flash (will be corrected if database differs)
+            let theme = localTheme || (systemPrefersDark ? 'dark' : 'light');
+            applyTheme(theme);
             
-            // Update theme-color meta tags for PWA
-            const themeColorMeta = document.getElementById('theme-color-meta');
-            const msNavButtonColor = document.getElementById('ms-navbutton-color');
-            if (themeColorMeta && msNavButtonColor) {
-                // Use colors from CSS variables - matching the surface color for better integration
-                // Light: rgb(249, 250, 251) = #f9fafb, Dark: rgb(30, 41, 59) = #1e293b
-                const themeColor = theme === 'dark' ? '#1e293b' : '#f9fafb';
-                themeColorMeta.setAttribute('content', themeColor);
-                msNavButtonColor.setAttribute('content', themeColor);
+            // Fetch theme from database and sync
+            fetch('/api/v1/settings')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.theme) {
+                        // Database theme takes priority
+                        theme = data.theme;
+                        
+                        // Sync localStorage with database
+                        localStorage.setItem('theme', theme);
+                        
+                        // Apply the database theme
+                        applyTheme(theme);
+                    }
+                })
+                .catch(error => {
+                    // If API fails, keep using localStorage/system preference
+                    console.log('Could not fetch theme from server, using local preference');
+                });
+            
+            function applyTheme(selectedTheme) {
+                // Apply theme to document
+                document.documentElement.setAttribute('data-theme', selectedTheme);
+                document.documentElement.classList.toggle('dark', selectedTheme === 'dark');
+                
+                // Update theme-color meta tags for PWA
+                const themeColorMeta = document.getElementById('theme-color-meta');
+                const msNavButtonColor = document.getElementById('ms-navbutton-color');
+                if (themeColorMeta && msNavButtonColor) {
+                    // Use colors from CSS variables - matching the surface color for better integration
+                    // Light: rgb(249, 250, 251) = #f9fafb, Dark: rgb(30, 41, 59) = #1e293b
+                    const themeColor = selectedTheme === 'dark' ? '#1e293b' : '#f9fafb';
+                    themeColorMeta.setAttribute('content', themeColor);
+                    msNavButtonColor.setAttribute('content', themeColor);
+                }
             }
         })();
     </script>
@@ -251,13 +276,42 @@
     
     <!-- Theme Toggle Component -->
     <script>
+        // Global theme apply function
+        window.applyThemeGlobal = function(selectedTheme, withTransition = false) {
+            if (withTransition) {
+                document.documentElement.classList.add('theme-transitioning');
+            }
+            
+            // Apply theme to document
+            document.documentElement.setAttribute('data-theme', selectedTheme);
+            document.documentElement.classList.toggle('dark', selectedTheme === 'dark');
+            
+            // Update theme-color meta tags for PWA
+            const themeColorMeta = document.getElementById('theme-color-meta');
+            const msNavButtonColor = document.getElementById('ms-navbutton-color');
+            if (themeColorMeta && msNavButtonColor) {
+                // Use colors from CSS variables - matching the surface color for better integration
+                // Light: rgb(249, 250, 251) = #f9fafb, Dark: rgb(30, 41, 59) = #1e293b
+                const themeColor = selectedTheme === 'dark' ? '#1e293b' : '#f9fafb';
+                themeColorMeta.setAttribute('content', themeColor);
+                msNavButtonColor.setAttribute('content', themeColor);
+            }
+            
+            if (withTransition) {
+                setTimeout(() => {
+                    document.documentElement.classList.remove('theme-transitioning');
+                }, 50);
+            }
+        };
+        
         document.addEventListener('alpine:init', () => {
             Alpine.data('themeToggle', () => ({
                 theme: localStorage.getItem('theme') || 'light',
                 
                 init() {
-                    // Apply saved theme
-                    this.applyTheme();
+                    // Theme is already applied by the initial script
+                    // Just sync the component state
+                    this.theme = document.documentElement.getAttribute('data-theme') || 'light';
                     
                     // Listen for system preference changes
                     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
@@ -275,28 +329,7 @@
                 },
                 
                 applyTheme() {
-                    // Add transitioning class to prevent flash
-                    document.documentElement.classList.add('theme-transitioning');
-                    
-                    // Apply theme
-                    document.documentElement.setAttribute('data-theme', this.theme);
-                    document.documentElement.classList.toggle('dark', this.theme === 'dark');
-                    
-                    // Update theme-color meta tags for PWA
-                    const themeColorMeta = document.getElementById('theme-color-meta');
-                    const msNavButtonColor = document.getElementById('ms-navbutton-color');
-                    if (themeColorMeta && msNavButtonColor) {
-                        // Use colors from CSS variables - matching the surface color for better integration
-                        // Light: rgb(249, 250, 251) = #f9fafb, Dark: rgb(30, 41, 59) = #1e293b
-                        const themeColor = this.theme === 'dark' ? '#1e293b' : '#f9fafb';
-                        themeColorMeta.setAttribute('content', themeColor);
-                        msNavButtonColor.setAttribute('content', themeColor);
-                    }
-                    
-                    // Remove transitioning class after a short delay
-                    setTimeout(() => {
-                        document.documentElement.classList.remove('theme-transitioning');
-                    }, 50);
+                    window.applyThemeGlobal(this.theme, true);
                 },
                 
                 async savePreference() {
