@@ -23,7 +23,8 @@ class ArtworkCacheBackgroundService:
 
     def __init__(self):
         """Initialize the background artwork caching service"""
-        self.cache_service = ArtworkCacheService()
+        from .artwork_cache_service import get_artwork_cache_service
+        self.cache_service = get_artwork_cache_service()
         self.background_manager = get_background_manager()
         self._cache_status = {}  # Track caching status by album_id
 

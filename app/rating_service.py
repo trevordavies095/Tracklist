@@ -560,8 +560,8 @@ class RatingService:
             # Clean up cached artwork files before deleting album
             cache_cleanup_stats = {'files_deleted': 0, 'bytes_freed': 0}
             try:
-                from .services.artwork_cache_service import ArtworkCacheService
-                cache_service = ArtworkCacheService()
+                from .services.artwork_cache_service import get_artwork_cache_service
+                cache_service = get_artwork_cache_service()
                 cache_cleanup_stats = cache_service.clear_album_cache_sync(album_id, db)
                 if cache_cleanup_stats.get('files_deleted', 0) > 0:
                     logger.info(f"Cleaned up {cache_cleanup_stats['files_deleted']} cache files for album {album_id}")
@@ -859,11 +859,11 @@ class RatingService:
 
                 # Clear existing cache before caching new artwork
                 try:
-                    from .services.artwork_cache_service import ArtworkCacheService
+                    from .services.artwork_cache_service import get_artwork_cache_service
                     from .services.artwork_memory_cache import get_artwork_memory_cache
                     from .template_utils import get_artwork_resolver
 
-                    cache_service = ArtworkCacheService()
+                    cache_service = get_artwork_cache_service()
                     memory_cache = get_artwork_memory_cache()
                     template_resolver = get_artwork_resolver()
 

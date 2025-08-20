@@ -27,8 +27,8 @@ class ArtworkURLResolver:
         
         # Try to import background service (may not be available in all contexts)
         try:
-            from .services.artwork_cache_background import ArtworkCacheBackgroundService
-            self.background_service = ArtworkCacheBackgroundService()
+            from .services.artwork_cache_background import get_artwork_cache_background_service
+            self.background_service = get_artwork_cache_background_service()
         except ImportError:
             logger.debug("Background caching service not available")
             self.background_service = None

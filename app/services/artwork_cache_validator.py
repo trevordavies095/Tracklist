@@ -173,12 +173,12 @@ class ArtworkCacheValidator:
         cache_fs = get_cache_filesystem()
         
         # Generate the cache key for this album
-        from .artwork_cache_service import ArtworkCacheService
+        from .artwork_cache_service import get_artwork_cache_service
         from ..models import Album
         
         album = db.query(Album).filter(Album.id == album_id).first()
         if album:
-            cache_service = ArtworkCacheService()
+            cache_service = get_artwork_cache_service()
             cache_key = cache_service.generate_cache_key(album)
             
             # Check if any variant exists

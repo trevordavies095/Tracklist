@@ -75,7 +75,7 @@ class ArtworkCacheService:
             self.client = None
             self.downloader = None
 
-        logger.info("ArtworkCacheService initialized")
+        # Service initialized - logging moved to singleton creation
 
     def generate_cache_key(self, album: Album) -> str:
         """
@@ -905,5 +905,6 @@ def get_artwork_cache_service() -> ArtworkCacheService:
     """Get or create the global artwork cache service instance"""
     global _artwork_cache_service
     if _artwork_cache_service is None:
+        logger.info("Creating ArtworkCacheService singleton instance")
         _artwork_cache_service = ArtworkCacheService()
     return _artwork_cache_service
