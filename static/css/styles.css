@@ -5,6 +5,13 @@
     display: none !important; 
 }
 
+/* Mobile Menu - ensure opaque background */
+.mobile-menu-dropdown {
+    background-color: rgb(var(--color-surface)) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
 /* HTMX Loading States */
 .htmx-indicator {
     display: none;
