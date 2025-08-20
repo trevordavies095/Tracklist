@@ -918,7 +918,6 @@ async def refresh_album_artwork(
     """
     try:
         from ..services.user_rate_limiter import get_artwork_refresh_limiter
-        from ..services.artwork_cache_service import ArtworkCacheService
         from ..services.artwork_memory_cache import get_artwork_memory_cache
         from ..services.artwork_cache_background import get_artwork_cache_background_service
         from ..models import Album
@@ -965,7 +964,8 @@ async def refresh_album_artwork(
         logger.info(f"Refreshing artwork for album {album_id}: {album.name}")
 
         # Clear existing cache
-        cache_service = ArtworkCacheService()
+        from ..services.artwork_cache_service import get_artwork_cache_service
+        cache_service = get_artwork_cache_service()
         memory_cache = get_artwork_memory_cache()
 
         # Clear from database and filesystem

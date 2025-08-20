@@ -40,7 +40,7 @@ class ExportService:
             # Build the export structure
             export_data = {
                 "export_metadata": {
-                    "version": "2.0",
+                    "version": "2.0",  # Export format version (not app version)
                     "export_date": datetime.now(timezone.utc).isoformat(),
                     "application": "Tracklist",
                     "description": "Complete database backup for import/restore"

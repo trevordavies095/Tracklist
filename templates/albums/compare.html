@@ -117,10 +117,22 @@ Compare Albums - Tracklist
                          class="w-24 h-24 rounded-lg object-cover border border-default">
                 </div>
                 <div class="flex-1 min-w-0">
-                    <h2 class="text-xl font-bold text-primary truncate">{{ comparison.albums.album1.name }}</h2>
-                    <p class="text-lg text-secondary truncate">{{ comparison.albums.album1.artist.name }}</p>
+                    <h2 class="text-xl font-bold text-primary truncate">
+                        <a href="/albums/{{ comparison.albums.album1.id }}/completed" class="hover:text-accent-blue hover:underline transition-colors">
+                            {{ comparison.albums.album1.name }}
+                        </a>
+                    </h2>
+                    <p class="text-lg text-secondary truncate">
+                        <a href="/artists/{{ comparison.albums.album1.artist.id }}/albums" class="hover:text-accent-blue hover:underline transition-colors">
+                            {{ comparison.albums.album1.artist.name }}
+                        </a>
+                    </p>
                     {% if comparison.albums.album1.year %}
-                    <p class="text-sm text-muted">{{ comparison.albums.album1.year }}</p>
+                    <p class="text-sm text-muted">
+                        <a href="/years/{{ comparison.albums.album1.year }}/albums" class="hover:text-accent-blue hover:underline transition-colors">
+                            {{ comparison.albums.album1.year }}
+                        </a>
+                    </p>
                     {% endif %}
                 </div>
             </div>
@@ -154,10 +166,22 @@ Compare Albums - Tracklist
                          class="w-24 h-24 rounded-lg object-cover border border-default">
                 </div>
                 <div class="flex-1 min-w-0">
-                    <h2 class="text-xl font-bold text-primary truncate">{{ comparison.albums.album2.name }}</h2>
-                    <p class="text-lg text-secondary truncate">{{ comparison.albums.album2.artist.name }}</p>
+                    <h2 class="text-xl font-bold text-primary truncate">
+                        <a href="/albums/{{ comparison.albums.album2.id }}/completed" class="hover:text-accent-blue hover:underline transition-colors">
+                            {{ comparison.albums.album2.name }}
+                        </a>
+                    </h2>
+                    <p class="text-lg text-secondary truncate">
+                        <a href="/artists/{{ comparison.albums.album2.artist.id }}/albums" class="hover:text-accent-blue hover:underline transition-colors">
+                            {{ comparison.albums.album2.artist.name }}
+                        </a>
+                    </p>
                     {% if comparison.albums.album2.year %}
-                    <p class="text-sm text-muted">{{ comparison.albums.album2.year }}</p>
+                    <p class="text-sm text-muted">
+                        <a href="/years/{{ comparison.albums.album2.year }}/albums" class="hover:text-accent-blue hover:underline transition-colors">
+                            {{ comparison.albums.album2.year }}
+                        </a>
+                    </p>
                     {% endif %}
                 </div>
             </div>
@@ -290,13 +314,13 @@ Compare Albums - Tracklist
                         <td class="py-3 px-4 text-center">
                             {% if track.rating_difference is not none %}
                                 {% set abs_diff = track.rating_difference|abs %}
-                                {% if track.difference_category == 'significant' %}
+                                {% if abs_diff >= 0.67 %}
                                     {% set diff_class = 'text-success' if track.rating_difference > 0 else 'text-error' %}
                                     {% set arrow = '↑↑' if track.rating_difference > 0 else '↓↓' %}
-                                {% elif track.difference_category == 'moderate' %}
+                                {% elif abs_diff >= 0.34 %}
                                     {% set diff_class = 'text-success-secondary' if track.rating_difference > 0 else 'text-warning' %}
                                     {% set arrow = '↑' if track.rating_difference > 0 else '↓' %}
-                                {% elif track.difference_category == 'slight' %}
+                                {% elif abs_diff >= 0.10 %}
                                     {% set diff_class = 'text-success-secondary' if track.rating_difference > 0 else 'text-accent-amber' %}
                                     {% set arrow = '↗' if track.rating_difference > 0 else '↘' %}
                                 {% else %}
@@ -304,11 +328,8 @@ Compare Albums - Tracklist
                                     {% set arrow = '=' %}
                                 {% endif %}
                                 
-                            <div class="flex items-center justify-center space-x-1">
-                                <span class="{{ diff_class }} font-medium">
-                                    {{ "%.2f"|format(abs_diff) }}
-                                </span>
-                                <span class="{{ diff_class }} text-xs">{{ arrow }}</span>
+                            <div class="flex items-center justify-center">
+                                <span class="{{ diff_class }} text-lg font-medium">{{ arrow }}</span>
                             </div>
                             {% else %}
                             <span class="text-muted">-</span>
@@ -348,17 +369,25 @@ Compare Albums - Tracklist
                     <span class="text-sm font-medium text-muted">Track {{ track.track_number }}</span>
                     {% if track.rating_difference is not none %}
                         {% set abs_diff = track.rating_difference|abs %}
-                        {% if track.difference_category == 'significant' %}
+                        {% if abs_diff >= 0.67 %}
                             {% set diff_class = 'text-success bg-success-light' if track.rating_difference > 0 else 'text-error bg-error-light' %}
-                        {% elif track.difference_category == 'moderate' %}
+                        {% elif abs_diff >= 0.34 %}
                             {% set diff_class = 'text-success-secondary bg-success-secondary' if track.rating_difference > 0 else 'text-warning bg-warning-light' %}
-                        {% elif track.difference_category == 'slight' %}
+                        {% elif abs_diff >= 0.10 %}
                             {% set diff_class = 'text-success-secondary bg-success-secondary' if track.rating_difference > 0 else 'text-accent-amber bg-warning-light' %}
                         {% else %}
                             {% set diff_class = 'text-muted bg-surface-secondary' %}
                         {% endif %}
                     <span class="px-2 py-1 rounded text-xs font-medium {{ diff_class }}">
-                        Δ {{ "%.2f"|format(abs_diff) }}
+                        {% if abs_diff >= 0.67 %}
+                            {% if track.rating_difference > 0 %}↑↑{% else %}↓↓{% endif %}
+                        {% elif abs_diff >= 0.34 %}
+                            {% if track.rating_difference > 0 %}↑{% else %}↓{% endif %}
+                        {% elif abs_diff >= 0.10 %}
+                            {% if track.rating_difference > 0 %}↗{% else %}↘{% endif %}
+                        {% else %}
+                            =
+                        {% endif %}
                     </span>
                     {% endif %}
                 </div>
@@ -430,10 +459,10 @@ Compare Albums - Tracklist
             <div>
                 <h3 class="font-semibold text-primary mb-2">Rating Differences</h3>
                 <ul class="space-y-1 ml-4">
-                    <li><span class="font-medium">Significant (↑↑ or ↓↓):</span> 0.34+ points difference (a full rating level)</li>
-                    <li><span class="font-medium">Moderate (↑ or ↓):</span> 0.20-0.33 points difference</li>
-                    <li><span class="font-medium">Slight (↗ or ↘):</span> 0.10-0.19 points difference</li>
-                    <li><span class="font-medium">Tie (=):</span> Less than 0.05 points difference</li>
+                    <li><span class="font-medium">↑↑ or ↓↓:</span> Two or more rating levels apart (e.g., Skip vs Good)</li>
+                    <li><span class="font-medium">↑ or ↓:</span> One rating level apart (e.g., Filler vs Good)</li>
+                    <li><span class="font-medium">↗ or ↘:</span> Minor differences within similar ratings</li>
+                    <li><span class="font-medium">=:</span> Same or nearly identical rating</li>
                 </ul>
             </div>
             
