@@ -5,12 +5,8 @@ echo "Starting Tracklist application..."
 
 # Ensure artwork cache directories exist
 echo "Setting up artwork cache directories..."
-if [ -x "./scripts/setup_artwork_cache.sh" ]; then
-    ./scripts/setup_artwork_cache.sh setup
-else
-    echo "Creating artwork cache directories manually..."
-    mkdir -p static/artwork_cache/{original,large,medium,small,thumbnail}
-fi
+mkdir -p static/artwork_cache/{original,large,medium,small,thumbnail}
+echo "Artwork cache directories created successfully"
 
 # Run database migrations
 echo "Running database migrations..."

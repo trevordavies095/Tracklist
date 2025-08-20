@@ -12,8 +12,12 @@
     <link rel="apple-touch-icon" href="/static/img/logo-512.png">
     <link rel="apple-touch-icon" sizes="512x512" href="/static/img/logo-512.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Tracklist">
+    
+    <!-- PWA Theme Color - dynamically updated based on theme -->
+    <meta name="theme-color" content="#ffffff" id="theme-color-meta">
+    <meta name="msapplication-navbutton-color" content="#ffffff" id="ms-navbutton-color">
     
     <!-- CSS Variables for Theming -->
     <link rel="stylesheet" href="/static/css/variables.css">
@@ -53,16 +57,52 @@
     
     <!-- Theme Manager -->
     <script>
-        // Theme management
+        // Theme management with database sync
         (function() {
-            // Get saved theme or default to system preference
-            const savedTheme = localStorage.getItem('theme');
+            // Get saved theme from localStorage as initial fallback
+            const localTheme = localStorage.getItem('theme');
             const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            const theme = savedTheme || (systemPrefersDark ? 'dark' : 'light');
             
-            // Apply theme immediately to prevent flash
-            document.documentElement.setAttribute('data-theme', theme);
-            document.documentElement.classList.toggle('dark', theme === 'dark');
+            // Apply initial theme to prevent flash (will be corrected if database differs)
+            let theme = localTheme || (systemPrefersDark ? 'dark' : 'light');
+            applyTheme(theme);
+            
+            // Fetch theme from database and sync
+            fetch('/api/v1/settings')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.theme) {
+                        // Database theme takes priority
+                        theme = data.theme;
+                        
+                        // Sync localStorage with database
+                        localStorage.setItem('theme', theme);
+                        
+                        // Apply the database theme
+                        applyTheme(theme);
+                    }
+                })
+                .catch(error => {
+                    // If API fails, keep using localStorage/system preference
+                    console.log('Could not fetch theme from server, using local preference');
+                });
+            
+            function applyTheme(selectedTheme) {
+                // Apply theme to document
+                document.documentElement.setAttribute('data-theme', selectedTheme);
+                document.documentElement.classList.toggle('dark', selectedTheme === 'dark');
+                
+                // Update theme-color meta tags for PWA
+                const themeColorMeta = document.getElementById('theme-color-meta');
+                const msNavButtonColor = document.getElementById('ms-navbutton-color');
+                if (themeColorMeta && msNavButtonColor) {
+                    // Use colors from CSS variables - matching the surface color for better integration
+                    // Light: rgb(249, 250, 251) = #f9fafb, Dark: rgb(30, 41, 59) = #1e293b
+                    const themeColor = selectedTheme === 'dark' ? '#1e293b' : '#f9fafb';
+                    themeColorMeta.setAttribute('content', themeColor);
+                    msNavButtonColor.setAttribute('content', themeColor);
+                }
+            }
         })();
     </script>
     
@@ -125,37 +165,66 @@
                     </div>
                 </div>
                 
-                <!-- Mobile menu button -->
-                <div class="md:hidden" x-data="{ open: false }">
-                    
-                    <button @click="open = !open" class="text-secondary hover:text-primary focus:outline-none focus:text-primary">
-                        <svg class="h-6 w-6 fill-current" viewBox="0 0 24 24">
-                            <path x-show="!open" d="M4 6h16M4 12h16M4 18h16"></path>
-                            <path x-show="open" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                    </button>
-                    
-                    <!-- Mobile Menu -->
-                    <div x-show="open" @click.away="open = false" 
-                         x-transition:enter="transition ease-out duration-100"
-                         x-transition:enter-start="transform opacity-0 scale-95"
-                         x-transition:enter-end="transform opacity-100 scale-100"
-                         x-transition:leave="transition ease-in duration-75"
-                         x-transition:leave-start="transform opacity-100 scale-100"
-                         x-transition:leave-end="transform opacity-0 scale-95"
-                         class="absolute top-16 right-0 mt-2 w-56 bg-surface rounded-md shadow-lg py-1 z-50 mr-4 border border-border">
-                        <a href="/" class="block px-4 py-2 text-sm text-primary hover:bg-surface-hover">Dashboard</a>
-                        <a href="/search" class="block px-4 py-2 text-sm text-primary hover:bg-surface-hover">Search Albums</a>
-                        <a href="/albums" class="block px-4 py-2 text-sm text-primary hover:bg-surface-hover">My Albums</a>
-                        <a href="/stats" class="block px-4 py-2 text-sm text-primary hover:bg-surface-hover">Statistics</a>
-                        <a href="/settings" class="flex items-center px-4 py-2 text-sm text-primary hover:bg-surface-hover">
-                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                <!-- Mobile menu button and navigation -->
+                <div class="md:hidden">
+                    <!-- JavaScript-based mobile menu -->
+                    <div x-data="{ open: false }" class="relative">
+                        <button @click="open = !open" 
+                                type="button"
+                                class="inline-flex items-center justify-center p-2 rounded-md text-secondary hover:text-primary hover:bg-surface-hover focus:outline-none focus:bg-surface-hover focus:text-primary transition-colors"
+                                :aria-expanded="open"
+                                aria-label="Main menu">
+                            <!-- Hamburger Icon -->
+                            <svg x-show="!open" class="block h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"></path>
                             </svg>
-                            Settings
-                        </a>
+                            <!-- Close Icon -->
+                            <svg x-show="open" style="display: none;" class="block h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                        
+                        <!-- Mobile Menu Dropdown -->
+                        <div x-show="open" 
+                             style="display: none; z-index: 9999;"
+                             @click.away="open = false"
+                             x-transition:enter="transition ease-out duration-200"
+                             x-transition:enter-start="transform opacity-0 scale-95"
+                             x-transition:enter-end="transform opacity-100 scale-100"
+                             x-transition:leave="transition ease-in duration-200"
+                             x-transition:leave-start="transform opacity-100 scale-100"
+                             x-transition:leave-end="transform opacity-0 scale-95"
+                             class="mobile-menu-dropdown absolute right-0 mt-2 w-56 rounded-md shadow-xl bg-surface border border-border">
+                            <div class="py-1">
+                                <a href="/" @click="open = false" class="block px-4 py-2 text-sm text-primary hover:bg-surface-hover transition-colors duration-200">Dashboard</a>
+                                <a href="/search" @click="open = false" class="block px-4 py-2 text-sm text-primary hover:bg-surface-hover transition-colors duration-200">Search Albums</a>
+                                <a href="/albums" @click="open = false" class="block px-4 py-2 text-sm text-primary hover:bg-surface-hover transition-colors duration-200">My Albums</a>
+                                <a href="/stats" @click="open = false" class="block px-4 py-2 text-sm text-primary hover:bg-surface-hover transition-colors duration-200">Statistics</a>
+                                <a href="/settings" @click="open = false" class="block px-4 py-2 text-sm text-primary hover:bg-surface-hover transition-colors duration-200">Settings</a>
+                            </div>
+                        </div>
                     </div>
+                    
+                    <!-- Fallback CSS-only mobile menu (when JavaScript fails) -->
+                    <noscript>
+                        <style>
+                            .mobile-menu-toggle { display: none; }
+                            .mobile-menu-toggle:checked ~ .mobile-menu-items { display: block; }
+                        </style>
+                        <input type="checkbox" id="mobile-menu-toggle" class="mobile-menu-toggle hidden" />
+                        <label for="mobile-menu-toggle" class="inline-flex items-center justify-center p-2 rounded-md text-secondary hover:text-primary hover:bg-surface-hover cursor-pointer transition-colors duration-200">
+                            <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"></path>
+                            </svg>
+                        </label>
+                        <div class="mobile-menu-items mobile-menu-dropdown hidden absolute right-0 mt-2 w-56 rounded-md shadow-xl bg-surface border border-border" style="z-index: 9999;">
+                            <a href="/" class="block px-4 py-2 text-sm text-primary hover:bg-surface-hover transition-colors duration-200">Dashboard</a>
+                            <a href="/search" class="block px-4 py-2 text-sm text-primary hover:bg-surface-hover transition-colors duration-200">Search Albums</a>
+                            <a href="/albums" class="block px-4 py-2 text-sm text-primary hover:bg-surface-hover transition-colors duration-200">My Albums</a>
+                            <a href="/stats" class="block px-4 py-2 text-sm text-primary hover:bg-surface-hover transition-colors duration-200">Statistics</a>
+                            <a href="/settings" class="block px-4 py-2 text-sm text-primary hover:bg-surface-hover transition-colors duration-200">Settings</a>
+                        </div>
+                    </noscript>
                 </div>
             </div>
         </nav>
@@ -207,13 +276,42 @@
     
     <!-- Theme Toggle Component -->
     <script>
+        // Global theme apply function
+        window.applyThemeGlobal = function(selectedTheme, withTransition = false) {
+            if (withTransition) {
+                document.documentElement.classList.add('theme-transitioning');
+            }
+            
+            // Apply theme to document
+            document.documentElement.setAttribute('data-theme', selectedTheme);
+            document.documentElement.classList.toggle('dark', selectedTheme === 'dark');
+            
+            // Update theme-color meta tags for PWA
+            const themeColorMeta = document.getElementById('theme-color-meta');
+            const msNavButtonColor = document.getElementById('ms-navbutton-color');
+            if (themeColorMeta && msNavButtonColor) {
+                // Use colors from CSS variables - matching the surface color for better integration
+                // Light: rgb(249, 250, 251) = #f9fafb, Dark: rgb(30, 41, 59) = #1e293b
+                const themeColor = selectedTheme === 'dark' ? '#1e293b' : '#f9fafb';
+                themeColorMeta.setAttribute('content', themeColor);
+                msNavButtonColor.setAttribute('content', themeColor);
+            }
+            
+            if (withTransition) {
+                setTimeout(() => {
+                    document.documentElement.classList.remove('theme-transitioning');
+                }, 50);
+            }
+        };
+        
         document.addEventListener('alpine:init', () => {
             Alpine.data('themeToggle', () => ({
                 theme: localStorage.getItem('theme') || 'light',
                 
                 init() {
-                    // Apply saved theme
-                    this.applyTheme();
+                    // Theme is already applied by the initial script
+                    // Just sync the component state
+                    this.theme = document.documentElement.getAttribute('data-theme') || 'light';
                     
                     // Listen for system preference changes
                     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
@@ -231,17 +329,7 @@
                 },
                 
                 applyTheme() {
-                    // Add transitioning class to prevent flash
-                    document.documentElement.classList.add('theme-transitioning');
-                    
-                    // Apply theme
-                    document.documentElement.setAttribute('data-theme', this.theme);
-                    document.documentElement.classList.toggle('dark', this.theme === 'dark');
-                    
-                    // Remove transitioning class after a short delay
-                    setTimeout(() => {
-                        document.documentElement.classList.remove('theme-transitioning');
-                    }, 50);
+                    window.applyThemeGlobal(this.theme, true);
                 },
                 
                 async savePreference() {

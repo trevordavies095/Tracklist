@@ -1,5 +1,17 @@
 /* Custom styles for Tracklist application */
 
+/* Alpine.js x-cloak - prevents flash of hidden content */
+[x-cloak] { 
+    display: none !important; 
+}
+
+/* Mobile Menu - ensure opaque background */
+.mobile-menu-dropdown {
+    background-color: rgb(var(--color-surface)) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
 /* HTMX Loading States */
 .htmx-indicator {
     display: none;
@@ -163,6 +175,30 @@
     
     .album-card {
         @apply hover:transform-none hover:shadow-md;
+    }
+}
+
+/* Mobile Navigation Fix */
+@media (max-width: 768px) {
+    /* Ensure hamburger button is always visible */
+    .md\:hidden {
+        display: block !important;
+    }
+    
+    /* Hide desktop nav on mobile */
+    .md\:block {
+        display: none !important;
+    }
+}
+
+/* Fallback for when Alpine.js fails to load */
+.mobile-menu-fallback {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .mobile-menu-checkbox:checked ~ .mobile-menu-fallback {
+        display: block;
     }
 }
 

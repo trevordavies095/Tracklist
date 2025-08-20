@@ -104,7 +104,7 @@ uvicorn app.main:app --reload --port 8000
 
 ## Screenshot
 
-![Statistics Dashboard](https://i.imgur.com/8y1N94s.png)
+![Statistics Dashboard](https://i.imgur.com/KHNwpAV.png)
 
 ## Configuration
 
@@ -112,7 +112,6 @@ Environment variables:
 
 - `DATABASE_URL`: Database connection string (default: `sqlite:///./data/tracklist.db`)
 - `LOG_LEVEL`: Logging level (DEBUG, INFO, WARNING, ERROR)
-- `DEFAULT_ALBUM_BONUS`: Default album bonus for score calculation (0.1-0.4, default: 0.33)
 
 Additional configuration options are available in the docker-compose.yml file for cache management, scheduled tasks, and artwork processing.
 
