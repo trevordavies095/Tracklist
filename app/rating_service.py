@@ -142,7 +142,7 @@ class RatingService:
                 name=mb_album["title"],
                 release_year=mb_album.get("year"),
                 musicbrainz_id=musicbrainz_id,
-                genre=mb_album.get("country"),  # Temporary mapping
+                genre=mb_album.get("genre"),
                 total_tracks=mb_album["total_tracks"],
                 total_duration_ms=mb_album.get("total_duration_ms"),
                 album_bonus=album_bonus,
