@@ -1,17 +1,21 @@
 """
 User Settings API routes
-Handles user preferences including theme settings
+Handles user preferences including theme settings, database export/import
 """
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi.responses import Response
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, Field, validator
-from typing import Optional, Literal
+from typing import Optional, Literal, Tuple
 import logging
 import os
+import json
+from datetime import datetime
 
 from ..database import get_db
 from ..models import UserSettings
+from ..services.export_service import get_export_service, ExportService
 
 logger = logging.getLogger(__name__)
 
@@ -222,6 +226,140 @@ async def update_all_settings(
     logger.info(f"User settings updated: {list(update_data.keys())}")
     
     return settings
+
+
+# Database Export/Import Endpoints
+
+@router.get("/export")
+async def export_database(
+    service: ExportService = Depends(get_export_service),
+    db: Session = Depends(get_db)
+):
+    """
+    Export complete database to JSON format
+    
+    Creates a comprehensive backup of your entire Tracklist database including:
+    - All artists, albums, and tracks
+    - All ratings and notes
+    - User settings and preferences
+    - Complete relationships and timestamps
+    
+    This export can be used to:
+    - Backup your entire collection
+    - Migrate to a new installation
+    - Restore after data loss
+    
+    Returns:
+    - JSON file download with complete database backup
+    """
+    try:
+        logger.info("Starting complete database export")
+        
+        # Perform export
+        json_content, filename = service.export_to_json_string(db)
+        
+        # Return as downloadable JSON file
+        return Response(
+            content=json_content,
+            media_type="application/json",
+            headers={
+                "Content-Disposition": f"attachment; filename={filename}"
+            }
+        )
+        
+    except Exception as e:
+        logger.error(f"Export failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Export failed: {str(e)}")
+
+
+class ImportResponse(BaseModel):
+    """Response model for import operation"""
+    success: bool
+    message: str
+    statistics: Optional[dict] = None
+
+
+@router.post("/import")
+async def import_database(
+    file: UploadFile = File(..., description="JSON backup file to import"),
+    db: Session = Depends(get_db)
+):
+    """
+    Import database from JSON backup file
+    
+    WARNING: This will DELETE all existing data and replace it with the backup!
+    
+    The import process:
+    1. Validates the JSON structure
+    2. Begins a database transaction
+    3. Clears all existing data
+    4. Imports all data from the backup
+    5. Commits on success or rolls back on failure
+    
+    Returns:
+    - Success status and import statistics
+    """
+    try:
+        # Check file type
+        if not file.filename.endswith('.json'):
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid file type. Please upload a JSON backup file."
+            )
+        
+        # Read and parse JSON
+        content = await file.read()
+        try:
+            backup_data = json.loads(content)
+        except json.JSONDecodeError as e:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid JSON file: {str(e)}"
+            )
+        
+        # Import the data using the import service
+        from ..services.import_service import ImportService
+        import_service = ImportService()
+        
+        # Validate backup structure
+        is_valid, error_message = import_service.validate_backup(backup_data)
+        if not is_valid:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid backup file: {error_message}"
+            )
+        
+        # Perform import
+        success, message = import_service.import_database(db, backup_data)
+        
+        if not success:
+            raise HTTPException(
+                status_code=500,
+                detail=message
+            )
+        
+        # Extract statistics
+        statistics = {
+            "artists_imported": len(backup_data.get('artists', [])),
+            "albums_imported": len(backup_data.get('albums', [])),
+            "tracks_imported": len(backup_data.get('tracks', [])),
+            "import_date": datetime.now().isoformat()
+        }
+        
+        return ImportResponse(
+            success=True,
+            message=message,
+            statistics=statistics
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Import failed: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Import failed: {str(e)}"
+        )
 
 
 @router.patch("/", response_model=UserSettingsResponse)
