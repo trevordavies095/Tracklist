@@ -191,6 +191,107 @@ async def auto_migrate_artwork_cache():
         pass
 
 
+async def fix_genre_country_codes():
+    """
+    One-time fix for albums with country codes or NULL genres
+    This will fetch proper genre data from MusicBrainz
+    
+    NOTE: This migration can be removed in a future version (e.g., v2.0+) once we're
+    confident all users have upgraded and run this fix. After the fix runs once,
+    it will find no albums to update on subsequent startups.
+    """
+    try:
+        # Wait a bit for application to start
+        await asyncio.sleep(10)
+        
+        logger.info("Checking for albums with missing or incorrect genres...")
+        
+        from .database import SessionLocal
+        from .models import Album
+        from .musicbrainz_client import MusicBrainzClient
+        from sqlalchemy import or_, and_
+        import re
+        
+        db = SessionLocal()
+        
+        try:
+            # Find albums with NULL genre or country code pattern (2-3 uppercase letters)
+            # Country codes are typically 2 letters, but some special codes are 3 (like XWW for worldwide)
+            country_code_pattern = re.compile(r'^[A-Z]{2,3}$')
+            
+            # Get all albums to check
+            all_albums = db.query(Album).all()
+            albums_to_fix = []
+            
+            for album in all_albums:
+                if album.genre is None:
+                    albums_to_fix.append(album)
+                elif country_code_pattern.match(album.genre):
+                    albums_to_fix.append(album)
+            
+            if not albums_to_fix:
+                logger.info("All albums have proper genre data")
+                return
+                
+            logger.info(f"Found {len(albums_to_fix)} albums with missing or incorrect genres")
+            
+            # Fix them one by one with rate limiting
+            fixed_count = 0
+            failed_count = 0
+            
+            async with MusicBrainzClient() as client:
+                for album in albums_to_fix:
+                    try:
+                        logger.debug(f"Fetching genre for album: {album.name} (current: {album.genre})")
+                        
+                        # Fetch release details with tags
+                        release_data = await client.get_release_with_tracks(album.musicbrainz_id)
+                        
+                        # Extract genres from release data
+                        genres = []
+                        if release_data.get("release-group") and release_data["release-group"].get("tags"):
+                            tags = release_data["release-group"]["tags"]
+                            # Sort by count and take top 5
+                            sorted_tags = sorted(tags, key=lambda x: x.get("count", 0), reverse=True)[:5]
+                            genres = [tag["name"] for tag in sorted_tags if "name" in tag]
+                        
+                        if genres:
+                            # Format genres
+                            formatted_genres = []
+                            for genre in genres:
+                                formatted_genre = " ".join(word.capitalize() for word in genre.split("-"))
+                                formatted_genres.append(formatted_genre)
+                            new_genre = ", ".join(formatted_genres)
+                            
+                            album.genre = new_genre
+                            fixed_count += 1
+                            logger.info(f"Updated genre for '{album.name}': {new_genre}")
+                        else:
+                            # No genre data available, set to NULL
+                            album.genre = None
+                            fixed_count += 1
+                            logger.debug(f"No genre data available for '{album.name}', set to NULL")
+                            
+                    except Exception as e:
+                        logger.warning(f"Failed to fetch genre for album {album.id}: {e}")
+                        failed_count += 1
+                        # Continue with next album
+                        
+            # Commit all changes
+            if fixed_count > 0:
+                db.commit()
+                logger.info(f"✓ Genre migration completed: {fixed_count} albums updated, {failed_count} failed")
+            else:
+                logger.info("No albums were updated")
+                
+        finally:
+            db.close()
+            
+    except Exception as e:
+        logger.error(f"Genre migration failed: {e}")
+        # Don't crash the application
+
+
 @app.on_event("startup")
 async def startup_event():
     """Initialize database, cache directories, and background tasks on startup"""
@@ -229,6 +330,9 @@ async def startup_event():
 
         # Auto-migrate existing albums to cached artwork
         asyncio.create_task(auto_migrate_artwork_cache())
+        
+        # Fix genre country codes (can be removed in v2.0+)
+        asyncio.create_task(fix_genre_country_codes())
 
         # Warm artwork memory cache with frequently accessed albums
         try:
