@@ -40,8 +40,11 @@
     
     <!-- Stats Content (Hidden initially, shown after data loads) -->
     <div id="stats-content" style="display: none;" class="px-4 md:px-0">
+        <!-- Hidden element to ensure Tailwind includes these classes -->
+        <div class="hidden flex items-center gap-2 mb-2 flex-shrink-0 justify-center"></div>
+        
         <!-- Overview Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-8 mobile-section-spacing" id="overview-cards">
+        <div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3 lg:gap-4 mb-4 md:mb-8 mobile-section-spacing" id="overview-cards">
             <!-- Cards will be inserted here by JavaScript -->
         </div>
         
@@ -314,7 +317,8 @@ function updateNoSkipsCard(noSkipsData) {
     if (cards.length >= 3 && noSkipsData) {
         // Update the third card (No Skips)
         const noSkipsCard = cards[2];
-        const valueElement = noSkipsCard.querySelector('p.text-xl'); // The value paragraph
+        // Look for the value paragraph - it has text-lg, text-xl, or text-2xl classes
+        const valueElement = noSkipsCard.querySelector('p.text-lg, p.text-xl, p.text-2xl');
         const subtitleElement = noSkipsCard.querySelector('p.text-xs.text-muted'); // The subtitle paragraph
         
         if (valueElement) {
@@ -379,17 +383,17 @@ function renderOverviewCards(data, noSkipsData) {
     };
     
     const cardsHtml = cards.map(card => `
-        <div class="bg-surface rounded-lg shadow-sm border border-default p-4 md:p-6">
-            <div class="flex items-center justify-between mb-3 md:mb-4">
-                <div class="flex items-center justify-center w-8 h-8 md:w-10 md:h-10 ${colorClasses[card.color].bg} rounded-lg">
-                    <svg class="w-5 h-5 md:w-6 md:h-6 ${colorClasses[card.color].text}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="bg-surface rounded-lg shadow-sm border border-default p-3 md:p-4 lg:p-6">
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+                <div style="flex-shrink: 0; display: flex; align-items: center; justify-content: center;" class="w-5 h-5 md:w-6 md:h-6 lg:w-7 lg:h-7 ${colorClasses[card.color].bg} rounded">
+                    <svg class="w-3 h-3 md:w-4 md:h-4 lg:w-5 lg:h-5 ${colorClasses[card.color].text}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${card.icon}"></path>
                     </svg>
                 </div>
+                <span class="text-xs md:text-sm font-medium text-secondary">${card.title}</span>
             </div>
-            <p class="text-xs sm:text-sm font-medium text-secondary mb-1">${card.title}</p>
-            <p class="text-xl md:text-2xl font-bold text-primary">${card.value}</p>
-            <p class="text-xs text-muted mt-1">${card.subtitle}</p>
+            <p class="text-lg md:text-xl lg:text-2xl font-bold text-primary">${card.value}</p>
+            <p class="text-xs text-muted">${card.subtitle}</p>
         </div>
     `).join('');
     
