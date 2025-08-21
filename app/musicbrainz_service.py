@@ -138,6 +138,18 @@ class MusicBrainzService:
         async with MusicBrainzClient() as client:
             try:
                 raw_data = await client.get_release_with_tracks(release_id)
+                
+                # If we have a release-group, fetch its tags separately
+                if raw_data.get("release-group") and raw_data["release-group"].get("id"):
+                    try:
+                        rg_id = raw_data["release-group"]["id"]
+                        rg_data = await client.get_release_group_with_tags(rg_id)
+                        # Add tags to the release-group data
+                        if rg_data.get("tags"):
+                            raw_data["release-group"]["tags"] = rg_data["tags"]
+                    except Exception as e:
+                        logger.warning(f"Could not fetch release-group tags: {e}")
+                
                 result = self._format_album_details(raw_data)
 
                 # Cache album details for 24 hours (rarely change)
