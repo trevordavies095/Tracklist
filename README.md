@@ -54,7 +54,6 @@ services:
     environment:
       - DATABASE_URL=sqlite:///./data/tracklist.db
       - LOG_LEVEL=INFO
-      - DEFAULT_ALBUM_BONUS=0.33
     restart: unless-stopped
 
 volumes:
