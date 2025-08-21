@@ -15,75 +15,6 @@
         </p>
     </div>
     
-    <!-- Quick Actions -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 md:gap-6 mb-8 md:mb-12 px-4 md:px-0">
-        <!-- Search Albums -->
-        <a href="/search" class="group block">
-            <div class="bg-surface rounded-lg shadow-sm border border-default p-4 md:p-6 hover:shadow-md hover:border-accent-blue transition-all duration-200 mobile-action-card flex">
-                <div class="flex-1">
-                    <div class="flex items-center mb-3 md:mb-4">
-                        <div class="flex items-center justify-center w-10 h-10 md:w-12 md:h-12 bg-info-light rounded-lg group-hover:opacity-80 transition-colors mobile-icon-box">
-                            <svg class="w-6 h-6 text-accent-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                            </svg>
-                        </div>
-                    </div>
-                    <h3 class="text-base md:text-lg font-semibold text-primary mb-1 md:mb-2">Search Albums</h3>
-                    <p class="text-xs sm:text-sm md:text-base text-secondary">Find albums to rate from MusicBrainz</p>
-                </div>
-                <div class="flex items-center ml-3">
-                    <svg class="w-5 h-5 text-muted group-hover:text-accent-blue transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                    </svg>
-                </div>
-            </div>
-        </a>
-        
-        <!-- My Albums -->
-        <a href="/albums" class="group block">
-            <div class="bg-surface rounded-lg shadow-sm border border-default p-4 md:p-6 hover:shadow-md hover:border-success transition-all duration-200 mobile-action-card flex">
-                <div class="flex-1">
-                    <div class="flex items-center mb-3 md:mb-4">
-                        <div class="flex items-center justify-center w-10 h-10 md:w-12 md:h-12 bg-success-light rounded-lg group-hover:opacity-80 transition-colors mobile-icon-box">
-                            <svg class="w-6 h-6 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
-                            </svg>
-                        </div>
-                    </div>
-                    <h3 class="text-base md:text-lg font-semibold text-primary mb-1 md:mb-2">My Albums</h3>
-                    <p class="text-xs sm:text-sm md:text-base text-secondary">View and manage your library</p>
-                </div>
-                <div class="flex items-center ml-3">
-                    <svg class="w-5 h-5 text-muted group-hover:text-success transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                    </svg>
-                </div>
-            </div>
-        </a>
-        
-        <!-- Statistics -->
-        <a href="/stats" class="group block">
-            <div class="bg-surface rounded-lg shadow-sm border border-default p-4 md:p-6 hover:shadow-md hover:border-accent-purple transition-all duration-200 mobile-action-card flex">
-                <div class="flex-1">
-                    <div class="flex items-center mb-3 md:mb-4">
-                        <div class="flex items-center justify-center w-10 h-10 md:w-12 md:h-12 bg-accent-purple-light rounded-lg group-hover:opacity-80 transition-colors mobile-icon-box">
-                            <svg class="w-6 h-6 text-accent-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                            </svg>
-                        </div>
-                    </div>
-                    <h3 class="text-base md:text-lg font-semibold text-primary mb-1 md:mb-2">Your Stats</h3>
-                    <p class="text-xs sm:text-sm md:text-base text-secondary">View statistics and insights</p>
-                </div>
-                <div class="flex items-center ml-3">
-                    <svg class="w-5 h-5 text-muted group-hover:text-accent-purple transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                    </svg>
-                </div>
-            </div>
-        </a>
-    </div>
-    
     <!-- In Progress Albums -->
     <div class="mb-8 md:mb-12 mobile-section-spacing px-4 md:px-0" id="in-progress-section">
         <div class="flex justify-between items-center mb-4 md:mb-6 mobile-section-header">
@@ -92,7 +23,7 @@
         </div>
         
         <div id="in-progress-albums" 
-             hx-get="/api/v1/albums?limit=3&rated=false&sort=created_desc" 
+             hx-get="/api/v1/albums?limit=6&rated=false&sort=created_desc" 
              hx-trigger="load"
              hx-target="this"
              hx-swap="none"
@@ -120,7 +51,7 @@
         </div>
         
         <div id="recently-rated-albums" 
-             hx-get="/api/v1/albums?limit=3&rated=true&sort=rated_desc" 
+             hx-get="/api/v1/albums?limit=6&rated=true&sort=rated_desc" 
              hx-trigger="load"
              hx-target="this"
              hx-swap="none"
