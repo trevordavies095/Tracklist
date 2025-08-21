@@ -138,6 +138,18 @@ class MusicBrainzService:
         async with MusicBrainzClient() as client:
             try:
                 raw_data = await client.get_release_with_tracks(release_id)
+                
+                # If we have a release-group, fetch its tags separately
+                if raw_data.get("release-group") and raw_data["release-group"].get("id"):
+                    try:
+                        rg_id = raw_data["release-group"]["id"]
+                        rg_data = await client.get_release_group_with_tags(rg_id)
+                        # Add tags to the release-group data
+                        if rg_data.get("tags"):
+                            raw_data["release-group"]["tags"] = rg_data["tags"]
+                    except Exception as e:
+                        logger.warning(f"Could not fetch release-group tags: {e}")
+                
                 result = self._format_album_details(raw_data)
 
                 # Cache album details for 24 hours (rarely change)
@@ -374,8 +386,57 @@ class MusicBrainzService:
 
         album["total_tracks"] = len(album["tracks"])
         album["total_duration_ms"] = total_duration if total_duration > 0 else None
+        
+        # Extract genre from release-group tags if available
+        album["genre"] = self._extract_genre_from_release(raw_data)
 
         return album
+    
+    def _extract_genre_from_release(self, release_data: Dict[str, Any]) -> Optional[str]:
+        """
+        Extract genre information from MusicBrainz release data
+        
+        Args:
+            release_data: Raw MusicBrainz release data
+            
+        Returns:
+            Comma-separated genre string or None if no genres found
+        """
+        genres = []
+        
+        # Common non-genre tags to filter out
+        non_genre_tags = {
+            'english', 'spanish', 'french', 'german', 'italian', 'japanese', 'portuguese',
+            'instrumental', 'live', 'compilation', 'studio', 'remix',
+            '1', '2', '3', '4', '5', '2/5', '3/5', '4/5', '5/5',
+            '1–9 wochen', 'explicit', 'clean', 'single', 'ep', 'lp'
+        }
+        
+        # Try to get genres from release-group tags
+        if release_data.get("release-group") and release_data["release-group"].get("tags"):
+            tags = release_data["release-group"]["tags"]
+            # Sort by count (popularity) and take top 10 to filter from
+            sorted_tags = sorted(tags, key=lambda x: x.get("count", 0), reverse=True)[:10]
+            
+            # Filter out non-genre tags and take top 5 genres
+            for tag in sorted_tags:
+                tag_name = tag.get("name", "").lower()
+                if tag_name and tag_name not in non_genre_tags and not tag_name.isdigit():
+                    genres.append(tag["name"])
+                    if len(genres) >= 5:
+                        break
+        
+        if genres:
+            # Format genres properly (capitalize, join with comma)
+            formatted_genres = []
+            for genre in genres:
+                # Basic formatting - capitalize each word
+                formatted_genre = " ".join(word.capitalize() for word in genre.split("-"))
+                formatted_genres.append(formatted_genre)
+            return ", ".join(formatted_genres)
+        
+        # Return None if no genres found
+        return None
 
     def get_cache_stats(self) -> Dict[str, Any]:
         """Get cache statistics"""

@@ -130,8 +130,10 @@ function renderAlbums(data) {
     }
     
     // Grid view
-    const albumCards = albums.map(album => `
-        <div class="album-card bg-surface rounded-lg shadow-sm border border-default hover:shadow-md transition-all duration-200">
+    const albumCards = albums.map(album => {
+        const url = album.is_rated ? `/albums/${album.id}/completed` : `/albums/${album.id}/rate`;
+        return `
+        <a href="${url}" class="block bg-surface rounded-lg shadow-sm border border-default hover:shadow-md hover:border-default transition-all duration-200 hover:-translate-y-1">
             <div class="p-4">
                 <div class="flex space-x-3 mb-3">
                     <!-- Album Art -->
@@ -158,14 +160,13 @@ function renderAlbums(data) {
                     <!-- Album Info -->
                     <div class="flex-1 min-w-0">
                         <h3 class="font-semibold text-primary truncate" title="${album.title}">${album.title}</h3>
-                        <p class="text-sm text-gray-500">
-                            <a href="/artists/${album.artist_id}/albums" class="hover:underline">${album.artist}</a>
-                        </p>
+                        <p class="text-sm text-secondary truncate" title="${album.artist}">${album.artist}</p>
+                        ${album.year ? `<p class="text-xs text-muted">${album.year}</p>` : ''}
                     </div>
                 </div>
                 
                 <!-- Status and Score -->
-                <div class="mb-4">
+                <div>
                     ${album.is_rated ? `
                         <div class="flex items-center justify-between">
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-950/40 text-green-800 dark:text-green-400">
@@ -179,24 +180,10 @@ function renderAlbums(data) {
                         </span>
                     `}
                 </div>
-                
-                <!-- Actions -->
-                <div class="flex space-x-2">
-                    ${album.is_rated ? `
-                        <a href="/albums/${album.id}/completed" 
-                           class="flex-1 bg-green-600 hover:bg-green-700 text-white text-center py-2 px-3 rounded-md text-sm font-medium transition-colors">
-                            View Results
-                        </a>
-                    ` : `
-                        <a href="/albums/${album.id}/rate" 
-                           class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-center py-2 px-3 rounded-md text-sm font-medium transition-colors">
-                            Continue Rating
-                        </a>
-                    `}
-                </div>
             </div>
-        </div>
-    `).join('');
+        </a>
+    `;
+    }).join('');
     
     container.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">${albumCards}</div>`;
 }
@@ -213,52 +200,60 @@ function appendAlbumsToGrid(data) {
     const albums = data.albums || [];
     
     // Grid view - append new cards
-    const newAlbumCards = albums.map(album => `
-        <div class="album-card bg-surface rounded-lg shadow-sm border border-default hover:shadow-md transition-all duration-200">
-            <div class="p-6">
-                ${album.cover_art_url ? `
-                    <div class="w-16 h-16 rounded-lg mb-4 overflow-hidden relative">
-                        <img src="${album.cover_art_url}" 
-                             alt="${album.title} cover" 
-                             class="w-full h-full object-cover"
-                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                        <div class="w-16 h-16 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg flex items-center justify-center absolute inset-0" style="display:none;">
-                            <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    const newAlbumCards = albums.map(album => {
+        const url = album.is_rated ? `/albums/${album.id}/completed` : `/albums/${album.id}/rate`;
+        return `
+        <a href="${url}" class="block bg-surface rounded-lg shadow-sm border border-default hover:shadow-md hover:border-default transition-all duration-200 hover:-translate-y-1">
+            <div class="p-4">
+                <div class="flex space-x-3 mb-3">
+                    <!-- Album Art -->
+                    ${album.cover_art_url ? `
+                        <div class="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
+                            <img src="${album.cover_art_url}" 
+                                 alt="${album.title} cover" 
+                                 class="w-full h-full object-cover"
+                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            <div class="w-12 h-12 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg flex items-center justify-center" style="display:none;">
+                                <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    ` : `
+                        <div class="w-12 h-12 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
                             </svg>
                         </div>
+                    `}
+                    
+                    <!-- Album Info -->
+                    <div class="flex-1 min-w-0">
+                        <h3 class="font-semibold text-primary truncate" title="${album.title}">${album.title}</h3>
+                        <p class="text-sm text-secondary truncate" title="${album.artist}">${album.artist}</p>
+                        ${album.year ? `<p class="text-xs text-muted">${album.year}</p>` : ''}
                     </div>
-                ` : `
-                    <div class="w-16 h-16 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg mb-4 flex items-center justify-center">
-                        <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
-                        </svg>
-                    </div>
-                `}
-                <h3 class="font-semibold text-primary mb-1 truncate" title="${album.title}">${album.title}</h3>
-                <p class="text-sm text-gray-500 mb-4">
-                    <a href="/artists/${album.artist_id}/albums" class="hover:underline">${album.artist}</a>
-                </p>
-                <div class="mb-4">
+                </div>
+                
+                <!-- Status and Score -->
+                <div>
                     ${album.is_rated ? `
                         <div class="flex items-center justify-between">
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-950/40 text-green-800 dark:text-green-400">✓ Completed</span>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-950/40 text-green-800 dark:text-green-400">
+                                ✓ Completed
+                            </span>
                             <span class="text-lg font-bold ${getScoreColorClass(album.rating_score)}">${album.rating_score}/100</span>
                         </div>
                     ` : `
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-400">⏳ In Progress</span>
-                    `}
-                </div>
-                <div class="flex space-x-2">
-                    ${album.is_rated ? `
-                        <a href="/albums/${album.id}/completed" class="flex-1 bg-green-600 hover:bg-green-700 text-white text-center py-2 px-3 rounded-md text-sm font-medium transition-colors">View Results</a>
-                    ` : `
-                        <a href="/albums/${album.id}/rate" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-center py-2 px-3 rounded-md text-sm font-medium transition-colors">Continue Rating</a>
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-400">
+                            ⏳ In Progress
+                        </span>
                     `}
                 </div>
             </div>
-        </div>
-    `).join('');
+        </a>
+    `;
+    }).join('');
     
     existingContainer.innerHTML += newAlbumCards;
 }
