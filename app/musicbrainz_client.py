@@ -267,8 +267,21 @@ class MusicBrainzClient:
         Returns:
             Dict containing release with complete track information
         """
-        include = ["artist-credits", "recordings", "media", "release-groups"]
+        include = ["artist-credits", "recordings", "media", "release-groups", "tags", "release-group-level-rels", "genres"]
         return await self.get_release_details(release_id, include)
+    
+    async def get_release_group_with_tags(self, release_group_id: str) -> Dict[str, Any]:
+        """
+        Get release group information including genre tags
+        
+        Args:
+            release_group_id: MusicBrainz release group ID
+            
+        Returns:
+            Dict containing release group with tags
+        """
+        params = {"inc": "tags"}
+        return await self._make_request(f"release-group/{release_group_id}", params)
 
 
 # Global client instance for dependency injection
