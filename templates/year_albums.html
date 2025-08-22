@@ -13,6 +13,19 @@
                 </svg>
             </a>
             <h1 class="text-3xl font-bold text-primary">{{ year }}</h1>
+            
+            <!-- Collage Button -->
+            <button id="generate-collage-btn" 
+                    onclick="openCollageModal()"
+                    title="Generate Year End Collage"
+                    class="hidden ml-3 p-2 text-muted hover:text-accent-blue hover:bg-info-light rounded-lg transition-all duration-200 group relative self-center">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+                <span class="absolute -bottom-8 left-0 text-xs bg-surface-hover text-primary px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap border border-default z-10">
+                    Year End Collage
+                </span>
+            </button>
         </div>
         <p class="text-secondary">All albums from {{ year }} in your library</p>
     </div>
@@ -276,10 +289,239 @@ function updatePaginationButton(data) {
     }
 }
 
+// Store rated albums count
+let ratedAlbumsCount = 0;
+
+// Modified loadYearAlbums to track rated albums
+async function loadYearAlbumsWithButton(offset = 0) {
+    const url = `/api/v1/albums?limit=20&offset=${offset}&year=${year}&sort=rating_desc_status`;
+    
+    try {
+        const response = await fetch(url);
+        if (response.ok) {
+            const data = await response.json();
+            
+            // Count ALL rated albums for this year (not just first page)
+            if (offset === 0) {
+                // The current 'data' already has info about this year, but only first page
+                // We need to get ALL albums to count properly
+                
+                // Check if current response has all albums or if there are more pages
+                if (data.has_more || (data.total && data.total > 20)) {
+                    // Need to fetch all albums to get accurate rated count
+                    // Use limit=100 which should be enough for most years
+                    const countUrl = `/api/v1/albums?limit=100&offset=0&year=${year}`;
+                    const countResponse = await fetch(countUrl);
+                    if (countResponse.ok) {
+                        const countData = await countResponse.json();
+                        
+                        // Count only rated albums from the full dataset
+                        if (countData.albums && Array.isArray(countData.albums)) {
+                            ratedAlbumsCount = countData.albums.filter(a => a.is_rated === true).length;
+                            console.log(`Year ${year}: Found ${ratedAlbumsCount} rated albums out of ${countData.albums.length} total`);
+                        } else {
+                            ratedAlbumsCount = 0;
+                        }
+                    } else {
+                        // Fallback to current page count
+                        ratedAlbumsCount = data.albums ? data.albums.filter(a => a.is_rated).length : 0;
+                    }
+                } else {
+                    // All albums are in current response
+                    ratedAlbumsCount = data.albums ? data.albums.filter(a => a.is_rated).length : 0;
+                    console.log(`Year ${year}: All albums in first page - ${ratedAlbumsCount} rated`);
+                }
+                
+                // Show/hide collage button based on rated albums
+                const collageBtn = document.getElementById('generate-collage-btn');
+                if (ratedAlbumsCount > 0) {
+                    collageBtn.classList.remove('hidden');
+                }
+            }
+            
+            if (data.albums && data.albums.length === 0 && offset === 0) {
+                document.getElementById('empty-state').classList.remove('hidden');
+                document.getElementById('albums-container').innerHTML = '';
+                document.getElementById('pagination-container').innerHTML = '';
+            } else {
+                document.getElementById('empty-state').classList.add('hidden');
+                
+                if (offset === 0) {
+                    renderAlbums(data);
+                } else {
+                    appendAlbumsToGrid(data);
+                }
+                updatePaginationButton(data);
+            }
+        } else {
+            console.error('Failed to load albums:', response.status);
+            alert('Failed to load albums');
+        }
+    } catch (error) {
+        console.error('Error loading albums:', error);
+        alert('Error loading albums');
+    }
+}
+
+// Collage modal functions
+function openCollageModal() {
+    // Always remove and recreate the modal to ensure the count is up to date
+    const existingModal = document.getElementById('collage-modal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    createCollageModal();
+    document.getElementById('collage-modal').classList.remove('hidden');
+}
+
+function closeCollageModal() {
+    document.getElementById('collage-modal').classList.add('hidden');
+}
+
+function createCollageModal() {
+    // Use template literal with actual count
+    const allAlbumsOption = ratedAlbumsCount > 0 ? 
+        `<option value="">All Rated Albums (${ratedAlbumsCount})</option>` : 
+        `<option value="">All Rated Albums</option>`;
+    
+    const modalHTML = `
+        <div id="collage-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
+            <div class="flex items-center justify-center min-h-screen px-4">
+                <!-- Backdrop -->
+                <div class="fixed inset-0 bg-black opacity-50" onclick="closeCollageModal()"></div>
+                
+                <!-- Modal Content -->
+                <div class="relative bg-surface rounded-lg shadow-xl max-w-2xl w-full p-6">
+                    <h2 class="text-2xl font-bold text-primary mb-4">Generate Year End Collage</h2>
+                    
+                    <div class="space-y-4">
+                        <!-- Options -->
+                        <div>
+                            <label class="block text-sm font-medium text-primary mb-2">Maximum Albums</label>
+                            <select id="collage-max-albums" class="w-full px-3 py-2 bg-surface text-primary border border-default rounded-md shadow-sm focus:border-accent-blue focus:ring-accent-blue">
+                                ${allAlbumsOption}
+                                <option value="9">Top 9 (3x3 grid)</option>
+                                <option value="16">Top 16 (4x4 grid)</option>
+                                <option value="25">Top 25 (5x5 grid)</option>
+                                <option value="36">Top 36 (6x6 grid)</option>
+                                <option value="49">Top 49 (7x7 grid)</option>
+                                <option value="64">Top 64 (8x8 grid)</option>
+                                <option value="100">Top 100 (10x10 grid)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="flex items-center space-x-4">
+                            <label class="flex items-center">
+                                <input type="checkbox" id="collage-include-ranking" checked class="mr-2 rounded border-default bg-surface text-accent-blue focus:ring-accent-blue focus:ring-offset-0">
+                                <span class="text-sm text-primary">Include ranking list</span>
+                            </label>
+                            
+                            <label class="flex items-center">
+                                <input type="checkbox" id="collage-include-scores" checked class="mr-2 rounded border-default bg-surface text-accent-blue focus:ring-accent-blue focus:ring-offset-0">
+                                <span class="text-sm text-primary">Show scores</span>
+                            </label>
+                        </div>
+                        
+                        <!-- Preview Container -->
+                        <div id="collage-preview" class="hidden">
+                            <h3 class="text-lg font-medium text-primary mb-2">Preview</h3>
+                            <div class="border border-default rounded-lg p-4 bg-surface-secondary">
+                                <img id="collage-preview-img" src="" alt="Collage preview" class="max-w-full h-auto">
+                            </div>
+                        </div>
+                        
+                        <!-- Loading State -->
+                        <div id="collage-loading" class="hidden text-center py-8">
+                            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-accent-blue"></div>
+                            <p class="mt-2 text-secondary">Generating collage...</p>
+                        </div>
+                        
+                        <!-- Error State -->
+                        <div id="collage-error" class="hidden bg-error-light border border-error text-error px-4 py-3 rounded">
+                            <p id="collage-error-message"></p>
+                        </div>
+                    </div>
+                    
+                    <!-- Actions -->
+                    <div class="mt-6 flex justify-end space-x-3">
+                        <button onclick="closeCollageModal()" 
+                                class="px-4 py-2 bg-surface-secondary text-primary rounded-md border border-default hover:bg-surface-hover transition-colors">
+                            Cancel
+                        </button>
+                        <button id="generate-btn" onclick="generateCollage()" 
+                                class="bg-accent-blue hover:opacity-90 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
+                            Generate Collage
+                        </button>
+                        <a id="download-btn" href="#" download="tracklist_${year}_yearend.png" 
+                           class="hidden bg-success hover:opacity-90 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
+                            Download
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+
+async function generateCollage() {
+    const maxAlbums = document.getElementById('collage-max-albums').value;
+    const includeRanking = document.getElementById('collage-include-ranking').checked;
+    const includeScores = document.getElementById('collage-include-scores').checked;
+    
+    // Build URL with parameters
+    let url = `/api/v1/reports/years/${year}/collage?`;
+    url += `include_ranking=${includeRanking}`;
+    url += `&include_scores=${includeScores}`;
+    if (maxAlbums) {
+        url += `&max_albums=${maxAlbums}`;
+    }
+    
+    // Show loading state
+    document.getElementById('collage-loading').classList.remove('hidden');
+    document.getElementById('collage-preview').classList.add('hidden');
+    document.getElementById('collage-error').classList.add('hidden');
+    document.getElementById('generate-btn').disabled = true;
+    document.getElementById('download-btn').classList.add('hidden');
+    
+    try {
+        const response = await fetch(url);
+        
+        if (response.ok) {
+            // Get the image blob
+            const blob = await response.blob();
+            const imageUrl = URL.createObjectURL(blob);
+            
+            // Show preview
+            document.getElementById('collage-preview-img').src = imageUrl;
+            document.getElementById('collage-preview').classList.remove('hidden');
+            
+            // Update download button
+            const downloadBtn = document.getElementById('download-btn');
+            downloadBtn.href = imageUrl;
+            downloadBtn.classList.remove('hidden');
+            
+            // Hide generate button
+            document.getElementById('generate-btn').classList.add('hidden');
+        } else {
+            const error = await response.json();
+            throw new Error(error.message || 'Failed to generate collage');
+        }
+    } catch (error) {
+        console.error('Error generating collage:', error);
+        document.getElementById('collage-error-message').textContent = error.message || 'Failed to generate collage';
+        document.getElementById('collage-error').classList.remove('hidden');
+    } finally {
+        document.getElementById('collage-loading').classList.add('hidden');
+        document.getElementById('generate-btn').disabled = false;
+    }
+}
+
 // Initialize page
 document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('albums-loading').style.display = 'grid';
-    loadYearAlbums();
+    loadYearAlbumsWithButton();  // Use modified function
 });
 </script>
 {% endblock %}

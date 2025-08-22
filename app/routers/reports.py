@@ -4,12 +4,15 @@ Reporting API endpoints for user statistics and analytics
 
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
-from fastapi.responses import Response
+from fastapi.responses import Response, StreamingResponse
 from sqlalchemy.orm import Session
 import logging
+import asyncio
+import io
 
 from ..database import get_db
 from ..reporting_service import get_reporting_service, ReportingService
+from ..services.collage_service import get_collage_service, CollageService
 from ..exceptions import TracklistException
 
 logger = logging.getLogger(__name__)
@@ -688,5 +691,81 @@ async def get_highest_rated_artists(
             detail={
                 "error": "Internal server error",
                 "message": "Failed to retrieve highest rated artists"
+            }
+        )
+
+
+@router.get("/years/{year}/collage")
+async def generate_year_collage(
+    year: int,
+    include_ranking: bool = Query(default=True, description="Include ranking list on the side"),
+    include_scores: bool = Query(default=True, description="Include scores in ranking list"),
+    max_albums: Optional[int] = Query(default=None, ge=1, le=100, description="Maximum number of albums to include"),
+    service: CollageService = Depends(get_collage_service),
+    db: Session = Depends(get_db)
+):
+    """
+    Generate a visual collage of top-rated albums for a specific year
+    
+    Creates a Topsters-style collage image with album artwork arranged in a grid.
+    Albums are sorted by rating score (highest first) and placed left-to-right,
+    top-to-bottom. Optionally includes a numbered ranking list on the right side.
+    
+    Query Parameters:
+    - include_ranking: Whether to include the ranking list (default: true)
+    - include_scores: Whether to show scores in the ranking list (default: true)
+    - max_albums: Maximum number of albums to include (default: all, max: 100)
+    
+    Returns:
+    - PNG image file as a download
+    
+    Grid Layout:
+    - 1-4 albums: 2x2 grid
+    - 5-9 albums: 3x3 grid
+    - 10-16 albums: 4x4 grid
+    - 17-25 albums: 5x5 grid
+    - 26-36 albums: 6x6 grid
+    - 37-49 albums: 7x7 grid
+    - 50-64 albums: 8x8 grid
+    - 65-81 albums: 9x9 grid
+    - 82-100 albums: 10x10 grid
+    """
+    try:
+        logger.info(f"Generating collage for year {year} (max_albums={max_albums})")
+        
+        # Generate the collage
+        image_bytes = await service.generate_year_collage(
+            year=year,
+            db=db,
+            include_ranking=include_ranking,
+            include_scores=include_scores,
+            max_albums=max_albums
+        )
+        
+        # Return as downloadable image
+        return StreamingResponse(
+            io.BytesIO(image_bytes),
+            media_type="image/png",
+            headers={
+                "Content-Disposition": f"attachment; filename=tracklist_{year}_yearend.png"
+            }
+        )
+        
+    except ValueError as e:
+        logger.warning(f"Invalid request for year {year} collage: {e}")
+        raise HTTPException(
+            status_code=404,
+            detail={
+                "error": "No albums found",
+                "message": str(e)
+            }
+        )
+    except Exception as e:
+        logger.error(f"Failed to generate collage for year {year}: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "Collage generation failed",
+                "message": "Failed to generate the year-end collage"
             }
         )
