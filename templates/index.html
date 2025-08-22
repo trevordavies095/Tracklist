@@ -331,14 +331,24 @@ function checkAndShowGettingStarted() {
     }
 }
 
-function renderAlbumSection(data, containerId, sectionType) {
+// Store album data globally for expand/collapse functionality
+window.albumData = window.albumData || {};
+window.albumExpanded = window.albumExpanded || {};
+
+function renderAlbumSection(data, containerId, sectionType, showAll = false) {
     const container = document.getElementById(containerId);
     const albums = data.albums || [];
     const isMobile = window.innerWidth <= 640;
     const albumLimit = isMobile ? 3 : 6;
     
-    // Show only limited albums on mobile
-    const displayAlbums = albums.slice(0, albumLimit);
+    // Store the album data for later use
+    window.albumData[containerId] = albums;
+    
+    // Store the expanded state
+    window.albumExpanded[containerId] = showAll;
+    
+    // Show only limited albums on mobile, unless showAll is true
+    const displayAlbums = showAll ? albums : albums.slice(0, albumLimit);
     
     if (albums.length === 0) {
         if (sectionType === 'recently-rated') {
@@ -477,11 +487,20 @@ function renderAlbumSection(data, containerId, sectionType) {
     }).join('');
     
     // Add 'Show more' button on mobile if there are more albums
-    const showMoreButton = (isMobile && albums.length > albumLimit) ? `
+    const showMoreButton = (isMobile && albums.length > albumLimit && !showAll) ? `
         <div class="mt-4 text-center">
-            <button onclick="loadMoreAlbums('${containerId}', '${sectionType}')" 
-                    class="text-sm text-blue-600 hover:text-blue-800 font-medium">
+            <button onclick="toggleShowMore('${containerId}', '${sectionType}')" 
+                    class="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                    data-container="${containerId}">
                 Show ${albums.length - albumLimit} more →
+            </button>
+        </div>
+    ` : (isMobile && showAll && albums.length > albumLimit) ? `
+        <div class="mt-4 text-center">
+            <button onclick="toggleShowMore('${containerId}', '${sectionType}')" 
+                    class="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                    data-container="${containerId}">
+                Show less ←
             </button>
         </div>
     ` : '';
@@ -494,19 +513,19 @@ function renderAlbumSection(data, containerId, sectionType) {
     `;
 }
 
-// Load more albums function
-function loadMoreAlbums(containerId, sectionType) {
-    const url = sectionType === 'in-progress' 
-        ? '/api/v1/albums?limit=20&rated=false&sort=created_desc'
-        : '/api/v1/albums?limit=20&rated=true&sort=rated_desc';
+// Toggle show more/less function
+function toggleShowMore(containerId, sectionType) {
+    const albums = window.albumData[containerId];
+    if (!albums) {
+        console.error('No album data found for container:', containerId);
+        return;
+    }
     
-    fetch(url)
-        .then(response => response.json())
-        .then(data => {
-            // Re-render with all albums
-            renderAlbumSection(data, containerId, sectionType);
-        })
-        .catch(error => console.error('Error loading more albums:', error));
+    // Toggle the expanded state
+    window.albumExpanded[containerId] = !window.albumExpanded[containerId];
+    
+    // Re-render with toggled state
+    renderAlbumSection({ albums: albums }, containerId, sectionType, window.albumExpanded[containerId]);
 }
 </script>
 {% endblock %}
