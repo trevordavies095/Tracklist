@@ -18,6 +18,12 @@ A self-hosted music album rating application that enables precise album scoring 
 
 Tracklist is a web application for rating and tracking music albums. It integrates with the MusicBrainz database to provide accurate metadata and uses a four-point track rating system to calculate album scores.
 
+## Demo
+
+![Tracklist Demo](https://i.imgur.com/jCjYYRw.gif)
+
+*Complete workflow: Search → Rate → Track Progress → View Stats*
+
 ### Features
 
 **Core Functionality**
