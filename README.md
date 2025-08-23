@@ -24,6 +24,7 @@ Click below for a quick demo
 
 [![Tracklist Demo](https://img.youtube.com/vi/jvPUX0ZAfY0/0.jpg)](https://www.youtube.com/watch?v=jvPUX0ZAfY0)
 
+
 *Complete workflow: Search → Rate → Track Progress → View Stats*
 
 ### Features
