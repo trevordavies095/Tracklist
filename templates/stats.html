@@ -1105,16 +1105,23 @@ function createStatsCollageModal(year, albumCount) {
                             </select>
                         </div>
                         
-                        <div class="flex items-center space-x-4">
-                            <label class="flex items-center space-x-2">
-                                <input type="checkbox" id="stats-collage-include-ranking" checked class="rounded border-default bg-surface text-accent-blue focus:ring-accent-blue">
-                                <span class="text-sm text-primary">Include ranking list</span>
-                            </label>
-                            
-                            <label class="flex items-center space-x-2">
-                                <input type="checkbox" id="stats-collage-include-scores" checked class="rounded border-default bg-surface text-accent-blue focus:ring-accent-blue">
-                                <span class="text-sm text-primary">Show scores in ranking</span>
-                            </label>
+                        <div class="space-y-2">
+                            <div class="flex items-center space-x-4">
+                                <label class="flex items-center space-x-2">
+                                    <input type="checkbox" id="stats-collage-include-title" checked class="rounded border-default bg-surface text-accent-blue focus:ring-accent-blue">
+                                    <span class="text-sm text-primary">Include title</span>
+                                </label>
+                                
+                                <label class="flex items-center space-x-2">
+                                    <input type="checkbox" id="stats-collage-include-ranking" checked class="rounded border-default bg-surface text-accent-blue focus:ring-accent-blue">
+                                    <span class="text-sm text-primary">Include ranking list</span>
+                                </label>
+                                
+                                <label class="flex items-center space-x-2">
+                                    <input type="checkbox" id="stats-collage-include-scores" checked class="rounded border-default bg-surface text-accent-blue focus:ring-accent-blue">
+                                    <span class="text-sm text-primary">Show scores in ranking</span>
+                                </label>
+                            </div>
                         </div>
                         
                         <!-- Progress -->
@@ -1166,6 +1173,7 @@ async function generateStatsCollage() {
     const year = yearSelector ? yearSelector.value : new Date().getFullYear();
     
     const maxAlbumsSelect = document.getElementById('stats-collage-max-albums');
+    const includeTitleCheck = document.getElementById('stats-collage-include-title');
     const includeRankingCheck = document.getElementById('stats-collage-include-ranking');
     const includeScoresCheck = document.getElementById('stats-collage-include-scores');
     const progressDiv = document.getElementById('stats-collage-progress');
@@ -1185,6 +1193,7 @@ async function generateStatsCollage() {
     if (maxAlbumsSelect.value) {
         params.append('max_albums', maxAlbumsSelect.value);
     }
+    params.append('include_title', includeTitleCheck.checked);
     params.append('include_ranking', includeRankingCheck.checked);
     params.append('include_scores', includeScoresCheck.checked);
     
