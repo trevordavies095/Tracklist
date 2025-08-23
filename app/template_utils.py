@@ -24,10 +24,13 @@ class ArtworkURLResolver:
     def __init__(self):
         """Initialize the artwork URL resolver"""
         self.cache_service = get_artwork_cache_service()
-        
+
         # Try to import background service (may not be available in all contexts)
         try:
-            from .services.artwork_cache_background import get_artwork_cache_background_service
+            from .services.artwork_cache_background import (
+                get_artwork_cache_background_service,
+            )
+
             self.background_service = get_artwork_cache_background_service()
         except ImportError:
             logger.debug("Background caching service not available")
@@ -35,26 +38,23 @@ class ArtworkURLResolver:
 
         # Cache hit/miss tracking
         self.stats = {
-            'cache_hits': 0,
-            'cache_misses': 0,
-            'fallback_used': 0,
-            'errors': 0,
-            'auto_queued': 0,
-            'start_time': datetime.now(timezone.utc)
+            "cache_hits": 0,
+            "cache_misses": 0,
+            "fallback_used": 0,
+            "errors": 0,
+            "auto_queued": 0,
+            "start_time": datetime.now(timezone.utc),
         }
 
         # In-memory cache for template calls (short-lived)
         self._template_cache = {}
         self._cache_ttl = 300  # 5 minutes
-        
+
         # Track which albums we've already queued (to avoid duplicate queuing)
         self._queued_albums = set()
 
     def get_artwork_url(
-        self,
-        album,
-        size: str = 'medium',
-        fallback: Optional[str] = None
+        self, album, size: str = "medium", fallback: Optional[str] = None
     ) -> str:
         """
         Get artwork URL for an album, preferring cached version
@@ -70,116 +70,119 @@ class ArtworkURLResolver:
         try:
             # Quick validation
             if not album:
-                self.stats['errors'] += 1
-                return fallback or '/static/img/album-placeholder.svg'
+                self.stats["errors"] += 1
+                return fallback or "/static/img/album-placeholder.svg"
 
             # Handle both Album objects and dicts
             if isinstance(album, dict):
-                album_id = album.get('id')
-                cover_art_url = album.get('cover_art_url')
-                artwork_cached = album.get('artwork_cached', False)
+                album_id = album.get("id")
+                cover_art_url = album.get("cover_art_url")
+                artwork_cached = album.get("artwork_cached", False)
             else:
                 # Assume it's an Album model instance
                 album_id = album.id
                 cover_art_url = album.cover_art_url
-                artwork_cached = getattr(album, 'artwork_cached', False)
+                artwork_cached = getattr(album, "artwork_cached", False)
 
             if not album_id:
-                self.stats['errors'] += 1
-                return fallback or '/static/img/album-placeholder.svg'
+                self.stats["errors"] += 1
+                return fallback or "/static/img/album-placeholder.svg"
 
             # Check memory cache first (fastest)
             from .services.artwork_memory_cache import get_artwork_memory_cache
+
             memory_cache = get_artwork_memory_cache()
             cached_url = memory_cache.get(album_id, size)
             if cached_url:
-                self.stats['cache_hits'] += 1
+                self.stats["cache_hits"] += 1
                 return cached_url
 
             # Check template cache second (in-memory but with more overhead)
             cache_key = f"{album_id}_{size}"
             if cache_key in self._template_cache:
                 cached_entry = self._template_cache[cache_key]
-                if (datetime.now(timezone.utc) - cached_entry['time']).seconds < self._cache_ttl:
-                    self.stats['cache_hits'] += 1
+                if (
+                    datetime.now(timezone.utc) - cached_entry["time"]
+                ).seconds < self._cache_ttl:
+                    self.stats["cache_hits"] += 1
                     # Also store in memory cache for next time
-                    memory_cache.set(album_id, size, cached_entry['url'])
-                    return cached_entry['url']
+                    memory_cache.set(album_id, size, cached_entry["url"])
+                    return cached_entry["url"]
 
             # Map size names to standard variants
             size_map = {
-                'thumb': 'thumbnail',
-                'small': 'small',
-                'medium': 'medium',
-                'large': 'large',
-                'original': 'original',
-                'thumbnail': 'thumbnail'
+                "thumb": "thumbnail",
+                "small": "small",
+                "medium": "medium",
+                "large": "large",
+                "original": "original",
+                "thumbnail": "thumbnail",
             }
 
-            normalized_size = size_map.get(size.lower(), 'medium')
+            normalized_size = size_map.get(size.lower(), "medium")
 
             # Try to get from database cache
             with SessionLocal() as db:
-                cache_record = db.query(ArtworkCache).filter_by(
-                    album_id=album_id,
-                    size_variant=normalized_size
-                ).first()
+                cache_record = (
+                    db.query(ArtworkCache)
+                    .filter_by(album_id=album_id, size_variant=normalized_size)
+                    .first()
+                )
 
                 if cache_record and cache_record.file_path:
                     # Build web path
                     web_path = self._build_web_path(cache_record.file_path)
 
                     # Update stats
-                    self.stats['cache_hits'] += 1
+                    self.stats["cache_hits"] += 1
 
                     # Store in both caches
                     self._template_cache[cache_key] = {
-                        'url': web_path,
-                        'time': datetime.now(timezone.utc)
+                        "url": web_path,
+                        "time": datetime.now(timezone.utc),
                     }
                     memory_cache.set(album_id, normalized_size, web_path)
 
                     return web_path
 
             # Cache miss - use external URL if available
-            self.stats['cache_misses'] += 1
+            self.stats["cache_misses"] += 1
 
             if cover_art_url:
                 # Store external URL in both caches
                 self._template_cache[cache_key] = {
-                    'url': cover_art_url,
-                    'time': datetime.now(timezone.utc)
+                    "url": cover_art_url,
+                    "time": datetime.now(timezone.utc),
                 }
                 memory_cache.set(album_id, normalized_size, cover_art_url)
-                
+
                 # AUTO-QUEUE FOR CACHING: If we're returning an external URL, queue it for background caching
-                if cover_art_url.startswith('http') and not artwork_cached:
+                if cover_art_url.startswith("http") and not artwork_cached:
                     self._queue_for_background_caching(album_id, cover_art_url)
-                
+
                 return cover_art_url
 
             # Use fallback
-            self.stats['fallback_used'] += 1
-            fallback_url = fallback or '/static/img/album-placeholder.svg'
+            self.stats["fallback_used"] += 1
+            fallback_url = fallback or "/static/img/album-placeholder.svg"
 
             # Store fallback in template cache
             self._template_cache[cache_key] = {
-                'url': fallback_url,
-                'time': datetime.now(timezone.utc)
+                "url": fallback_url,
+                "time": datetime.now(timezone.utc),
             }
 
             return fallback_url
 
         except Exception as e:
-            logger.error(f"Error resolving artwork URL for album {album.id if album else 'None'}: {e}")
-            self.stats['errors'] += 1
-            return fallback or '/static/img/album-placeholder.svg'
+            logger.error(
+                f"Error resolving artwork URL for album {album.id if album else 'None'}: {e}"
+            )
+            self.stats["errors"] += 1
+            return fallback or "/static/img/album-placeholder.svg"
 
     def get_artwork_url_async(
-        self,
-        album: Album,
-        size: str = 'medium',
-        db: Session = None
+        self, album: Album, size: str = "medium", db: Session = None
     ) -> str:
         """
         Async version for use in async contexts
@@ -207,8 +210,8 @@ class ArtworkURLResolver:
             Web-accessible URL path
         """
         # Extract relative path from static directory
-        if 'static/' in file_path:
-            relative_path = file_path.split('static/')[-1]
+        if "static/" in file_path:
+            relative_path = file_path.split("static/")[-1]
             return f"/static/{relative_path}"
 
         # Fallback to direct path
@@ -225,27 +228,33 @@ class ArtworkURLResolver:
         try:
             # Check if we've already queued this album in this session
             if album_id in self._queued_albums:
-                logger.debug(f"Album {album_id} already queued for caching in this session")
+                logger.debug(
+                    f"Album {album_id} already queued for caching in this session"
+                )
                 return
-            
+
             # Check if background service is available
             if not self.background_service:
-                logger.debug(f"Background service not available, cannot auto-queue album {album_id}")
+                logger.debug(
+                    f"Background service not available, cannot auto-queue album {album_id}"
+                )
                 return
-            
+
             # Queue for background caching with low priority (so it doesn't interfere with user requests)
             task_id = self.background_service.trigger_album_cache(
                 album_id=album_id,
                 cover_art_url=cover_art_url,
-                priority=8  # Low priority for auto-queued items
+                priority=8,  # Low priority for auto-queued items
             )
-            
+
             # Track that we've queued this album
             self._queued_albums.add(album_id)
-            self.stats['auto_queued'] += 1
-            
-            logger.info(f"Auto-queued album {album_id} for background caching (task: {task_id})")
-            
+            self.stats["auto_queued"] += 1
+
+            logger.info(
+                f"Auto-queued album {album_id} for background caching (task: {task_id})"
+            )
+
         except Exception as e:
             logger.debug(f"Could not auto-queue album {album_id} for caching: {e}")
 
@@ -256,28 +265,25 @@ class ArtworkURLResolver:
         Returns:
             Dictionary with cache statistics
         """
-        total_requests = (
-            self.stats['cache_hits'] +
-            self.stats['cache_misses']
-        )
+        total_requests = self.stats["cache_hits"] + self.stats["cache_misses"]
 
         hit_rate = 0
         if total_requests > 0:
-            hit_rate = (self.stats['cache_hits'] / total_requests) * 100
+            hit_rate = (self.stats["cache_hits"] / total_requests) * 100
 
-        uptime = datetime.now(timezone.utc) - self.stats['start_time']
+        uptime = datetime.now(timezone.utc) - self.stats["start_time"]
 
         return {
-            'cache_hits': self.stats['cache_hits'],
-            'cache_misses': self.stats['cache_misses'],
-            'fallback_used': self.stats['fallback_used'],
-            'errors': self.stats['errors'],
-            'auto_queued': self.stats['auto_queued'],
-            'total_requests': total_requests,
-            'hit_rate': round(hit_rate, 2),
-            'uptime_seconds': uptime.total_seconds(),
-            'template_cache_size': len(self._template_cache),
-            'queued_albums_count': len(self._queued_albums)
+            "cache_hits": self.stats["cache_hits"],
+            "cache_misses": self.stats["cache_misses"],
+            "fallback_used": self.stats["fallback_used"],
+            "errors": self.stats["errors"],
+            "auto_queued": self.stats["auto_queued"],
+            "total_requests": total_requests,
+            "hit_rate": round(hit_rate, 2),
+            "uptime_seconds": uptime.total_seconds(),
+            "template_cache_size": len(self._template_cache),
+            "queued_albums_count": len(self._queued_albums),
         }
 
     def clear_template_cache(self) -> None:
@@ -288,12 +294,12 @@ class ArtworkURLResolver:
     def clear_stats(self) -> None:
         """Reset all statistics"""
         self.stats = {
-            'cache_hits': 0,
-            'cache_misses': 0,
-            'fallback_used': 0,
-            'errors': 0,
-            'auto_queued': 0,
-            'start_time': datetime.now(timezone.utc)
+            "cache_hits": 0,
+            "cache_misses": 0,
+            "fallback_used": 0,
+            "errors": 0,
+            "auto_queued": 0,
+            "start_time": datetime.now(timezone.utc),
         }
         self._queued_albums.clear()
         logger.debug("Statistics cleared")
@@ -314,10 +320,10 @@ def get_artwork_resolver() -> ArtworkURLResolver:
 # Template function wrappers
 def get_lazy_image_html(
     album,
-    size: str = 'medium',
-    css_class: str = '',
+    size: str = "medium",
+    css_class: str = "",
     alt_text: Optional[str] = None,
-    loading: str = 'lazy'
+    loading: str = "lazy",
 ) -> str:
     """
     Generate HTML for a lazy-loaded image with fallback
@@ -339,27 +345,27 @@ def get_lazy_image_html(
 
     # Determine album name for alt text
     if isinstance(album, dict):
-        album_name = album.get('name', 'Album')
+        album_name = album.get("name", "Album")
     else:
-        album_name = getattr(album, 'name', 'Album')
+        album_name = getattr(album, "name", "Album")
 
     alt = alt_text or f"{album_name} cover"
 
     # Check if URL is cached (local) or external
-    is_cached = url and not url.startswith('http')
+    is_cached = url and not url.startswith("http")
 
-    if is_cached or loading == 'eager':
+    if is_cached or loading == "eager":
         # Load immediately for cached images or eager loading
-        html = f'''
+        html = f"""
             <img src="{url}"
                  alt="{alt}"
                  class="{css_class}"
                  loading="{loading}">
-        '''
+        """
     else:
         # Use lazy loading for external images
-        placeholder = '/static/img/album-placeholder.svg'
-        html = f'''
+        placeholder = "/static/img/album-placeholder.svg"
+        html = f"""
             <img src="{placeholder}"
                  data-src="{url}"
                  alt="{alt}"
@@ -370,12 +376,12 @@ def get_lazy_image_html(
                      alt="{alt}"
                      class="{css_class} noscript-img">
             </noscript>
-        '''
+        """
 
     return Markup(html.strip())
 
 
-def get_artwork_url(album, size: str = 'medium', fallback: Optional[str] = None) -> str:
+def get_artwork_url(album, size: str = "medium", fallback: Optional[str] = None) -> str:
     """
     Template function to get artwork URL
 
@@ -416,7 +422,7 @@ def format_file_size(bytes_size: int) -> str:
     if not bytes_size:
         return "0 B"
 
-    units = ['B', 'KB', 'MB', 'GB']
+    units = ["B", "KB", "MB", "GB"]
     unit_index = 0
     size = float(bytes_size)
 

@@ -21,7 +21,9 @@ class RatingCalculator:
     """Handles album score calculation with configurable bonus"""
 
     @staticmethod
-    def calculate_album_score(track_ratings: List[float], album_bonus: float = 0.33) -> int:
+    def calculate_album_score(
+        track_ratings: List[float], album_bonus: float = 0.33
+    ) -> int:
         """
         Calculate album score using the PRD formula:
         Floor((Sum of track ratings / Total tracks × 10) + Album Bonus) × 10
@@ -58,8 +60,7 @@ class RatingCalculator:
 
     @staticmethod
     def get_projected_score(
-        track_ratings: List[Optional[float]],
-        album_bonus: float = 0.33
+        track_ratings: List[Optional[float]], album_bonus: float = 0.33
     ) -> Optional[int]:
         """
         Calculate projected album score based on current ratings
@@ -80,9 +81,7 @@ class RatingService:
         self.musicbrainz_service = get_musicbrainz_service()
 
     async def create_album_for_rating(
-        self,
-        musicbrainz_id: str,
-        db: Session
+        self, musicbrainz_id: str, db: Session
     ) -> Dict[str, Any]:
         """
         Create album in database from MusicBrainz data for rating
@@ -101,9 +100,9 @@ class RatingService:
         logger.info(f"Creating album for rating: {musicbrainz_id}")
 
         # Check if album already exists
-        existing_album = db.query(Album).filter(
-            Album.musicbrainz_id == musicbrainz_id
-        ).first()
+        existing_album = (
+            db.query(Album).filter(Album.musicbrainz_id == musicbrainz_id).first()
+        )
 
         if existing_album:
             logger.info(f"Album already exists: {musicbrainz_id}")
@@ -115,9 +114,7 @@ class RatingService:
 
             # Create or get artist
             artist = self._create_or_get_artist(
-                mb_album["artist"]["name"],
-                mb_album["artist"]["musicbrainz_id"],
-                db
+                mb_album["artist"]["name"], mb_album["artist"]["musicbrainz_id"], db
             )
 
             # Get user settings for album bonus
@@ -127,12 +124,14 @@ class RatingService:
             else:
                 # Fallback to environment variable if no settings exist
                 import os
+
                 album_bonus = float(os.getenv("DEFAULT_ALBUM_BONUS", "0.33"))
                 # Ensure it's within valid range (0.1 to 0.4)
                 album_bonus = max(0.1, min(0.4, album_bonus))
 
             # Fetch cover art
             from .services.cover_art_service import get_cover_art_service
+
             cover_art_service = get_cover_art_service()
             cover_art_url = await cover_art_service.get_cover_art_url(musicbrainz_id)
 
@@ -147,7 +146,7 @@ class RatingService:
                 total_duration_ms=mb_album.get("total_duration_ms"),
                 album_bonus=album_bonus,
                 is_rated=False,
-                cover_art_url=cover_art_url
+                cover_art_url=cover_art_url,
             )
 
             db.add(album)
@@ -160,7 +159,7 @@ class RatingService:
                     track_number=track_data["track_number"],
                     name=track_data["title"],
                     duration_ms=track_data.get("duration_ms"),
-                    musicbrainz_id=track_data.get("musicbrainz_recording_id")
+                    musicbrainz_id=track_data.get("musicbrainz_recording_id"),
                 )
                 db.add(track)
 
@@ -171,17 +170,24 @@ class RatingService:
             # Trigger background artwork caching if URL exists
             if cover_art_url:
                 try:
-                    from .services.artwork_cache_background import get_artwork_cache_background_service
+                    from .services.artwork_cache_background import (
+                        get_artwork_cache_background_service,
+                    )
+
                     cache_bg_service = get_artwork_cache_background_service()
                     task_id = cache_bg_service.trigger_album_cache(
                         album_id=album.id,
                         cover_art_url=cover_art_url,
-                        priority=3  # Higher priority for newly created albums
+                        priority=3,  # Higher priority for newly created albums
                     )
-                    logger.info(f"Queued artwork caching for new album {album.id} (task: {task_id})")
+                    logger.info(
+                        f"Queued artwork caching for new album {album.id} (task: {task_id})"
+                    )
                 except Exception as e:
                     # Don't fail album creation if caching fails to queue
-                    logger.warning(f"Could not queue artwork caching for album {album.id}: {e}")
+                    logger.warning(
+                        f"Could not queue artwork caching for album {album.id}: {e}"
+                    )
 
             return self._format_album_response(album, db)
 
@@ -192,12 +198,7 @@ class RatingService:
                 raise
             raise TracklistException(f"Failed to create album: {str(e)}")
 
-    def rate_track(
-        self,
-        track_id: int,
-        rating: float,
-        db: Session
-    ) -> Dict[str, Any]:
+    def rate_track(self, track_id: int, rating: float, db: Session) -> Dict[str, Any]:
         """
         Rate a track (auto-save functionality)
 
@@ -254,12 +255,19 @@ class RatingService:
         if not album:
             raise ServiceNotFoundError("Album", album_id)
 
-        tracks = db.query(Track).filter(Track.album_id == album_id).order_by(Track.track_number).all()
+        tracks = (
+            db.query(Track)
+            .filter(Track.album_id == album_id)
+            .order_by(Track.track_number)
+            .all()
+        )
 
         # Calculate progress
         total_tracks = len(tracks)
         rated_tracks = sum(1 for track in tracks if track.track_rating is not None)
-        completion_pct = RatingCalculator.get_completion_percentage(total_tracks, rated_tracks)
+        completion_pct = RatingCalculator.get_completion_percentage(
+            total_tracks, rated_tracks
+        )
 
         # Get current album bonus from user settings
         settings = db.query(UserSettings).filter(UserSettings.user_id == 1).first()
@@ -267,7 +275,9 @@ class RatingService:
 
         # Get projected score using current settings
         track_ratings = [track.track_rating for track in tracks]
-        projected_score = RatingCalculator.get_projected_score(track_ratings, current_album_bonus)
+        projected_score = RatingCalculator.get_projected_score(
+            track_ratings, current_album_bonus
+        )
 
         return {
             "album_id": album_id,
@@ -281,7 +291,7 @@ class RatingService:
             "is_submitted": album.is_rated,
             "final_score": album.rating_score,
             "album_bonus": current_album_bonus,
-            "notes": album.notes
+            "notes": album.notes,
         }
 
     def submit_album_rating(self, album_id: int, db: Session) -> Dict[str, Any]:
@@ -310,7 +320,12 @@ class RatingService:
             return self._format_album_response(album, db, include_tracks=True)
 
         # Get all tracks
-        tracks = db.query(Track).filter(Track.album_id == album_id).order_by(Track.track_number).all()
+        tracks = (
+            db.query(Track)
+            .filter(Track.album_id == album_id)
+            .order_by(Track.track_number)
+            .all()
+        )
 
         # Verify all tracks are rated
         unrated_tracks = [track for track in tracks if track.track_rating is None]
@@ -326,7 +341,9 @@ class RatingService:
 
         # Calculate final score using current settings
         track_ratings = [track.track_rating for track in tracks]
-        final_score = RatingCalculator.calculate_album_score(track_ratings, current_album_bonus)
+        final_score = RatingCalculator.calculate_album_score(
+            track_ratings, current_album_bonus
+        )
 
         # Update album
         album.rating_score = final_score
@@ -356,7 +373,7 @@ class RatingService:
         sort: str = "created_desc",
         search: Optional[str] = None,
         artist_id: Optional[int] = None,
-        year: Optional[int] = None
+        year: Optional[int] = None,
     ) -> Dict[str, Any]:
         """Get user's albums with optional filtering, sorting, and searching"""
         query = db.query(Album).join(Artist)
@@ -376,8 +393,7 @@ class RatingService:
         if search and search.strip():
             search_term = f"%{search.strip()}%"
             query = query.filter(
-                (Album.name.ilike(search_term)) |
-                (Artist.name.ilike(search_term))
+                (Album.name.ilike(search_term)) | (Artist.name.ilike(search_term))
             )
 
         # Apply sorting
@@ -410,7 +426,9 @@ class RatingService:
             # Rating descending with in-progress albums first
             # is_rated=False (in progress) should come before is_rated=True (completed)
             # Then sort by rating_score descending for completed albums
-            query = query.order_by(Album.is_rated.asc(), Album.rating_score.desc().nulls_last())
+            query = query.order_by(
+                Album.is_rated.asc(), Album.rating_score.desc().nulls_last()
+            )
         else:
             # Default to created_desc for unknown sorts
             query = query.order_by(Album.created_at.desc())
@@ -426,18 +444,17 @@ class RatingService:
             "total": total,
             "limit": limit,
             "offset": offset,
-            "has_more": (offset + limit) < total
+            "has_more": (offset + limit) < total,
         }
 
     def _create_or_get_artist(
-        self,
-        name: str,
-        musicbrainz_id: Optional[str],
-        db: Session
+        self, name: str, musicbrainz_id: Optional[str], db: Session
     ) -> Artist:
         """Create or get existing artist"""
         if musicbrainz_id:
-            artist = db.query(Artist).filter(Artist.musicbrainz_id == musicbrainz_id).first()
+            artist = (
+                db.query(Artist).filter(Artist.musicbrainz_id == musicbrainz_id).first()
+            )
             if artist:
                 return artist
 
@@ -453,20 +470,18 @@ class RatingService:
         return artist
 
     def _format_album_response(
-        self,
-        album: Album,
-        db: Session,
-        include_tracks: bool = False
+        self, album: Album, db: Session, include_tracks: bool = False
     ) -> Dict[str, Any]:
         """Format album for API response"""
         # Get current album bonus from user settings
         settings = db.query(UserSettings).filter(UserSettings.user_id == 1).first()
         current_album_bonus = settings.album_bonus if settings else album.album_bonus
-        
+
         # Get cached artwork URL if available
         from .template_utils import get_artwork_url
-        cached_artwork_url = get_artwork_url(album, size='large')
-        
+
+        cached_artwork_url = get_artwork_url(album, size="large")
+
         response = {
             "id": album.id,
             "musicbrainz_id": album.musicbrainz_id,
@@ -474,7 +489,7 @@ class RatingService:
             "artist": {
                 "id": album.artist.id,
                 "name": album.artist.name,
-                "musicbrainz_id": album.artist.musicbrainz_id
+                "musicbrainz_id": album.artist.musicbrainz_id,
             },
             "year": album.release_year,
             "genre": album.genre,
@@ -486,18 +501,23 @@ class RatingService:
             "rating_score": album.rating_score,
             "notes": album.notes,
             "rated_at": album.rated_at.isoformat() if album.rated_at else None,
-            "created_at": album.created_at.isoformat()
+            "created_at": album.created_at.isoformat(),
         }
 
         if include_tracks:
-            tracks = db.query(Track).filter(Track.album_id == album.id).order_by(Track.track_number).all()
+            tracks = (
+                db.query(Track)
+                .filter(Track.album_id == album.id)
+                .order_by(Track.track_number)
+                .all()
+            )
             response["tracks"] = [
                 {
                     "id": track.id,
                     "track_number": track.track_number,
                     "title": track.name,
                     "duration_ms": track.duration_ms,
-                    "rating": track.track_rating
+                    "rating": track.track_rating,
                 }
                 for track in tracks
             ]
@@ -508,8 +528,9 @@ class RatingService:
         """Format album summary for lists"""
         # Get cached artwork URL if available
         from .template_utils import get_artwork_url
-        cached_artwork_url = get_artwork_url(album, size='large')
-        
+
+        cached_artwork_url = get_artwork_url(album, size="large")
+
         return {
             "id": album.id,
             "musicbrainz_id": album.musicbrainz_id,
@@ -520,7 +541,7 @@ class RatingService:
             "cover_art_url": cached_artwork_url,
             "is_rated": album.is_rated,
             "rating_score": album.rating_score,
-            "rated_at": album.rated_at.isoformat() if album.rated_at else None
+            "rated_at": album.rated_at.isoformat() if album.rated_at else None,
         }
 
     def delete_album(self, album_id: int, db: Session) -> Dict[str, Any]:
@@ -550,7 +571,7 @@ class RatingService:
             "title": album.name,
             "artist": album.artist.name,
             "is_rated": album.is_rated,
-            "rating_score": album.rating_score
+            "rating_score": album.rating_score,
         }
 
         try:
@@ -558,25 +579,33 @@ class RatingService:
             track_count = db.query(Track).filter(Track.album_id == album_id).count()
 
             # Clean up cached artwork files before deleting album
-            cache_cleanup_stats = {'files_deleted': 0, 'bytes_freed': 0}
+            cache_cleanup_stats = {"files_deleted": 0, "bytes_freed": 0}
             try:
                 from .services.artwork_cache_service import get_artwork_cache_service
+
                 cache_service = get_artwork_cache_service()
                 cache_cleanup_stats = cache_service.clear_album_cache_sync(album_id, db)
-                if cache_cleanup_stats.get('files_deleted', 0) > 0:
-                    logger.info(f"Cleaned up {cache_cleanup_stats['files_deleted']} cache files for album {album_id}")
+                if cache_cleanup_stats.get("files_deleted", 0) > 0:
+                    logger.info(
+                        f"Cleaned up {cache_cleanup_stats['files_deleted']} cache files for album {album_id}"
+                    )
             except Exception as e:
-                logger.warning(f"Failed to clean up cache files for album {album_id}: {e}")
+                logger.warning(
+                    f"Failed to clean up cache files for album {album_id}: {e}"
+                )
                 # Don't fail the deletion if cache cleanup fails
 
             # Clear memory cache entries for this album
             try:
                 from .services.artwork_memory_cache import get_artwork_memory_cache
+
                 memory_cache = get_artwork_memory_cache()
                 memory_cache.clear_album(album_id)
                 logger.debug(f"Cleared memory cache entries for album {album_id}")
             except Exception as e:
-                logger.warning(f"Failed to clear memory cache for album {album_id}: {e}")
+                logger.warning(
+                    f"Failed to clear memory cache for album {album_id}: {e}"
+                )
                 # Don't fail the deletion if memory cache cleanup fails
 
             # Delete all tracks (ratings will be cascade deleted due to foreign key constraints)
@@ -588,15 +617,17 @@ class RatingService:
             # Commit the transaction
             db.commit()
 
-            logger.info(f"Successfully deleted album '{album_info['title']}' and {track_count} tracks")
+            logger.info(
+                f"Successfully deleted album '{album_info['title']}' and {track_count} tracks"
+            )
 
             return {
                 "success": True,
                 "message": f"Album '{album_info['title']}' has been permanently deleted",
                 "deleted_album": album_info,
                 "deleted_tracks": track_count,
-                "cache_files_deleted": cache_cleanup_stats.get('files_deleted', 0),
-                "cache_bytes_freed": cache_cleanup_stats.get('bytes_freed', 0)
+                "cache_files_deleted": cache_cleanup_stats.get("files_deleted", 0),
+                "cache_bytes_freed": cache_cleanup_stats.get("bytes_freed", 0),
             }
 
         except Exception as e:
@@ -650,7 +681,9 @@ class RatingService:
 
         return self._format_album_response(album, db, include_tracks=True)
 
-    def update_album_notes(self, album_id: int, notes: str, db: Session) -> Dict[str, Any]:
+    def update_album_notes(
+        self, album_id: int, notes: str, db: Session
+    ) -> Dict[str, Any]:
         """
         Update notes for an album
 
@@ -682,11 +715,7 @@ class RatingService:
 
         logger.info(f"Successfully updated notes for album {album_id}")
 
-        return {
-            "success": True,
-            "album_id": album_id,
-            "notes": album.notes
-        }
+        return {"success": True, "album_id": album_id, "notes": album.notes}
 
     async def update_missing_cover_art(self, db: Session) -> Dict[str, Any]:
         """
@@ -704,9 +733,11 @@ class RatingService:
 
         try:
             # Get all albums without cover art
-            albums_without_art = db.query(Album).filter(
-                (Album.cover_art_url == None) | (Album.cover_art_url == "")
-            ).all()
+            albums_without_art = (
+                db.query(Album)
+                .filter((Album.cover_art_url == None) | (Album.cover_art_url == ""))
+                .all()
+            )
 
             logger.info(f"Found {len(albums_without_art)} albums without cover art")
 
@@ -717,7 +748,9 @@ class RatingService:
             for album in albums_without_art:
                 try:
                     # Fetch cover art URL
-                    cover_art_url = await cover_art_service.get_cover_art_url(album.musicbrainz_id)
+                    cover_art_url = await cover_art_service.get_cover_art_url(
+                        album.musicbrainz_id
+                    )
 
                     if cover_art_url:
                         album.cover_art_url = cover_art_url
@@ -727,33 +760,42 @@ class RatingService:
 
                         # Trigger background caching for the updated artwork
                         try:
-                            from .services.artwork_cache_background import get_artwork_cache_background_service
+                            from .services.artwork_cache_background import (
+                                get_artwork_cache_background_service,
+                            )
+
                             cache_bg_service = get_artwork_cache_background_service()
                             cache_bg_service.trigger_album_cache(
                                 album_id=album.id,
                                 cover_art_url=cover_art_url,
-                                priority=5  # Medium priority for batch updates
+                                priority=5,  # Medium priority for batch updates
                             )
                         except Exception as cache_error:
-                            logger.debug(f"Could not queue caching for album {album.id}: {cache_error}")
+                            logger.debug(
+                                f"Could not queue caching for album {album.id}: {cache_error}"
+                            )
                     else:
                         logger.debug(f"No cover art found for album '{album.name}'")
 
                 except Exception as e:
-                    logger.error(f"Failed to update cover art for album '{album.name}': {e}")
+                    logger.error(
+                        f"Failed to update cover art for album '{album.name}': {e}"
+                    )
                     failed_count += 1
 
             # Commit all updates
             db.commit()
 
-            logger.info(f"Cover art update completed: {updated_count} updated, {failed_count} failed")
+            logger.info(
+                f"Cover art update completed: {updated_count} updated, {failed_count} failed"
+            )
 
             return {
                 "success": True,
                 "total_albums": len(albums_without_art),
                 "updated": updated_count,
                 "failed": failed_count,
-                "message": f"Successfully updated cover art for {updated_count} albums"
+                "message": f"Successfully updated cover art for {updated_count} albums",
             }
 
         except Exception as e:
@@ -761,7 +803,9 @@ class RatingService:
             logger.error(f"Cover art update process failed: {e}")
             raise TracklistException(f"Failed to update cover art: {str(e)}")
 
-    async def get_release_group_releases(self, album_id: int, db: Session) -> Dict[str, Any]:
+    async def get_release_group_releases(
+        self, album_id: int, db: Session
+    ) -> Dict[str, Any]:
         """
         Get all releases from the same release group with matching track count
 
@@ -781,40 +825,52 @@ class RatingService:
 
         try:
             # Get release group from MusicBrainz using current MBID
-            mb_album = await self.musicbrainz_service.get_album_details(album.musicbrainz_id)
+            mb_album = await self.musicbrainz_service.get_album_details(
+                album.musicbrainz_id
+            )
             release_group_id = mb_album.get("release_group_id")
 
             if not release_group_id:
-                logger.warning(f"No release group found for album {album.musicbrainz_id}")
+                logger.warning(
+                    f"No release group found for album {album.musicbrainz_id}"
+                )
                 return {"releases": []}
 
             # Get all releases in the release group
-            releases = await self.musicbrainz_service.get_release_group_releases(release_group_id)
+            releases = await self.musicbrainz_service.get_release_group_releases(
+                release_group_id
+            )
 
             # Filter releases by track count matching the current album
             matching_releases = []
 
             for release in releases:
                 if release.get("track_count") == album.total_tracks:
-                    matching_releases.append({
-                        "musicbrainz_id": release["musicbrainz_id"],
-                        "title": release["title"],
-                        "artist": release["artist"]["name"],
-                        "year": release.get("year"),
-                        "track_count": release["track_count"],
-                        "format": release.get("format"),
-                        "country": release.get("country")
-                        # Note: cover art will be loaded lazily via JavaScript
-                    })
+                    matching_releases.append(
+                        {
+                            "musicbrainz_id": release["musicbrainz_id"],
+                            "title": release["title"],
+                            "artist": release["artist"]["name"],
+                            "year": release.get("year"),
+                            "track_count": release["track_count"],
+                            "format": release.get("format"),
+                            "country": release.get("country"),
+                            # Note: cover art will be loaded lazily via JavaScript
+                        }
+                    )
 
-            logger.info(f"Found {len(matching_releases)} matching releases for album {album_id}")
+            logger.info(
+                f"Found {len(matching_releases)} matching releases for album {album_id}"
+            )
             return {"releases": matching_releases}
 
         except Exception as e:
             logger.error(f"Error getting release group releases: {e}")
             raise TracklistException(f"Failed to get release group releases: {str(e)}")
 
-    async def retag_album_musicbrainz_id(self, album_id: int, new_mbid: str, db: Session) -> Dict[str, Any]:
+    async def retag_album_musicbrainz_id(
+        self, album_id: int, new_mbid: str, db: Session
+    ) -> Dict[str, Any]:
         """
         Update album's MusicBrainz ID while preserving all ratings and submission data
 
@@ -846,6 +902,7 @@ class RatingService:
 
             # Fetch new cover art
             from .services.cover_art_service import get_cover_art_service
+
             cover_art_service = get_cover_art_service()
             cover_art_url = await cover_art_service.get_cover_art_url(new_mbid)
 
@@ -859,7 +916,9 @@ class RatingService:
 
                 # Clear existing cache before caching new artwork
                 try:
-                    from .services.artwork_cache_service import get_artwork_cache_service
+                    from .services.artwork_cache_service import (
+                        get_artwork_cache_service,
+                    )
                     from .services.artwork_memory_cache import get_artwork_memory_cache
                     from .template_utils import get_artwork_resolver
 
@@ -879,43 +938,52 @@ class RatingService:
                     # Mark album as not cached
                     album.artwork_cached = False
 
-                    logger.info(f"Cleared existing artwork cache for retagged album {album.id}")
+                    logger.info(
+                        f"Cleared existing artwork cache for retagged album {album.id}"
+                    )
                 except Exception as clear_error:
-                    logger.warning(f"Failed to clear cache for retagged album {album.id}: {clear_error}")
+                    logger.warning(
+                        f"Failed to clear cache for retagged album {album.id}: {clear_error}"
+                    )
 
                 # Trigger background caching for the new artwork
                 try:
-                    from .services.artwork_cache_background import get_artwork_cache_background_service
+                    from .services.artwork_cache_background import (
+                        get_artwork_cache_background_service,
+                    )
+
                     cache_bg_service = get_artwork_cache_background_service()
                     cache_bg_service.trigger_album_cache(
                         album_id=album.id,
                         cover_art_url=cover_art_url,
-                        priority=2  # High priority for retagged albums
+                        priority=2,  # High priority for retagged albums
                     )
                     logger.info(f"Queued artwork caching for retagged album {album.id}")
                 except Exception as cache_error:
-                    logger.debug(f"Could not queue caching for retagged album {album.id}: {cache_error}")
+                    logger.debug(
+                        f"Could not queue caching for retagged album {album.id}: {cache_error}"
+                    )
 
             # Update artist if different
             if mb_album["artist"]["name"] != album.artist.name:
                 artist = self._create_or_get_artist(
-                    mb_album["artist"]["name"],
-                    mb_album["artist"]["musicbrainz_id"],
-                    db
+                    mb_album["artist"]["name"], mb_album["artist"]["musicbrainz_id"], db
                 )
                 album.artist_id = artist.id
 
             db.add(album)
             db.commit()
 
-            logger.info(f"Successfully retagged album {album_id} from {old_mbid} to {new_mbid}")
+            logger.info(
+                f"Successfully retagged album {album_id} from {old_mbid} to {new_mbid}"
+            )
 
             return {
                 "success": True,
                 "message": "Album successfully retagged",
                 "album": self._format_album_response(album, db),
                 "old_musicbrainz_id": old_mbid,
-                "new_musicbrainz_id": new_mbid
+                "new_musicbrainz_id": new_mbid,
             }
 
         except ServiceValidationError:

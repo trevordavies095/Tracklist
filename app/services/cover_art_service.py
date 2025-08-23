@@ -10,6 +10,7 @@ logger = logging.getLogger(__name__)
 
 try:
     import httpx
+
     HTTPX_AVAILABLE = True
 except ImportError:
     HTTPX_AVAILABLE = False
@@ -29,7 +30,7 @@ class CoverArtService:
                 follow_redirects=True,  # Follow redirects automatically
                 headers={
                     "User-Agent": "Tracklist/1.0 (https://github.com/yourusername/tracklist)"
-                }
+                },
             )
         else:
             self.client = None
@@ -57,7 +58,9 @@ class CoverArtService:
                 return None
 
             if response.status_code not in [200, 307, 308]:  # Allow redirects
-                logger.warning(f"Cover Art API returned {response.status_code} for {musicbrainz_id}")
+                logger.warning(
+                    f"Cover Art API returned {response.status_code} for {musicbrainz_id}"
+                )
                 return None
 
             data = response.json()
@@ -78,7 +81,9 @@ class CoverArtService:
                 first_image = data["images"][0]
                 if "thumbnails" in first_image and "large" in first_image["thumbnails"]:
                     return first_image["thumbnails"]["large"]
-                elif "thumbnails" in first_image and "small" in first_image["thumbnails"]:
+                elif (
+                    "thumbnails" in first_image and "small" in first_image["thumbnails"]
+                ):
                     return first_image["thumbnails"]["small"]
                 else:
                     return first_image.get("image")

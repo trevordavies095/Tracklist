@@ -58,17 +58,19 @@ engine = create_engine(
     DATABASE_URL,
     connect_args={"check_same_thread": False} if "sqlite" in DATABASE_URL else {},
     poolclass=StaticPool if "sqlite" in DATABASE_URL else None,
-    echo=False  # Set to True for SQL query logging
+    echo=False,  # Set to True for SQL query logging
 )
 
 # Enable foreign key constraints for SQLite
 if "sqlite" in DATABASE_URL:
+
     @event.listens_for(engine, "connect")
     def set_sqlite_pragma(dbapi_conn, connection_record):
         cursor = dbapi_conn.cursor()
         cursor.execute("PRAGMA foreign_keys=ON")
         cursor.close()
         logger.debug("SQLite foreign key constraints enabled")
+
 
 # Create sessionmaker
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -105,17 +107,17 @@ def init_db():
     db = SessionLocal()
     try:
         # Create default user settings if they don't exist
-        existing_settings = db.query(UserSettings).filter(UserSettings.user_id == 1).first()
+        existing_settings = (
+            db.query(UserSettings).filter(UserSettings.user_id == 1).first()
+        )
         if not existing_settings:
             # Get default album bonus from environment variable
             default_album_bonus = float(os.getenv("DEFAULT_ALBUM_BONUS", "0.33"))
             # Ensure it's within valid range (0.1 to 0.4)
             default_album_bonus = max(0.1, min(0.4, default_album_bonus))
-            
+
             default_settings = UserSettings(
-                user_id=1,
-                album_bonus=default_album_bonus,
-                theme='light'
+                user_id=1, album_bonus=default_album_bonus, theme="light"
             )
             db.add(default_settings)
             db.commit()
@@ -143,12 +145,12 @@ def get_db_info():
             "path": str(db_path.resolve()),
             "exists": db_path.exists(),
             "size": db_path.stat().st_size if db_path.exists() else 0,
-            "readable": os.access(db_path.parent, os.R_OK) if db_path.parent.exists() else True,
-            "writable": os.access(db_path.parent, os.W_OK) if db_path.parent.exists() else True
+            "readable": (
+                os.access(db_path.parent, os.R_OK) if db_path.parent.exists() else True
+            ),
+            "writable": (
+                os.access(db_path.parent, os.W_OK) if db_path.parent.exists() else True
+            ),
         }
     else:
-        return {
-            "type": "Other",
-            "url": DATABASE_URL,
-            "path": None
-        }
+        return {"type": "Other", "url": DATABASE_URL, "path": None}

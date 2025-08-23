@@ -25,23 +25,24 @@ logger = logging.getLogger(__name__)
 @dataclass
 class CleanupConfig:
     """Configuration for cache cleanup"""
+
     # Retention periods in days
     default_retention_days: int = 365  # 1 year default
-    minimum_retention_days: int = 30   # Never delete items newer than this
+    minimum_retention_days: int = 30  # Never delete items newer than this
     recently_added_grace_days: int = 7  # Grace period for newly cached items
 
     # Size limits
     max_cache_size_mb: Optional[int] = None  # Optional size limit
-    target_size_mb: Optional[int] = None     # Target size after cleanup
+    target_size_mb: Optional[int] = None  # Target size after cleanup
 
     # Behavior
-    dry_run: bool = False                    # If True, only simulate
-    delete_orphaned_files: bool = True       # Delete files without DB records
-    delete_invalid_records: bool = True      # Delete DB records without files
+    dry_run: bool = False  # If True, only simulate
+    delete_orphaned_files: bool = True  # Delete files without DB records
+    delete_invalid_records: bool = True  # Delete DB records without files
 
     # Performance
-    batch_size: int = 100                    # Process in batches
-    max_deletions_per_run: int = 1000        # Safety limit
+    batch_size: int = 100  # Process in batches
+    max_deletions_per_run: int = 1000  # Safety limit
 
 
 class CacheCleanupService:
@@ -63,18 +64,18 @@ class CacheCleanupService:
     def _reset_stats(self) -> Dict[str, Any]:
         """Reset statistics tracking"""
         return {
-            'started_at': None,
-            'completed_at': None,
-            'duration_seconds': 0,
-            'files_scanned': 0,
-            'files_deleted': 0,
-            'bytes_freed': 0,
-            'records_scanned': 0,
-            'records_deleted': 0,
-            'orphaned_files': 0,
-            'invalid_records': 0,
-            'errors': [],
-            'dry_run': self.config.dry_run
+            "started_at": None,
+            "completed_at": None,
+            "duration_seconds": 0,
+            "files_scanned": 0,
+            "files_deleted": 0,
+            "bytes_freed": 0,
+            "records_scanned": 0,
+            "records_deleted": 0,
+            "orphaned_files": 0,
+            "invalid_records": 0,
+            "errors": [],
+            "dry_run": self.config.dry_run,
         }
 
     def cleanup(self, custom_retention_days: Optional[int] = None) -> Dict[str, Any]:
@@ -88,11 +89,13 @@ class CacheCleanupService:
             Cleanup statistics and report
         """
         self.stats = self._reset_stats()
-        self.stats['started_at'] = datetime.now(timezone.utc)
+        self.stats["started_at"] = datetime.now(timezone.utc)
 
         retention_days = custom_retention_days or self.config.default_retention_days
 
-        logger.info(f"Starting cache cleanup (retention: {retention_days} days, dry_run: {self.config.dry_run})")
+        logger.info(
+            f"Starting cache cleanup (retention: {retention_days} days, dry_run: {self.config.dry_run})"
+        )
 
         try:
             # Step 1: Clean up old cache entries
@@ -111,9 +114,9 @@ class CacheCleanupService:
                 self._enforce_size_limits()
 
             # Calculate summary
-            self.stats['completed_at'] = datetime.now(timezone.utc)
-            self.stats['duration_seconds'] = (
-                self.stats['completed_at'] - self.stats['started_at']
+            self.stats["completed_at"] = datetime.now(timezone.utc)
+            self.stats["duration_seconds"] = (
+                self.stats["completed_at"] - self.stats["started_at"]
             ).total_seconds()
 
             # Log summary
@@ -126,7 +129,7 @@ class CacheCleanupService:
 
         except Exception as e:
             logger.error(f"Cache cleanup failed: {e}")
-            self.stats['errors'].append(str(e))
+            self.stats["errors"].append(str(e))
             raise
 
     def _cleanup_old_entries(self, retention_days: int) -> None:
@@ -137,19 +140,29 @@ class CacheCleanupService:
             retention_days: Number of days to retain
         """
         cutoff_date = datetime.now(timezone.utc) - timedelta(days=retention_days)
-        grace_date = datetime.now(timezone.utc) - timedelta(days=self.config.recently_added_grace_days)
-        min_date = datetime.now(timezone.utc) - timedelta(days=self.config.minimum_retention_days)
+        grace_date = datetime.now(timezone.utc) - timedelta(
+            days=self.config.recently_added_grace_days
+        )
+        min_date = datetime.now(timezone.utc) - timedelta(
+            days=self.config.minimum_retention_days
+        )
 
         db = SessionLocal()
         try:
             # Find old entries that haven't been accessed recently
-            old_entries = db.query(ArtworkCache).filter(
-                and_(
-                    ArtworkCache.last_accessed_at < cutoff_date,
-                    ArtworkCache.last_fetched_at < grace_date,  # Not recently added
-                    ArtworkCache.last_accessed_at < min_date     # Respect minimum retention
+            old_entries = (
+                db.query(ArtworkCache)
+                .filter(
+                    and_(
+                        ArtworkCache.last_accessed_at < cutoff_date,
+                        ArtworkCache.last_fetched_at < grace_date,  # Not recently added
+                        ArtworkCache.last_accessed_at
+                        < min_date,  # Respect minimum retention
+                    )
                 )
-            ).limit(self.config.max_deletions_per_run).all()
+                .limit(self.config.max_deletions_per_run)
+                .all()
+            )
 
             logger.info(f"Found {len(old_entries)} cache entries to clean up")
 
@@ -157,7 +170,7 @@ class CacheCleanupService:
             bytes_freed = 0
 
             for entry in old_entries:
-                self.stats['records_scanned'] += 1
+                self.stats["records_scanned"] += 1
 
                 # Delete file if it exists
                 if entry.file_path:
@@ -168,15 +181,17 @@ class CacheCleanupService:
                         if not self.config.dry_run:
                             try:
                                 file_path.unlink()
-                                self.stats['files_deleted'] += 1
+                                self.stats["files_deleted"] += 1
                                 bytes_freed += file_size
-                                logger.debug(f"Deleted file: {file_path} ({file_size} bytes)")
+                                logger.debug(
+                                    f"Deleted file: {file_path} ({file_size} bytes)"
+                                )
                             except Exception as e:
                                 logger.error(f"Failed to delete file {file_path}: {e}")
-                                self.stats['errors'].append(f"File deletion error: {e}")
+                                self.stats["errors"].append(f"File deletion error: {e}")
                         else:
                             # Dry run - just count
-                            self.stats['files_deleted'] += 1
+                            self.stats["files_deleted"] += 1
                             bytes_freed += file_size
 
                 # Delete database record
@@ -186,7 +201,7 @@ class CacheCleanupService:
                 else:
                     deletions += 1
 
-                self.stats['records_deleted'] += 1
+                self.stats["records_deleted"] += 1
 
                 # Batch commit
                 if deletions % self.config.batch_size == 0:
@@ -198,14 +213,16 @@ class CacheCleanupService:
             if not self.config.dry_run:
                 db.commit()
 
-            self.stats['bytes_freed'] += bytes_freed
+            self.stats["bytes_freed"] += bytes_freed
 
-            logger.info(f"Cleaned up {deletions} old cache entries, freed {bytes_freed / (1024*1024):.2f} MB")
+            logger.info(
+                f"Cleaned up {deletions} old cache entries, freed {bytes_freed / (1024*1024):.2f} MB"
+            )
 
         except Exception as e:
             db.rollback()
             logger.error(f"Error cleaning old entries: {e}")
-            self.stats['errors'].append(f"Old entries cleanup error: {e}")
+            self.stats["errors"].append(f"Old entries cleanup error: {e}")
             raise
         finally:
             db.close()
@@ -220,9 +237,11 @@ class CacheCleanupService:
         try:
             # Get all file paths from database
             db_files = set()
-            for record in db.query(ArtworkCache.file_path).filter(
-                ArtworkCache.file_path.isnot(None)
-            ).all():
+            for record in (
+                db.query(ArtworkCache.file_path)
+                .filter(ArtworkCache.file_path.isnot(None))
+                .all()
+            ):
                 if record.file_path:
                     db_files.add(Path(record.file_path).name)
 
@@ -238,14 +257,13 @@ class CacheCleanupService:
                     if not file_path.is_file():
                         continue
 
-                    self.stats['files_scanned'] += 1
+                    self.stats["files_scanned"] += 1
 
                     # Check if file is in database
                     if file_path.name not in db_files:
                         file_size = file_path.stat().st_size
                         file_age = datetime.now(timezone.utc) - datetime.fromtimestamp(
-                            file_path.stat().st_mtime,
-                            tz=timezone.utc
+                            file_path.stat().st_mtime, tz=timezone.utc
                         )
 
                         # Only delete if older than grace period
@@ -255,17 +273,23 @@ class CacheCleanupService:
                                     file_path.unlink()
                                     logger.debug(f"Deleted orphaned file: {file_path}")
                                 except Exception as e:
-                                    logger.error(f"Failed to delete orphaned file {file_path}: {e}")
-                                    self.stats['errors'].append(f"Orphaned file deletion error: {e}")
+                                    logger.error(
+                                        f"Failed to delete orphaned file {file_path}: {e}"
+                                    )
+                                    self.stats["errors"].append(
+                                        f"Orphaned file deletion error: {e}"
+                                    )
                                     continue
 
-                            self.stats['orphaned_files'] += 1
-                            self.stats['files_deleted'] += 1
+                            self.stats["orphaned_files"] += 1
+                            self.stats["files_deleted"] += 1
                             orphaned_bytes += file_size
 
-            self.stats['bytes_freed'] += orphaned_bytes
+            self.stats["bytes_freed"] += orphaned_bytes
 
-            logger.info(f"Cleaned up {self.stats['orphaned_files']} orphaned files, freed {orphaned_bytes / (1024*1024):.2f} MB")
+            logger.info(
+                f"Cleaned up {self.stats['orphaned_files']} orphaned files, freed {orphaned_bytes / (1024*1024):.2f} MB"
+            )
 
         finally:
             db.close()
@@ -281,18 +305,18 @@ class CacheCleanupService:
             invalid_records = []
 
             # Check all records with file paths
-            records = db.query(ArtworkCache).filter(
-                ArtworkCache.file_path.isnot(None)
-            ).all()
+            records = (
+                db.query(ArtworkCache).filter(ArtworkCache.file_path.isnot(None)).all()
+            )
 
             for record in records:
-                self.stats['records_scanned'] += 1
+                self.stats["records_scanned"] += 1
 
                 if record.file_path:
                     file_path = Path(record.file_path)
                     if not file_path.exists():
                         invalid_records.append(record)
-                        self.stats['invalid_records'] += 1
+                        self.stats["invalid_records"] += 1
 
             # Delete invalid records
             if invalid_records:
@@ -301,7 +325,7 @@ class CacheCleanupService:
                 for record in invalid_records:
                     if not self.config.dry_run:
                         db.delete(record)
-                    self.stats['records_deleted'] += 1
+                    self.stats["records_deleted"] += 1
 
                 if not self.config.dry_run:
                     db.commit()
@@ -311,7 +335,7 @@ class CacheCleanupService:
         except Exception as e:
             db.rollback()
             logger.error(f"Error cleaning invalid records: {e}")
-            self.stats['errors'].append(f"Invalid records cleanup error: {e}")
+            self.stats["errors"].append(f"Invalid records cleanup error: {e}")
         finally:
             db.close()
 
@@ -325,22 +349,30 @@ class CacheCleanupService:
         current_size_mb = self._get_cache_size_mb()
 
         if current_size_mb <= self.config.max_cache_size_mb:
-            logger.info(f"Cache size ({current_size_mb:.2f} MB) is within limit ({self.config.max_cache_size_mb} MB)")
+            logger.info(
+                f"Cache size ({current_size_mb:.2f} MB) is within limit ({self.config.max_cache_size_mb} MB)"
+            )
             return
 
-        target_size_mb = self.config.target_size_mb or (self.config.max_cache_size_mb * 0.8)
+        target_size_mb = self.config.target_size_mb or (
+            self.config.max_cache_size_mb * 0.8
+        )
         bytes_to_free = int((current_size_mb - target_size_mb) * 1024 * 1024)
 
-        logger.info(f"Cache size ({current_size_mb:.2f} MB) exceeds limit, need to free {bytes_to_free / (1024*1024):.2f} MB")
+        logger.info(
+            f"Cache size ({current_size_mb:.2f} MB) exceeds limit, need to free {bytes_to_free / (1024*1024):.2f} MB"
+        )
 
         db = SessionLocal()
         try:
             # Get LRU entries
-            lru_entries = db.query(ArtworkCache).filter(
-                ArtworkCache.file_path.isnot(None)
-            ).order_by(
-                ArtworkCache.last_accessed_at.asc()
-            ).limit(self.config.max_deletions_per_run).all()
+            lru_entries = (
+                db.query(ArtworkCache)
+                .filter(ArtworkCache.file_path.isnot(None))
+                .order_by(ArtworkCache.last_accessed_at.asc())
+                .limit(self.config.max_deletions_per_run)
+                .all()
+            )
 
             bytes_freed = 0
 
@@ -369,20 +401,22 @@ class CacheCleanupService:
                                 continue
 
                         bytes_freed += file_size
-                        self.stats['files_deleted'] += 1
-                        self.stats['records_deleted'] += 1
+                        self.stats["files_deleted"] += 1
+                        self.stats["records_deleted"] += 1
 
             if not self.config.dry_run:
                 db.commit()
 
-            self.stats['bytes_freed'] += bytes_freed
+            self.stats["bytes_freed"] += bytes_freed
 
-            logger.info(f"Freed {bytes_freed / (1024*1024):.2f} MB to enforce size limits")
+            logger.info(
+                f"Freed {bytes_freed / (1024*1024):.2f} MB to enforce size limits"
+            )
 
         except Exception as e:
             db.rollback()
             logger.error(f"Error enforcing size limits: {e}")
-            self.stats['errors'].append(f"Size limit enforcement error: {e}")
+            self.stats["errors"].append(f"Size limit enforcement error: {e}")
         finally:
             db.close()
 
@@ -401,8 +435,8 @@ class CacheCleanupService:
 
     def _log_summary(self) -> None:
         """Log cleanup summary"""
-        duration = self.stats['duration_seconds']
-        mb_freed = self.stats['bytes_freed'] / (1024 * 1024)
+        duration = self.stats["duration_seconds"]
+        mb_freed = self.stats["bytes_freed"] / (1024 * 1024)
 
         summary = f"""
 Cache Cleanup Summary:
@@ -427,7 +461,7 @@ Cache Cleanup Summary:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         report_file = reports_dir / f"cleanup_{timestamp}.json"
 
-        with open(report_file, 'w') as f:
+        with open(report_file, "w") as f:
             json.dump(self.stats, f, indent=2, default=str)
 
         logger.info(f"Cleanup report saved to {report_file}")
@@ -445,31 +479,40 @@ Cache Cleanup Summary:
             total_entries = db.query(ArtworkCache).count()
 
             # Get old entries count
-            cutoff_date = datetime.now(timezone.utc) - timedelta(days=self.config.default_retention_days)
-            old_entries = db.query(ArtworkCache).filter(
-                ArtworkCache.last_accessed_at < cutoff_date
-            ).count()
+            cutoff_date = datetime.now(timezone.utc) - timedelta(
+                days=self.config.default_retention_days
+            )
+            old_entries = (
+                db.query(ArtworkCache)
+                .filter(ArtworkCache.last_accessed_at < cutoff_date)
+                .count()
+            )
 
             # Get cache size
             cache_size_mb = self._get_cache_size_mb()
 
             # Get recently accessed count (last 30 days)
             recent_date = datetime.now(timezone.utc) - timedelta(days=30)
-            recent_entries = db.query(ArtworkCache).filter(
-                ArtworkCache.last_accessed_at >= recent_date
-            ).count()
+            recent_entries = (
+                db.query(ArtworkCache)
+                .filter(ArtworkCache.last_accessed_at >= recent_date)
+                .count()
+            )
 
             return {
-                'total_entries': total_entries,
-                'old_entries': old_entries,
-                'recent_entries': recent_entries,
-                'cache_size_mb': cache_size_mb,
-                'retention_days': self.config.default_retention_days,
-                'recommended_cleanup': old_entries > 0 or (
-                    self.config.max_cache_size_mb and
-                    cache_size_mb > self.config.max_cache_size_mb
+                "total_entries": total_entries,
+                "old_entries": old_entries,
+                "recent_entries": recent_entries,
+                "cache_size_mb": cache_size_mb,
+                "retention_days": self.config.default_retention_days,
+                "recommended_cleanup": old_entries > 0
+                or (
+                    self.config.max_cache_size_mb
+                    and cache_size_mb > self.config.max_cache_size_mb
                 ),
-                'estimated_space_to_free_mb': self._estimate_space_to_free(db, cutoff_date)
+                "estimated_space_to_free_mb": self._estimate_space_to_free(
+                    db, cutoff_date
+                ),
             }
 
         finally:
@@ -477,9 +520,11 @@ Cache Cleanup Summary:
 
     def _estimate_space_to_free(self, db: Session, cutoff_date: datetime) -> float:
         """Estimate space that would be freed by cleanup"""
-        old_entries = db.query(ArtworkCache).filter(
-            ArtworkCache.last_accessed_at < cutoff_date
-        ).all()
+        old_entries = (
+            db.query(ArtworkCache)
+            .filter(ArtworkCache.last_accessed_at < cutoff_date)
+            .all()
+        )
 
         total_bytes = 0
         for entry in old_entries:

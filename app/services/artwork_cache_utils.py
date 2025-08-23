@@ -18,11 +18,11 @@ class ArtworkCacheFileSystem:
 
     # Size variant specifications
     SIZE_SPECS = {
-        'original': None,  # Keep original dimensions
-        'large': (192, 192),
-        'medium': (64, 64),
-        'small': (48, 48),
-        'thumbnail': (80, 80)
+        "original": None,  # Keep original dimensions
+        "large": (192, 192),
+        "medium": (64, 64),
+        "small": (48, 48),
+        "thumbnail": (80, 80),
     }
 
     def __init__(self, base_path: str = "static/artwork_cache"):
@@ -78,7 +78,9 @@ class ArtworkCacheFileSystem:
 
         return cache_key
 
-    def get_cache_path(self, cache_key: str, size_variant: str, extension: str = "jpg") -> Path:
+    def get_cache_path(
+        self, cache_key: str, size_variant: str, extension: str = "jpg"
+    ) -> Path:
         """
         Get the full file path for a cached image
 
@@ -94,13 +96,15 @@ class ArtworkCacheFileSystem:
             raise ValueError(f"Invalid size variant: {size_variant}")
 
         # Remove leading dot from extension if present
-        if extension.startswith('.'):
+        if extension.startswith("."):
             extension = extension[1:]
 
         filename = f"{cache_key}.{extension}"
         return self.base_path / size_variant / filename
 
-    def get_web_path(self, cache_key: str, size_variant: str, extension: str = "jpg") -> str:
+    def get_web_path(
+        self, cache_key: str, size_variant: str, extension: str = "jpg"
+    ) -> str:
         """
         Get the web-accessible path for a cached image
 
@@ -131,7 +135,9 @@ class ArtworkCacheFileSystem:
         cache_path = self.get_cache_path(cache_key, size_variant, extension)
         return cache_path.exists()
 
-    def get_file_info(self, cache_key: str, size_variant: str, extension: str = "jpg") -> Optional[Dict]:
+    def get_file_info(
+        self, cache_key: str, size_variant: str, extension: str = "jpg"
+    ) -> Optional[Dict]:
         """
         Get information about a cached file
 
@@ -155,7 +161,7 @@ class ArtworkCacheFileSystem:
                 "size_bytes": stat.st_size,
                 "created_at": datetime.fromtimestamp(stat.st_ctime),
                 "modified_at": datetime.fromtimestamp(stat.st_mtime),
-                "accessed_at": datetime.fromtimestamp(stat.st_atime)
+                "accessed_at": datetime.fromtimestamp(stat.st_atime),
             }
         except Exception as e:
             logger.error(f"Failed to get file info for {cache_path}: {e}")
@@ -178,7 +184,7 @@ class ArtworkCacheFileSystem:
 
         for variant in variants_to_delete:
             # Try common extensions
-            for ext in ['jpg', 'jpeg', 'png', 'gif', 'webp']:
+            for ext in ["jpg", "jpeg", "png", "gif", "webp"]:
                 cache_path = self.get_cache_path(cache_key, variant, ext)
                 if cache_path.exists():
                     try:
@@ -197,31 +203,24 @@ class ArtworkCacheFileSystem:
         Returns:
             Dictionary with cache statistics
         """
-        stats = {
-            "total_files": 0,
-            "total_size_mb": 0,
-            "by_variant": {}
-        }
+        stats = {"total_files": 0, "total_size_mb": 0, "by_variant": {}}
 
         for size_variant in self.SIZE_SPECS.keys():
             variant_path = self.base_path / size_variant
 
             if not variant_path.exists():
-                stats["by_variant"][size_variant] = {
-                    "files": 0,
-                    "size_mb": 0
-                }
+                stats["by_variant"][size_variant] = {"files": 0, "size_mb": 0}
                 continue
 
             files = list(variant_path.glob("*"))
             # Filter out .gitkeep files
-            files = [f for f in files if f.name != '.gitkeep']
+            files = [f for f in files if f.name != ".gitkeep"]
 
             total_size = sum(f.stat().st_size for f in files if f.is_file())
 
             stats["by_variant"][size_variant] = {
                 "files": len(files),
-                "size_mb": round(total_size / (1024 * 1024), 2)
+                "size_mb": round(total_size / (1024 * 1024), 2),
             }
 
             stats["total_files"] += len(files)
@@ -250,7 +249,7 @@ class ArtworkCacheFileSystem:
                 continue
 
             for file_path in variant_path.glob("*"):
-                if file_path.name == '.gitkeep':
+                if file_path.name == ".gitkeep":
                     continue
 
                 # Extract cache key from filename
@@ -322,7 +321,9 @@ def init_artwork_cache_directories():
 
         # Log statistics
         stats = fs.get_cache_statistics()
-        logger.info(f"Artwork cache statistics: {stats['total_files']} files, {stats['total_size_mb']}MB")
+        logger.info(
+            f"Artwork cache statistics: {stats['total_files']} files, {stats['total_size_mb']}MB"
+        )
 
     except Exception as e:
         logger.error(f"Failed to initialize artwork cache directories: {e}")
