@@ -1,4 +1,14 @@
-from sqlalchemy import Column, Integer, Text, REAL, Boolean, DateTime, ForeignKey, Index, CheckConstraint
+from sqlalchemy import (
+    Column,
+    Integer,
+    Text,
+    REAL,
+    Boolean,
+    DateTime,
+    ForeignKey,
+    Index,
+    CheckConstraint,
+)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -21,16 +31,21 @@ class Artist(Base):
         updated_at: Timestamp of the last update
         albums: Related Album objects (one-to-many relationship)
     """
+
     __tablename__ = "artists"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(Text, nullable=False)
     musicbrainz_id = Column(Text, unique=True)
     created_at = Column(DateTime, default=func.current_timestamp())
-    updated_at = Column(DateTime, default=func.current_timestamp(), onupdate=func.current_timestamp())
+    updated_at = Column(
+        DateTime, default=func.current_timestamp(), onupdate=func.current_timestamp()
+    )
 
     # Relationships
-    albums = relationship("Album", back_populates="artist", cascade="all, delete-orphan")
+    albums = relationship(
+        "Album", back_populates="artist", cascade="all, delete-orphan"
+    )
 
 
 class Album(Base):
@@ -58,6 +73,7 @@ class Album(Base):
         artwork_cached: Whether artwork is locally cached
         artwork_cache_date: When artwork was cached
     """
+
     __tablename__ = "albums"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -74,7 +90,9 @@ class Album(Base):
     is_rated = Column(Boolean, default=False)
     notes = Column(Text)
     created_at = Column(DateTime, default=func.current_timestamp())
-    updated_at = Column(DateTime, default=func.current_timestamp(), onupdate=func.current_timestamp())
+    updated_at = Column(
+        DateTime, default=func.current_timestamp(), onupdate=func.current_timestamp()
+    )
     rated_at = Column(DateTime)
     # Artwork cache columns
     artwork_cached = Column(Boolean, default=False)
@@ -83,7 +101,9 @@ class Album(Base):
     # Relationships
     artist = relationship("Artist", back_populates="albums")
     tracks = relationship("Track", back_populates="album", cascade="all, delete-orphan")
-    artwork_cache = relationship("ArtworkCache", back_populates="album", cascade="all, delete-orphan")
+    artwork_cache = relationship(
+        "ArtworkCache", back_populates="album", cascade="all, delete-orphan"
+    )
 
 
 class Track(Base):
@@ -104,17 +124,22 @@ class Track(Base):
         created_at: Timestamp when track was added
         updated_at: Timestamp of last modification
     """
+
     __tablename__ = "tracks"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    album_id = Column(Integer, ForeignKey("albums.id", ondelete="CASCADE"), nullable=False)
+    album_id = Column(
+        Integer, ForeignKey("albums.id", ondelete="CASCADE"), nullable=False
+    )
     track_number = Column(Integer, nullable=False)
     name = Column(Text, nullable=False)
     duration_ms = Column(Integer)
     musicbrainz_id = Column(Text)
     track_rating = Column(REAL)
     created_at = Column(DateTime, default=func.current_timestamp())
-    updated_at = Column(DateTime, default=func.current_timestamp(), onupdate=func.current_timestamp())
+    updated_at = Column(
+        DateTime, default=func.current_timestamp(), onupdate=func.current_timestamp()
+    )
 
     # Relationships
     album = relationship("Album", back_populates="tracks")
@@ -145,31 +170,34 @@ class UserSettings(Base):
         created_at: Settings creation timestamp
         updated_at: Last settings modification timestamp
     """
+
     __tablename__ = "user_settings"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer, default=1)
     album_bonus = Column(REAL, default=0.33)
-    theme = Column(Text, default='light')
-    
+    theme = Column(Text, default="light")
+
     # Automation Settings
     auto_migrate_artwork = Column(Boolean, default=True)
     auto_cache_artwork = Column(Boolean, default=True)
     migration_batch_size = Column(Integer, default=10)
-    
+
     # Cache & Storage Settings
     cache_retention_days = Column(Integer, default=365)
     cache_max_size_mb = Column(Integer, default=5000)
     cache_cleanup_enabled = Column(Boolean, default=True)
-    cache_cleanup_schedule = Column(Text, default='daily')
-    cache_cleanup_time = Column(Text, default='03:00')
-    
+    cache_cleanup_schedule = Column(Text, default="daily")
+    cache_cleanup_time = Column(Text, default="03:00")
+
     # Display Settings
-    default_sort_order = Column(Text, default='created_desc')
-    date_format = Column(Text, default='YYYY-MM-DD')
-    
+    default_sort_order = Column(Text, default="created_desc")
+    date_format = Column(Text, default="YYYY-MM-DD")
+
     created_at = Column(DateTime, default=func.current_timestamp())
-    updated_at = Column(DateTime, default=func.current_timestamp(), onupdate=func.current_timestamp())
+    updated_at = Column(
+        DateTime, default=func.current_timestamp(), onupdate=func.current_timestamp()
+    )
 
 
 class ArtworkCache(Base):
@@ -199,10 +227,13 @@ class ArtworkCache(Base):
         created_at: Cache entry creation timestamp
         updated_at: Last modification timestamp
     """
+
     __tablename__ = "artwork_cache"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    album_id = Column(Integer, ForeignKey("albums.id", ondelete="CASCADE"), nullable=False)
+    album_id = Column(
+        Integer, ForeignKey("albums.id", ondelete="CASCADE"), nullable=False
+    )
     original_url = Column(Text)
     cache_key = Column(Text, unique=True, nullable=False)
     file_path = Column(Text)
@@ -221,7 +252,9 @@ class ArtworkCache(Base):
     access_count = Column(Integer, default=0)
     is_placeholder = Column(Boolean, default=False)
     created_at = Column(DateTime, default=func.current_timestamp())
-    updated_at = Column(DateTime, default=func.current_timestamp(), onupdate=func.current_timestamp())
+    updated_at = Column(
+        DateTime, default=func.current_timestamp(), onupdate=func.current_timestamp()
+    )
 
     # Relationships
     album = relationship("Album", back_populates="artwork_cache")
@@ -230,10 +263,10 @@ class ArtworkCache(Base):
     __table_args__ = (
         CheckConstraint(
             "size_variant IN ('original', 'large', 'medium', 'small', 'thumbnail')",
-            name="check_size_variant"
+            name="check_size_variant",
         ),
-        Index('idx_artwork_cache_album_size', 'album_id', 'size_variant'),
-        Index('idx_artwork_cache_key', 'cache_key'),
-        Index('idx_artwork_cache_last_accessed', 'last_accessed_at'),
-        Index('idx_artwork_cache_album_id', 'album_id'),
+        Index("idx_artwork_cache_album_size", "album_id", "size_variant"),
+        Index("idx_artwork_cache_key", "cache_key"),
+        Index("idx_artwork_cache_last_accessed", "last_accessed_at"),
+        Index("idx_artwork_cache_album_id", "album_id"),
     )

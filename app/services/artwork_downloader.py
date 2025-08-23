@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 
 class ArtworkDownloadError(TracklistException):
     """Exception for artwork download failures"""
+
     pass
 
 
@@ -28,12 +29,16 @@ class ArtworkDownloader:
 
     # Valid image content types
     VALID_CONTENT_TYPES = {
-        'image/jpeg', 'image/jpg', 'image/png',
-        'image/gif', 'image/webp', 'image/bmp'
+        "image/jpeg",
+        "image/jpg",
+        "image/png",
+        "image/gif",
+        "image/webp",
+        "image/bmp",
     }
 
     # Valid image formats (PIL format names)
-    VALID_FORMATS = {'JPEG', 'PNG', 'GIF', 'WEBP', 'BMP', 'MPO'}
+    VALID_FORMATS = {"JPEG", "PNG", "GIF", "WEBP", "BMP", "MPO"}
 
     # Download settings
     MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
@@ -53,15 +58,13 @@ class ArtworkDownloader:
             follow_redirects=True,
             limits=httpx.Limits(max_keepalive_connections=5),
             headers={
-                'User-Agent': 'Tracklist/1.3.0 (https://github.com/trevordavies095/Tracklist)'
-            }
+                "User-Agent": "Tracklist/1.3.0 (https://github.com/trevordavies095/Tracklist)"
+            },
         )
         self.rate_limiter = get_domain_rate_limiter()
 
     async def download_with_retry(
-        self,
-        url: str,
-        max_retries: Optional[int] = None
+        self, url: str, max_retries: Optional[int] = None
     ) -> Tuple[bytes, Dict[str, Any]]:
         """
         Download image with retry logic and validation
@@ -93,12 +96,16 @@ class ArtworkDownloader:
                 if not await self._validate_image(image_data, metadata):
                     raise ArtworkDownloadError(f"Invalid image from {url}")
 
-                logger.info(f"Successfully downloaded artwork from {url} (attempt {attempt + 1})")
+                logger.info(
+                    f"Successfully downloaded artwork from {url} (attempt {attempt + 1})"
+                )
                 return image_data, metadata
 
             except httpx.TimeoutException as e:
                 last_error = e
-                logger.warning(f"Timeout downloading {url} (attempt {attempt + 1}/{max_retries})")
+                logger.warning(
+                    f"Timeout downloading {url} (attempt {attempt + 1}/{max_retries})"
+                )
 
             except httpx.HTTPStatusError as e:
                 last_error = e
@@ -140,38 +147,42 @@ class ArtworkDownloader:
         response.raise_for_status()
 
         # Check content length
-        content_length = int(response.headers.get('content-length', 0))
+        content_length = int(response.headers.get("content-length", 0))
         if content_length > self.MAX_FILE_SIZE:
             raise ArtworkDownloadError(f"File too large: {content_length} bytes")
 
         # Get content type
-        content_type = response.headers.get('content-type', '').lower().split(';')[0]
+        content_type = response.headers.get("content-type", "").lower().split(";")[0]
 
         # Download content
         image_data = response.content
 
         # Check actual size
         if len(image_data) > self.MAX_FILE_SIZE:
-            raise ArtworkDownloadError(f"Downloaded file too large: {len(image_data)} bytes")
+            raise ArtworkDownloadError(
+                f"Downloaded file too large: {len(image_data)} bytes"
+            )
 
         # Calculate checksum
         checksum = hashlib.md5(image_data).hexdigest()
 
         # Build metadata
         metadata = {
-            'url': str(response.url),  # Final URL after redirects
-            'content_type': content_type,
-            'content_length': len(image_data),
-            'checksum': checksum,
-            'etag': response.headers.get('etag'),
-            'last_modified': response.headers.get('last-modified'),
-            'cache_control': response.headers.get('cache-control')
+            "url": str(response.url),  # Final URL after redirects
+            "content_type": content_type,
+            "content_length": len(image_data),
+            "checksum": checksum,
+            "etag": response.headers.get("etag"),
+            "last_modified": response.headers.get("last-modified"),
+            "cache_control": response.headers.get("cache-control"),
         }
 
         logger.debug(f"Downloaded {len(image_data)} bytes from {url}")
         return image_data, metadata
 
-    async def _validate_image(self, image_data: bytes, metadata: Dict[str, Any]) -> bool:
+    async def _validate_image(
+        self, image_data: bytes, metadata: Dict[str, Any]
+    ) -> bool:
         """
         Validate image data
 
@@ -183,7 +194,7 @@ class ArtworkDownloader:
             True if valid, False otherwise
         """
         # Check content type
-        content_type = metadata.get('content_type', '')
+        content_type = metadata.get("content_type", "")
         if content_type and content_type not in self.VALID_CONTENT_TYPES:
             logger.warning(f"Invalid content type: {content_type}")
             # Don't fail immediately - try to validate the actual image data
@@ -214,10 +225,10 @@ class ArtworkDownloader:
                 return False
 
             # Update metadata with image info
-            metadata['format'] = img.format
-            metadata['width'] = width
-            metadata['height'] = height
-            metadata['mode'] = img.mode
+            metadata["format"] = img.format
+            metadata["width"] = width
+            metadata["height"] = height
+            metadata["mode"] = img.mode
 
             logger.debug(f"Valid image: {img.format} {width}x{height}")
             return True
@@ -268,9 +279,7 @@ class BatchArtworkDownloader:
         self.semaphore = asyncio.Semaphore(max_concurrent)
 
     async def download_batch(
-        self,
-        urls: list[str],
-        progress_callback: Optional[callable] = None
+        self, urls: list[str], progress_callback: Optional[callable] = None
     ) -> Dict[str, Tuple[Optional[bytes], Optional[Dict]]]:
         """
         Download multiple images concurrently
@@ -288,7 +297,9 @@ class BatchArtworkDownloader:
         async def download_with_semaphore(url: str):
             async with self.semaphore:
                 try:
-                    image_data, metadata = await self.downloader.download_with_retry(url)
+                    image_data, metadata = await self.downloader.download_with_retry(
+                        url
+                    )
                     results[url] = (image_data, metadata)
                 except Exception as e:
                     logger.error(f"Failed to download {url}: {e}")

@@ -25,6 +25,7 @@ logger = logging.getLogger(__name__)
 
 class CacheIntegrityError(Exception):
     """Exception for cache integrity issues"""
+
     pass
 
 
@@ -41,10 +42,10 @@ class CacheIntegrityService:
     """
 
     # Valid image extensions
-    VALID_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.webp'}
+    VALID_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
 
     # Size variants that should exist
-    EXPECTED_VARIANTS = ['thumbnail', 'small', 'medium', 'large', 'original']
+    EXPECTED_VARIANTS = ["thumbnail", "small", "medium", "large", "original"]
 
     def __init__(self, cache_fs: Optional[ArtworkCacheFileSystem] = None):
         """
@@ -59,25 +60,25 @@ class CacheIntegrityService:
 
         # Track verification results
         self.results = {
-            'start_time': None,
-            'end_time': None,
-            'total_records': 0,
-            'valid_files': 0,
-            'missing_files': [],
-            'corrupted_files': [],
-            'orphaned_files': [],
-            'size_mismatches': [],
-            'missing_variants': [],
-            'repaired_files': [],
-            'failed_repairs': [],
-            'errors': []
+            "start_time": None,
+            "end_time": None,
+            "total_records": 0,
+            "valid_files": 0,
+            "missing_files": [],
+            "corrupted_files": [],
+            "orphaned_files": [],
+            "size_mismatches": [],
+            "missing_variants": [],
+            "repaired_files": [],
+            "failed_repairs": [],
+            "errors": [],
         }
 
     def verify_integrity(
         self,
         repair: bool = False,
         albums_limit: Optional[int] = None,
-        verbose: bool = False
+        verbose: bool = False,
     ) -> Dict[str, Any]:
         """
         Verify cache integrity and optionally repair issues
@@ -91,7 +92,7 @@ class CacheIntegrityService:
             Integrity report dictionary
         """
         logger.info(f"Starting cache integrity verification (repair={repair})")
-        self.results['start_time'] = datetime.now(timezone.utc)
+        self.results["start_time"] = datetime.now(timezone.utc)
 
         try:
             with SessionLocal() as db:
@@ -113,16 +114,18 @@ class CacheIntegrityService:
                     db.commit()
 
                 # 6. Generate report
-                self.results['end_time'] = datetime.now(timezone.utc)
+                self.results["end_time"] = datetime.now(timezone.utc)
                 return self._generate_report(verbose)
 
         except Exception as e:
             logger.error(f"Integrity verification failed: {e}")
-            self.results['errors'].append(str(e))
-            self.results['end_time'] = datetime.now(timezone.utc)
+            self.results["errors"].append(str(e))
+            self.results["end_time"] = datetime.now(timezone.utc)
             return self._generate_report(verbose)
 
-    def _verify_database_files(self, db: Session, albums_limit: Optional[int] = None) -> None:
+    def _verify_database_files(
+        self, db: Session, albums_limit: Optional[int] = None
+    ) -> None:
         """
         Verify that files referenced in database actually exist
 
@@ -133,41 +136,43 @@ class CacheIntegrityService:
         logger.debug("Verifying database files...")
 
         # Get all cache records
-        query = db.query(ArtworkCache).filter(
-            ArtworkCache.file_path.isnot(None)
-        )
+        query = db.query(ArtworkCache).filter(ArtworkCache.file_path.isnot(None))
 
         if albums_limit:
             album_ids = db.query(Album.id).limit(albums_limit).subquery()
             query = query.filter(ArtworkCache.album_id.in_(album_ids))
 
         cache_records = query.all()
-        self.results['total_records'] = len(cache_records)
+        self.results["total_records"] = len(cache_records)
 
         for record in cache_records:
             file_path = Path(record.file_path)
 
             if not file_path.exists():
-                self.results['missing_files'].append({
-                    'record_id': record.id,
-                    'album_id': record.album_id,
-                    'size_variant': record.size_variant,
-                    'file_path': str(file_path)
-                })
+                self.results["missing_files"].append(
+                    {
+                        "record_id": record.id,
+                        "album_id": record.album_id,
+                        "size_variant": record.size_variant,
+                        "file_path": str(file_path),
+                    }
+                )
                 logger.warning(f"Missing file: {file_path}")
             else:
                 # Check file size matches
                 actual_size = file_path.stat().st_size
                 if record.file_size_bytes and actual_size != record.file_size_bytes:
-                    self.results['size_mismatches'].append({
-                        'record_id': record.id,
-                        'album_id': record.album_id,
-                        'expected_size': record.file_size_bytes,
-                        'actual_size': actual_size,
-                        'file_path': str(file_path)
-                    })
+                    self.results["size_mismatches"].append(
+                        {
+                            "record_id": record.id,
+                            "album_id": record.album_id,
+                            "expected_size": record.file_size_bytes,
+                            "actual_size": actual_size,
+                            "file_path": str(file_path),
+                        }
+                    )
                 else:
-                    self.results['valid_files'] += 1
+                    self.results["valid_files"] += 1
 
     def _check_orphaned_files(self, db: Session) -> None:
         """
@@ -180,9 +185,11 @@ class CacheIntegrityService:
 
         # Get all file paths from database
         db_files = set()
-        cache_records = db.query(ArtworkCache.file_path).filter(
-            ArtworkCache.file_path.isnot(None)
-        ).all()
+        cache_records = (
+            db.query(ArtworkCache.file_path)
+            .filter(ArtworkCache.file_path.isnot(None))
+            .all()
+        )
 
         for record in cache_records:
             db_files.add(Path(record.file_path).resolve())
@@ -196,18 +203,22 @@ class CacheIntegrityService:
                 continue
 
             for file_path in variant_dir.glob("*"):
-                if file_path.is_file() and file_path.suffix.lower() in self.VALID_EXTENSIONS:
+                if (
+                    file_path.is_file()
+                    and file_path.suffix.lower() in self.VALID_EXTENSIONS
+                ):
                     resolved_path = file_path.resolve()
 
                     if resolved_path not in db_files:
-                        self.results['orphaned_files'].append({
-                            'file_path': str(file_path),
-                            'size': file_path.stat().st_size,
-                            'modified': datetime.fromtimestamp(
-                                file_path.stat().st_mtime,
-                                timezone.utc
-                            ).isoformat()
-                        })
+                        self.results["orphaned_files"].append(
+                            {
+                                "file_path": str(file_path),
+                                "size": file_path.stat().st_size,
+                                "modified": datetime.fromtimestamp(
+                                    file_path.stat().st_mtime, timezone.utc
+                                ).isoformat(),
+                            }
+                        )
                         logger.warning(f"Orphaned file: {file_path}")
 
     def _verify_file_integrity(self, db: Session) -> None:
@@ -220,11 +231,18 @@ class CacheIntegrityService:
         logger.debug("Verifying file integrity...")
 
         # Sample files to check (don't check all for performance)
-        sample_size = min(100, self.results['total_records']) if self.results['total_records'] > 0 else 0
+        sample_size = (
+            min(100, self.results["total_records"])
+            if self.results["total_records"] > 0
+            else 0
+        )
 
-        cache_records = db.query(ArtworkCache).filter(
-            ArtworkCache.file_path.isnot(None)
-        ).limit(sample_size).all()
+        cache_records = (
+            db.query(ArtworkCache)
+            .filter(ArtworkCache.file_path.isnot(None))
+            .limit(sample_size)
+            .all()
+        )
 
         for record in cache_records:
             file_path = Path(record.file_path)
@@ -236,20 +254,30 @@ class CacheIntegrityService:
                         img.verify()
 
                         # Check if format matches extension
-                        expected_format = 'JPEG' if file_path.suffix.lower() in ['.jpg', '.jpeg'] else file_path.suffix[1:].upper()
+                        expected_format = (
+                            "JPEG"
+                            if file_path.suffix.lower() in [".jpg", ".jpeg"]
+                            else file_path.suffix[1:].upper()
+                        )
                         if img.format and img.format != expected_format:
-                            logger.warning(f"Format mismatch: {file_path} (expected {expected_format}, got {img.format})")
+                            logger.warning(
+                                f"Format mismatch: {file_path} (expected {expected_format}, got {img.format})"
+                            )
 
                 except Exception as e:
-                    self.results['corrupted_files'].append({
-                        'record_id': record.id,
-                        'album_id': record.album_id,
-                        'file_path': str(file_path),
-                        'error': str(e)
-                    })
+                    self.results["corrupted_files"].append(
+                        {
+                            "record_id": record.id,
+                            "album_id": record.album_id,
+                            "file_path": str(file_path),
+                            "error": str(e),
+                        }
+                    )
                     logger.error(f"Corrupted file: {file_path} - {e}")
 
-    def _check_missing_variants(self, db: Session, albums_limit: Optional[int] = None) -> None:
+    def _check_missing_variants(
+        self, db: Session, albums_limit: Optional[int] = None
+    ) -> None:
         """
         Check for albums missing expected size variants
 
@@ -260,9 +288,7 @@ class CacheIntegrityService:
         logger.debug("Checking for missing variants...")
 
         # Get albums with cached artwork
-        query = db.query(Album).filter(
-            Album.artwork_cached == True
-        )
+        query = db.query(Album).filter(Album.artwork_cached == True)
 
         if albums_limit:
             query = query.limit(albums_limit)
@@ -271,25 +297,31 @@ class CacheIntegrityService:
 
         for album in albums:
             # Get existing variants for this album
-            existing_variants = db.query(ArtworkCache.size_variant).filter(
-                ArtworkCache.album_id == album.id,
-                ArtworkCache.file_path.isnot(None)
-            ).all()
+            existing_variants = (
+                db.query(ArtworkCache.size_variant)
+                .filter(
+                    ArtworkCache.album_id == album.id,
+                    ArtworkCache.file_path.isnot(None),
+                )
+                .all()
+            )
 
             existing_set = {v[0] for v in existing_variants}
             missing = set(self.EXPECTED_VARIANTS) - existing_set
 
             if missing:
                 # Check if we have original to rebuild from
-                has_original = 'original' in existing_set
+                has_original = "original" in existing_set
 
-                self.results['missing_variants'].append({
-                    'album_id': album.id,
-                    'album_name': album.name,
-                    'missing': list(missing),
-                    'has_original': has_original,
-                    'can_rebuild': has_original and 'original' not in missing
-                })
+                self.results["missing_variants"].append(
+                    {
+                        "album_id": album.id,
+                        "album_name": album.name,
+                        "missing": list(missing),
+                        "has_original": has_original,
+                        "can_rebuild": has_original and "original" not in missing,
+                    }
+                )
 
     def _repair_issues(self, db: Session) -> None:
         """
@@ -301,98 +333,113 @@ class CacheIntegrityService:
         logger.info("Attempting to repair issues...")
 
         # 1. Remove database records for missing files
-        for missing in self.results['missing_files']:
+        for missing in self.results["missing_files"]:
             try:
-                record = db.query(ArtworkCache).filter(
-                    ArtworkCache.id == missing['record_id']
-                ).first()
+                record = (
+                    db.query(ArtworkCache)
+                    .filter(ArtworkCache.id == missing["record_id"])
+                    .first()
+                )
 
                 if record:
                     db.delete(record)
-                    self.results['repaired_files'].append({
-                        'type': 'removed_missing_record',
-                        'record_id': missing['record_id']
-                    })
-                    logger.info(f"Removed record for missing file: {missing['file_path']}")
+                    self.results["repaired_files"].append(
+                        {
+                            "type": "removed_missing_record",
+                            "record_id": missing["record_id"],
+                        }
+                    )
+                    logger.info(
+                        f"Removed record for missing file: {missing['file_path']}"
+                    )
 
             except Exception as e:
-                self.results['failed_repairs'].append({
-                    'type': 'remove_record',
-                    'record_id': missing['record_id'],
-                    'error': str(e)
-                })
+                self.results["failed_repairs"].append(
+                    {
+                        "type": "remove_record",
+                        "record_id": missing["record_id"],
+                        "error": str(e),
+                    }
+                )
 
         # 2. Remove orphaned files
-        for orphaned in self.results['orphaned_files']:
+        for orphaned in self.results["orphaned_files"]:
             try:
-                file_path = Path(orphaned['file_path'])
+                file_path = Path(orphaned["file_path"])
                 if file_path.exists():
                     file_path.unlink()
-                    self.results['repaired_files'].append({
-                        'type': 'removed_orphaned_file',
-                        'file_path': str(file_path)
-                    })
+                    self.results["repaired_files"].append(
+                        {"type": "removed_orphaned_file", "file_path": str(file_path)}
+                    )
                     logger.info(f"Removed orphaned file: {file_path}")
 
             except Exception as e:
-                self.results['failed_repairs'].append({
-                    'type': 'remove_file',
-                    'file_path': orphaned['file_path'],
-                    'error': str(e)
-                })
+                self.results["failed_repairs"].append(
+                    {
+                        "type": "remove_file",
+                        "file_path": orphaned["file_path"],
+                        "error": str(e),
+                    }
+                )
 
         # 3. Rebuild missing variants
-        for missing_variant in self.results['missing_variants']:
-            if missing_variant['can_rebuild']:
+        for missing_variant in self.results["missing_variants"]:
+            if missing_variant["can_rebuild"]:
                 try:
-                    album = db.query(Album).filter(
-                        Album.id == missing_variant['album_id']
-                    ).first()
+                    album = (
+                        db.query(Album)
+                        .filter(Album.id == missing_variant["album_id"])
+                        .first()
+                    )
 
                     if album:
                         # Get original image
-                        original = db.query(ArtworkCache).filter(
-                            ArtworkCache.album_id == album.id,
-                            ArtworkCache.size_variant == 'original',
-                            ArtworkCache.file_path.isnot(None)
-                        ).first()
+                        original = (
+                            db.query(ArtworkCache)
+                            .filter(
+                                ArtworkCache.album_id == album.id,
+                                ArtworkCache.size_variant == "original",
+                                ArtworkCache.file_path.isnot(None),
+                            )
+                            .first()
+                        )
 
                         if original and Path(original.file_path).exists():
                             # Rebuild missing variants
-                            for variant in missing_variant['missing']:
-                                if variant != 'original':
+                            for variant in missing_variant["missing"]:
+                                if variant != "original":
                                     self._rebuild_variant(album, original, variant, db)
 
                 except Exception as e:
-                    self.results['failed_repairs'].append({
-                        'type': 'rebuild_variant',
-                        'album_id': missing_variant['album_id'],
-                        'error': str(e)
-                    })
+                    self.results["failed_repairs"].append(
+                        {
+                            "type": "rebuild_variant",
+                            "album_id": missing_variant["album_id"],
+                            "error": str(e),
+                        }
+                    )
 
         # 4. Update albums with no cached artwork flag
-        for missing in self.results['missing_files']:
-            album = db.query(Album).filter(
-                Album.id == missing['album_id']
-            ).first()
+        for missing in self.results["missing_files"]:
+            album = db.query(Album).filter(Album.id == missing["album_id"]).first()
 
             if album:
                 # Check if album has any valid cached files
-                valid_count = db.query(ArtworkCache).filter(
-                    ArtworkCache.album_id == album.id,
-                    ArtworkCache.file_path.isnot(None)
-                ).count()
+                valid_count = (
+                    db.query(ArtworkCache)
+                    .filter(
+                        ArtworkCache.album_id == album.id,
+                        ArtworkCache.file_path.isnot(None),
+                    )
+                    .count()
+                )
 
                 if valid_count == 0:
                     album.artwork_cached = False
                     logger.info(f"Marked album {album.id} as not cached")
 
     def _rebuild_variant(
-        self,
-        album: Album,
-        original: ArtworkCache,
-        variant: str,
-        db: Session
+        self, album: Album, original: ArtworkCache, variant: str, db: Session
     ) -> None:
         """
         Rebuild a missing size variant from original
@@ -414,9 +461,7 @@ class CacheIntegrityService:
 
                 # Process image
                 processed = self.image_processor.process_image(
-                    img,
-                    variant,
-                    smart_crop=True
+                    img, variant, smart_crop=True
                 )
 
                 # Save to cache
@@ -435,18 +480,20 @@ class CacheIntegrityService:
                     file_size_bytes=file_path.stat().st_size,
                     width=processed.width,
                     height=processed.height,
-                    format='JPEG',
-                    cached_at=datetime.now(timezone.utc)
+                    format="JPEG",
+                    cached_at=datetime.now(timezone.utc),
                 )
 
                 db.add(cache_record)
 
-                self.results['repaired_files'].append({
-                    'type': 'rebuilt_variant',
-                    'album_id': album.id,
-                    'variant': variant,
-                    'file_path': str(file_path)
-                })
+                self.results["repaired_files"].append(
+                    {
+                        "type": "rebuilt_variant",
+                        "album_id": album.id,
+                        "variant": variant,
+                        "file_path": str(file_path),
+                    }
+                )
 
                 logger.info(f"Rebuilt {variant} variant for album {album.id}")
 
@@ -465,61 +512,66 @@ class CacheIntegrityService:
             Report dictionary
         """
         duration = None
-        if self.results['start_time'] and self.results['end_time']:
-            duration = (self.results['end_time'] - self.results['start_time']).total_seconds()
+        if self.results["start_time"] and self.results["end_time"]:
+            duration = (
+                self.results["end_time"] - self.results["start_time"]
+            ).total_seconds()
 
         # Calculate integrity score
         total_issues = (
-            len(self.results['missing_files']) +
-            len(self.results['corrupted_files']) +
-            len(self.results['orphaned_files']) +
-            len(self.results['size_mismatches']) +
-            len(self.results['missing_variants'])
+            len(self.results["missing_files"])
+            + len(self.results["corrupted_files"])
+            + len(self.results["orphaned_files"])
+            + len(self.results["size_mismatches"])
+            + len(self.results["missing_variants"])
         )
 
         integrity_score = 100
-        if self.results['total_records'] > 0:
-            issue_rate = total_issues / self.results['total_records']
+        if self.results["total_records"] > 0:
+            issue_rate = total_issues / self.results["total_records"]
             integrity_score = max(0, 100 - (issue_rate * 100))
 
         report = {
-            'timestamp': datetime.now(timezone.utc).isoformat(),
-            'duration_seconds': duration,
-            'integrity_score': round(integrity_score, 2),
-            'summary': {
-                'total_records': self.results['total_records'],
-                'valid_files': self.results['valid_files'],
-                'issues_found': total_issues,
-                'repairs_completed': len(self.results['repaired_files']),
-                'repairs_failed': len(self.results['failed_repairs'])
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "duration_seconds": duration,
+            "integrity_score": round(integrity_score, 2),
+            "summary": {
+                "total_records": self.results["total_records"],
+                "valid_files": self.results["valid_files"],
+                "issues_found": total_issues,
+                "repairs_completed": len(self.results["repaired_files"]),
+                "repairs_failed": len(self.results["failed_repairs"]),
             },
-            'issues': {
-                'missing_files': len(self.results['missing_files']),
-                'corrupted_files': len(self.results['corrupted_files']),
-                'orphaned_files': len(self.results['orphaned_files']),
-                'size_mismatches': len(self.results['size_mismatches']),
-                'missing_variants': len(self.results['missing_variants'])
-            }
+            "issues": {
+                "missing_files": len(self.results["missing_files"]),
+                "corrupted_files": len(self.results["corrupted_files"]),
+                "orphaned_files": len(self.results["orphaned_files"]),
+                "size_mismatches": len(self.results["size_mismatches"]),
+                "missing_variants": len(self.results["missing_variants"]),
+            },
         }
 
         if verbose:
-            report['details'] = {
-                'missing_files': self.results['missing_files'][:10],  # Limit to 10
-                'corrupted_files': self.results['corrupted_files'][:10],
-                'orphaned_files': self.results['orphaned_files'][:10],
-                'missing_variants': self.results['missing_variants'][:10],
-                'repaired_files': self.results['repaired_files'][:10],
-                'failed_repairs': self.results['failed_repairs']
+            report["details"] = {
+                "missing_files": self.results["missing_files"][:10],  # Limit to 10
+                "corrupted_files": self.results["corrupted_files"][:10],
+                "orphaned_files": self.results["orphaned_files"][:10],
+                "missing_variants": self.results["missing_variants"][:10],
+                "repaired_files": self.results["repaired_files"][:10],
+                "failed_repairs": self.results["failed_repairs"],
             }
 
-        if self.results['errors']:
-            report['errors'] = self.results['errors']
+        if self.results["errors"]:
+            report["errors"] = self.results["errors"]
 
         # Save report to file
-        report_path = Path('logs') / f"integrity_report_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.json"
+        report_path = (
+            Path("logs")
+            / f"integrity_report_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.json"
+        )
         report_path.parent.mkdir(exist_ok=True)
 
-        with open(report_path, 'w') as f:
+        with open(report_path, "w") as f:
             json.dump(report, f, indent=2, default=str)
 
         logger.info(f"Integrity report saved to {report_path}")
@@ -540,9 +592,13 @@ class CacheIntegrityService:
             total_records = db.query(ArtworkCache).count()
             sample_size = min(50, total_records)
 
-            sample_records = db.query(ArtworkCache).filter(
-                ArtworkCache.file_path.isnot(None)
-            ).order_by(db.func.random()).limit(sample_size).all()
+            sample_records = (
+                db.query(ArtworkCache)
+                .filter(ArtworkCache.file_path.isnot(None))
+                .order_by(db.func.random())
+                .limit(sample_size)
+                .all()
+            )
 
             missing = 0
             valid = 0
@@ -556,20 +612,20 @@ class CacheIntegrityService:
             # Extrapolate to full dataset
             if sample_size > 0:
                 estimated_missing = int((missing / sample_size) * total_records)
-                estimated_integrity = ((valid / sample_size) * 100)
+                estimated_integrity = (valid / sample_size) * 100
             else:
                 estimated_missing = 0
                 estimated_integrity = 100
 
             return {
-                'timestamp': datetime.now(timezone.utc).isoformat(),
-                'type': 'quick_check',
-                'sample_size': sample_size,
-                'total_records': total_records,
-                'sample_valid': valid,
-                'sample_missing': missing,
-                'estimated_missing': estimated_missing,
-                'estimated_integrity_score': round(estimated_integrity, 2)
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "type": "quick_check",
+                "sample_size": sample_size,
+                "total_records": total_records,
+                "sample_valid": valid,
+                "sample_missing": missing,
+                "estimated_missing": estimated_missing,
+                "estimated_integrity_score": round(estimated_integrity, 2),
             }
 
 

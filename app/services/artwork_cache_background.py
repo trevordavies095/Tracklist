@@ -24,15 +24,13 @@ class ArtworkCacheBackgroundService:
     def __init__(self):
         """Initialize the background artwork caching service"""
         from .artwork_cache_service import get_artwork_cache_service
+
         self.cache_service = get_artwork_cache_service()
         self.background_manager = get_background_manager()
         self._cache_status = {}  # Track caching status by album_id
 
     def trigger_album_cache(
-        self,
-        album_id: int,
-        cover_art_url: Optional[str] = None,
-        priority: int = 5
+        self, album_id: int, cover_art_url: Optional[str] = None, priority: int = 5
     ) -> str:
         """
         Trigger background caching for an album
@@ -46,14 +44,19 @@ class ArtworkCacheBackgroundService:
             Task ID for tracking
         """
         # Check if already caching this album
-        if album_id in self._cache_status and self._cache_status[album_id].get('status') == 'processing':
-            logger.info(f"Album {album_id} already being cached, skipping duplicate request")
-            return self._cache_status[album_id].get('task_id')
+        if (
+            album_id in self._cache_status
+            and self._cache_status[album_id].get("status") == "processing"
+        ):
+            logger.info(
+                f"Album {album_id} already being cached, skipping duplicate request"
+            )
+            return self._cache_status[album_id].get("task_id")
 
         # Mark as processing
         self._cache_status[album_id] = {
-            'status': 'processing',
-            'started_at': asyncio.get_event_loop().time()
+            "status": "processing",
+            "started_at": asyncio.get_event_loop().time(),
         }
 
         # Add task to background queue
@@ -63,18 +66,16 @@ class ArtworkCacheBackgroundService:
             name=f"cache_artwork_album_{album_id}",
             priority=priority,
             on_success=lambda result: self._on_cache_success(album_id, result),
-            on_error=lambda error: self._on_cache_error(album_id, error)
+            on_error=lambda error: self._on_cache_error(album_id, error),
         )
 
-        self._cache_status[album_id]['task_id'] = task_id
+        self._cache_status[album_id]["task_id"] = task_id
 
         logger.info(f"Queued artwork caching for album {album_id} (task: {task_id})")
         return task_id
 
     async def _cache_album_artwork(
-        self,
-        album_id: int,
-        cover_art_url: Optional[str] = None
+        self, album_id: int, cover_art_url: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Cache artwork for a specific album
@@ -100,19 +101,15 @@ class ArtworkCacheBackgroundService:
             if not artwork_url:
                 logger.warning(f"Album {album_id} has no artwork URL")
                 return {
-                    'album_id': album_id,
-                    'success': False,
-                    'reason': 'no_artwork_url'
+                    "album_id": album_id,
+                    "success": False,
+                    "reason": "no_artwork_url",
                 }
 
             # Check if already cached
             if album.artwork_cached:
                 logger.info(f"Album {album_id} artwork already cached")
-                return {
-                    'album_id': album_id,
-                    'success': True,
-                    'already_cached': True
-                }
+                return {"album_id": album_id, "success": True, "already_cached": True}
 
             # Perform caching
             logger.info(f"Starting artwork cache for album {album_id}: {album.name}")
@@ -124,10 +121,10 @@ class ArtworkCacheBackgroundService:
                 logger.warning(f"Failed to cache artwork for album {album_id}")
 
             return {
-                'album_id': album_id,
-                'album_name': album.name,
-                'success': success,
-                'artwork_url': artwork_url
+                "album_id": album_id,
+                "album_name": album.name,
+                "success": success,
+                "artwork_url": artwork_url,
             }
 
         except Exception as e:
@@ -139,18 +136,15 @@ class ArtworkCacheBackgroundService:
     def _on_cache_success(self, album_id: int, result: Dict[str, Any]):
         """Handle successful caching"""
         self._cache_status[album_id] = {
-            'status': 'completed',
-            'success': result.get('success', False),
-            'result': result
+            "status": "completed",
+            "success": result.get("success", False),
+            "result": result,
         }
         logger.info(f"Artwork caching completed for album {album_id}: {result}")
 
     def _on_cache_error(self, album_id: int, error: Exception):
         """Handle caching error"""
-        self._cache_status[album_id] = {
-            'status': 'failed',
-            'error': str(error)
-        }
+        self._cache_status[album_id] = {"status": "failed", "error": str(error)}
         logger.error(f"Artwork caching failed for album {album_id}: {error}")
 
     def get_cache_status(self, album_id: int) -> Optional[Dict[str, Any]]:
@@ -166,9 +160,7 @@ class ArtworkCacheBackgroundService:
         return self._cache_status.get(album_id)
 
     async def cache_multiple_albums(
-        self,
-        album_ids: list,
-        priority: int = 7
+        self, album_ids: list, priority: int = 7
     ) -> Dict[str, str]:
         """
         Queue multiple albums for caching
@@ -190,9 +182,7 @@ class ArtworkCacheBackgroundService:
         return task_map
 
     async def cache_all_missing_artwork(
-        self,
-        batch_size: int = 10,
-        priority: int = 8
+        self, batch_size: int = 10, priority: int = 8
     ) -> Dict[str, Any]:
         """
         Cache artwork for all albums that don't have it cached
@@ -207,48 +197,39 @@ class ArtworkCacheBackgroundService:
         db = SessionLocal()
         try:
             # Find albums without cached artwork
-            albums_to_cache = db.query(Album).filter(
-                Album.artwork_cached == False,
-                Album.cover_art_url.isnot(None)
-            ).limit(batch_size).all()
+            albums_to_cache = (
+                db.query(Album)
+                .filter(Album.artwork_cached == False, Album.cover_art_url.isnot(None))
+                .limit(batch_size)
+                .all()
+            )
 
             if not albums_to_cache:
                 logger.info("No albums need artwork caching")
-                return {
-                    'queued': 0,
-                    'albums': []
-                }
+                return {"queued": 0, "albums": []}
 
             # Queue caching for each album
             album_ids = [album.id for album in albums_to_cache]
             task_map = await self.cache_multiple_albums(album_ids, priority=priority)
 
-            return {
-                'queued': len(task_map),
-                'albums': album_ids,
-                'tasks': task_map
-            }
+            return {"queued": len(task_map), "albums": album_ids, "tasks": task_map}
 
         finally:
             db.close()
 
     def get_overall_status(self) -> Dict[str, Any]:
         """Get overall status of artwork caching"""
-        status_counts = {
-            'processing': 0,
-            'completed': 0,
-            'failed': 0
-        }
+        status_counts = {"processing": 0, "completed": 0, "failed": 0}
 
         for album_status in self._cache_status.values():
-            status = album_status.get('status', 'unknown')
+            status = album_status.get("status", "unknown")
             if status in status_counts:
                 status_counts[status] += 1
 
         return {
-            'cache_status_counts': status_counts,
-            'total_processed': len(self._cache_status),
-            'background_tasks': self.background_manager.get_status()
+            "cache_status_counts": status_counts,
+            "total_processed": len(self._cache_status),
+            "background_tasks": self.background_manager.get_status(),
         }
 
 

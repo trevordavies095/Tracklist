@@ -94,4 +94,11 @@ static/artwork_cache/thumbnail/*
 !static/artwork_cache/small/.gitkeep
 !static/artwork_cache/thumbnail/.gitkeep
 !static/artwork_cache/README.md
+
+# Test files
+tests/
+test_*.py
+*_test.py
+
+# Claude configuration
 CLAUDE.md

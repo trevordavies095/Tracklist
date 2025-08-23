@@ -27,15 +27,11 @@ def setup_logging(level: str = "INFO", log_file: str = None) -> Dict[str, Any]:
         level=getattr(logging, level.upper()),
         format=log_format,
         datefmt=date_format,
-        handlers=handlers
+        handlers=handlers,
     )
 
     # Set specific logger levels
     logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
     logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
 
-    return {
-        "level": level,
-        "format": log_format,
-        "handlers": len(handlers)
-    }
+    return {"level": level, "format": log_format, "handlers": len(handlers)}

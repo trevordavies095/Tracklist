@@ -21,10 +21,7 @@ class ArtworkMemoryCache:
     """
 
     def __init__(
-        self,
-        max_entries: int = 200,
-        ttl_seconds: int = 3600,
-        enable_stats: bool = True
+        self, max_entries: int = 200, ttl_seconds: int = 3600, enable_stats: bool = True
     ):
         """
         Initialize the artwork memory cache
@@ -44,20 +41,22 @@ class ArtworkMemoryCache:
 
         # Statistics tracking
         self._stats = {
-            'hits': 0,
-            'misses': 0,
-            'evictions': 0,
-            'expirations': 0,
-            'total_requests': 0,
-            'bytes_cached': 0,
-            'startup_time': time.time()
+            "hits": 0,
+            "misses": 0,
+            "evictions": 0,
+            "expirations": 0,
+            "total_requests": 0,
+            "bytes_cached": 0,
+            "startup_time": time.time(),
         }
 
         # Access pattern tracking
         self._access_counts: Dict[str, int] = {}
         self._last_cleanup = time.time()
 
-        logger.info(f"Artwork memory cache initialized (max_entries={max_entries}, ttl={ttl_seconds}s)")
+        logger.info(
+            f"Artwork memory cache initialized (max_entries={max_entries}, ttl={ttl_seconds}s)"
+        )
 
     def _generate_cache_key(self, album_id: int, size: str) -> str:
         """Generate a cache key for album artwork"""
@@ -77,11 +76,11 @@ class ArtworkMemoryCache:
         key = self._generate_cache_key(album_id, size)
 
         with self._lock:
-            self._stats['total_requests'] += 1
+            self._stats["total_requests"] += 1
 
             # Check if key exists
             if key not in self._cache:
-                self._stats['misses'] += 1
+                self._stats["misses"] += 1
                 logger.debug(f"Cache miss: {key}")
                 return None
 
@@ -92,8 +91,8 @@ class ArtworkMemoryCache:
                 # Entry expired
                 del self._cache[key]
                 self._access_counts.pop(key, None)
-                self._stats['expirations'] += 1
-                self._stats['misses'] += 1
+                self._stats["expirations"] += 1
+                self._stats["misses"] += 1
                 logger.debug(f"Cache expired: {key}")
                 return None
 
@@ -101,7 +100,7 @@ class ArtworkMemoryCache:
             self._cache.move_to_end(key)
 
             # Update statistics
-            self._stats['hits'] += 1
+            self._stats["hits"] += 1
             self._access_counts[key] = self._access_counts.get(key, 0) + 1
 
             logger.debug(f"Cache hit: {key} -> {url[:50]}...")
@@ -112,7 +111,7 @@ class ArtworkMemoryCache:
         album_id: int,
         size: str,
         url: str,
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None,
     ) -> None:
         """
         Store artwork URL in cache
@@ -133,14 +132,14 @@ class ArtworkMemoryCache:
                 evicted_url, _, _ = self._cache[evicted_key]
                 del self._cache[evicted_key]
                 self._access_counts.pop(evicted_key, None)
-                self._stats['evictions'] += 1
-                self._stats['bytes_cached'] -= sys.getsizeof(evicted_url)
+                self._stats["evictions"] += 1
+                self._stats["bytes_cached"] -= sys.getsizeof(evicted_url)
                 logger.debug(f"Evicted LRU entry: {evicted_key}")
 
             # Add new entry
             timestamp = time.time()
             self._cache[key] = (url, timestamp, metadata or {})
-            self._stats['bytes_cached'] += sys.getsizeof(url)
+            self._stats["bytes_cached"] += sys.getsizeof(url)
 
             logger.debug(f"Cached: {key} -> {url[:50]}...")
 
@@ -162,8 +161,8 @@ class ArtworkMemoryCache:
                 url, _, _ = self._cache[key]
                 del self._cache[key]
                 self._access_counts.pop(key, None)
-                self._stats['bytes_cached'] -= sys.getsizeof(url)
-                self._stats['expirations'] += 1
+                self._stats["bytes_cached"] -= sys.getsizeof(url)
+                self._stats["expirations"] += 1
 
             self._last_cleanup = current_time
 
@@ -191,13 +190,13 @@ class ArtworkMemoryCache:
                     url, _, _ = self._cache[key]
                     del self._cache[key]
                     self._access_counts.pop(key, None)
-                    self._stats['bytes_cached'] -= sys.getsizeof(url)
+                    self._stats["bytes_cached"] -= sys.getsizeof(url)
                     logger.debug(f"Invalidated: {key}")
                     return 1
                 return 0
             else:
                 # Invalidate all sizes for album
-                sizes = ['thumbnail', 'small', 'medium', 'large', 'original']
+                sizes = ["thumbnail", "small", "medium", "large", "original"]
                 invalidated = 0
 
                 for s in sizes:
@@ -206,11 +205,13 @@ class ArtworkMemoryCache:
                         url, _, _ = self._cache[key]
                         del self._cache[key]
                         self._access_counts.pop(key, None)
-                        self._stats['bytes_cached'] -= sys.getsizeof(url)
+                        self._stats["bytes_cached"] -= sys.getsizeof(url)
                         invalidated += 1
 
                 if invalidated:
-                    logger.debug(f"Invalidated {invalidated} entries for album {album_id}")
+                    logger.debug(
+                        f"Invalidated {invalidated} entries for album {album_id}"
+                    )
 
                 return invalidated
 
@@ -249,58 +250,62 @@ class ArtworkMemoryCache:
     def get_stats(self) -> Dict[str, Any]:
         """Get comprehensive cache statistics"""
         with self._lock:
-            uptime = time.time() - self._stats['startup_time']
+            uptime = time.time() - self._stats["startup_time"]
             hit_rate = (
-                self._stats['hits'] / self._stats['total_requests'] * 100
-                if self._stats['total_requests'] > 0
+                self._stats["hits"] / self._stats["total_requests"] * 100
+                if self._stats["total_requests"] > 0
                 else 0
             )
 
             # Get top accessed entries
             top_accessed = sorted(
-                self._access_counts.items(),
-                key=lambda x: x[1],
-                reverse=True
+                self._access_counts.items(), key=lambda x: x[1], reverse=True
             )[:10]
 
             # Calculate memory usage
             memory_usage = {
-                'entries': len(self._cache),
-                'bytes_urls': self._stats['bytes_cached'],
-                'bytes_overhead': sys.getsizeof(self._cache) + sys.getsizeof(self._access_counts),
-                'bytes_total': self._stats['bytes_cached'] + sys.getsizeof(self._cache) + sys.getsizeof(self._access_counts)
+                "entries": len(self._cache),
+                "bytes_urls": self._stats["bytes_cached"],
+                "bytes_overhead": sys.getsizeof(self._cache)
+                + sys.getsizeof(self._access_counts),
+                "bytes_total": self._stats["bytes_cached"]
+                + sys.getsizeof(self._cache)
+                + sys.getsizeof(self._access_counts),
             }
 
             return {
-                'performance': {
-                    'hits': self._stats['hits'],
-                    'misses': self._stats['misses'],
-                    'hit_rate': f"{hit_rate:.1f}%",
-                    'total_requests': self._stats['total_requests'],
-                    'avg_requests_per_minute': self._stats['total_requests'] / (uptime / 60) if uptime > 0 else 0
+                "performance": {
+                    "hits": self._stats["hits"],
+                    "misses": self._stats["misses"],
+                    "hit_rate": f"{hit_rate:.1f}%",
+                    "total_requests": self._stats["total_requests"],
+                    "avg_requests_per_minute": (
+                        self._stats["total_requests"] / (uptime / 60)
+                        if uptime > 0
+                        else 0
+                    ),
                 },
-                'capacity': {
-                    'current_entries': len(self._cache),
-                    'max_entries': self.max_entries,
-                    'utilization': f"{(len(self._cache) / self.max_entries * 100):.1f}%",
-                    'evictions': self._stats['evictions'],
-                    'expirations': self._stats['expirations']
+                "capacity": {
+                    "current_entries": len(self._cache),
+                    "max_entries": self.max_entries,
+                    "utilization": f"{(len(self._cache) / self.max_entries * 100):.1f}%",
+                    "evictions": self._stats["evictions"],
+                    "expirations": self._stats["expirations"],
                 },
-                'memory': {
-                    'bytes_urls': memory_usage['bytes_urls'],
-                    'bytes_overhead': memory_usage['bytes_overhead'],
-                    'bytes_total': memory_usage['bytes_total'],
-                    'mb_total': memory_usage['bytes_total'] / (1024 * 1024)
+                "memory": {
+                    "bytes_urls": memory_usage["bytes_urls"],
+                    "bytes_overhead": memory_usage["bytes_overhead"],
+                    "bytes_total": memory_usage["bytes_total"],
+                    "mb_total": memory_usage["bytes_total"] / (1024 * 1024),
                 },
-                'top_accessed': [
-                    {'key': key, 'count': count}
-                    for key, count in top_accessed
+                "top_accessed": [
+                    {"key": key, "count": count} for key, count in top_accessed
                 ],
-                'config': {
-                    'max_entries': self.max_entries,
-                    'ttl_seconds': self.ttl_seconds,
-                    'uptime_seconds': uptime
-                }
+                "config": {
+                    "max_entries": self.max_entries,
+                    "ttl_seconds": self.ttl_seconds,
+                    "uptime_seconds": uptime,
+                },
             }
 
     def clear(self) -> None:
@@ -309,32 +314,33 @@ class ArtworkMemoryCache:
             count = len(self._cache)
             self._cache.clear()
             self._access_counts.clear()
-            self._stats['bytes_cached'] = 0
+            self._stats["bytes_cached"] = 0
             logger.info(f"Cleared {count} cache entries")
 
     def get_memory_usage(self) -> Dict[str, Any]:
         """Get detailed memory usage information"""
         with self._lock:
             return {
-                'entries': len(self._cache),
-                'bytes': {
-                    'urls': self._stats['bytes_cached'],
-                    'cache_dict': sys.getsizeof(self._cache),
-                    'access_counts': sys.getsizeof(self._access_counts),
-                    'total': (
-                        self._stats['bytes_cached'] +
-                        sys.getsizeof(self._cache) +
-                        sys.getsizeof(self._access_counts)
-                    )
+                "entries": len(self._cache),
+                "bytes": {
+                    "urls": self._stats["bytes_cached"],
+                    "cache_dict": sys.getsizeof(self._cache),
+                    "access_counts": sys.getsizeof(self._access_counts),
+                    "total": (
+                        self._stats["bytes_cached"]
+                        + sys.getsizeof(self._cache)
+                        + sys.getsizeof(self._access_counts)
+                    ),
                 },
-                'mb': {
-                    'urls': self._stats['bytes_cached'] / (1024 * 1024),
-                    'total': (
-                        self._stats['bytes_cached'] +
-                        sys.getsizeof(self._cache) +
-                        sys.getsizeof(self._access_counts)
-                    ) / (1024 * 1024)
-                }
+                "mb": {
+                    "urls": self._stats["bytes_cached"] / (1024 * 1024),
+                    "total": (
+                        self._stats["bytes_cached"]
+                        + sys.getsizeof(self._cache)
+                        + sys.getsizeof(self._access_counts)
+                    )
+                    / (1024 * 1024),
+                },
             }
 
 

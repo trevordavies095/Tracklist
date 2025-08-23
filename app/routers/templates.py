@@ -22,86 +22,78 @@ templates = Jinja2Templates(directory="templates")
 @router.get("/", response_class=HTMLResponse)
 async def homepage(request: Request):
     """Homepage/Dashboard"""
-    return templates.TemplateResponse("index.html", {
-        "request": request
-    })
+    return templates.TemplateResponse("index.html", {"request": request})
 
 
 @router.get("/search", response_class=HTMLResponse)
 async def search_page(request: Request):
     """Album search page"""
-    return templates.TemplateResponse("search.html", {
-        "request": request
-    })
+    return templates.TemplateResponse("search.html", {"request": request})
 
 
 @router.get("/albums", response_class=HTMLResponse)
 async def albums_page(request: Request, db: Session = Depends(get_db)):
     """User's albums library page"""
     from ..models import UserSettings
-    
+
     # Get user settings for default sort
     settings = db.query(UserSettings).filter(UserSettings.user_id == 1).first()
-    default_sort = 'created_desc'  # fallback
-    
+    default_sort = "created_desc"  # fallback
+
     if settings and settings.default_sort_order:
         # Map settings sort names to API sort names
         sort_mapping = {
-            'score_desc': 'rating_desc',
-            'score_asc': 'rating_asc',
-            'name_asc': 'album_asc',
-            'name_desc': 'album_desc'
+            "score_desc": "rating_desc",
+            "score_asc": "rating_asc",
+            "name_asc": "album_asc",
+            "name_desc": "album_desc",
         }
-        default_sort = sort_mapping.get(settings.default_sort_order, settings.default_sort_order)
-    
-    return templates.TemplateResponse("albums.html", {
-        "request": request,
-        "default_sort": default_sort
-    })
+        default_sort = sort_mapping.get(
+            settings.default_sort_order, settings.default_sort_order
+        )
+
+    return templates.TemplateResponse(
+        "albums.html", {"request": request, "default_sort": default_sort}
+    )
 
 
 @router.get("/stats", response_class=HTMLResponse)
 async def stats_page(request: Request):
     """User statistics dashboard page"""
-    return templates.TemplateResponse("stats.html", {
-        "request": request
-    })
+    return templates.TemplateResponse("stats.html", {"request": request})
 
 
 @router.get("/settings", response_class=HTMLResponse)
 async def settings_page(request: Request, db: Session = Depends(get_db)):
     """Application settings page"""
     from ..models import UserSettings
-    
+
     # Get current settings or create defaults
     settings = db.query(UserSettings).filter(UserSettings.user_id == 1).first()
-    
+
     if not settings:
         # Create default settings
         settings = UserSettings(user_id=1)
         db.add(settings)
         db.commit()
         db.refresh(settings)
-    
-    return templates.TemplateResponse("settings.html", {
-        "request": request,
-        "settings": settings
-    })
+
+    return templates.TemplateResponse(
+        "settings.html", {"request": request, "settings": settings}
+    )
 
 
 @router.get("/test-export", response_class=HTMLResponse)
 async def test_export_page(request: Request):
     """Test page for export functionality"""
-    return templates.TemplateResponse("test_export.html", {
-        "request": request
-    })
+    return templates.TemplateResponse("test_export.html", {"request": request})
 
 
 @router.get("/artists/{artist_id}/albums", response_class=HTMLResponse)
 async def artist_albums_page(
     request: Request,
     artist_id: int = Path(..., description="Artist ID", gt=0),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """Artist's albums page"""
     from ..models import Artist
@@ -111,23 +103,21 @@ async def artist_albums_page(
     if not artist:
         raise HTTPException(status_code=404, detail="Artist not found")
 
-    return templates.TemplateResponse("artist_albums.html", {
-        "request": request,
-        "artist": artist
-    })
+    return templates.TemplateResponse(
+        "artist_albums.html", {"request": request, "artist": artist}
+    )
 
 
 @router.get("/years/{year}/albums", response_class=HTMLResponse)
 async def year_albums_page(
     request: Request,
     year: int = Path(..., description="Year", ge=1900, le=2100),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """Year's albums page"""
-    return templates.TemplateResponse("year_albums.html", {
-        "request": request,
-        "year": year
-    })
+    return templates.TemplateResponse(
+        "year_albums.html", {"request": request, "year": year}
+    )
 
 
 @router.get("/albums/{album_id}/rate", response_class=HTMLResponse)
@@ -135,7 +125,7 @@ async def rating_page(
     request: Request,
     album_id: int = Path(..., description="Album ID", gt=0),
     service: RatingService = Depends(get_rating_service),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """Track-by-track rating page for an album"""
     try:
@@ -145,22 +135,31 @@ async def rating_page(
 
         # Get current progress
         progress_data = service.get_album_progress(album_id, db)
-        logger.info(f"Progress data loaded for {album_id}: {progress_data.get('completion_percentage', 0)}%")
+        logger.info(
+            f"Progress data loaded for {album_id}: {progress_data.get('completion_percentage', 0)}%"
+        )
 
         # Try to render original template
-        return templates.TemplateResponse("album/rating.html", {
-            "request": request,
-            "album": album_data,
-            "tracks": album_data.get("tracks", []),
-            "progress": progress_data
-        })
+        return templates.TemplateResponse(
+            "album/rating.html",
+            {
+                "request": request,
+                "album": album_data,
+                "tracks": album_data.get("tracks", []),
+                "progress": progress_data,
+            },
+        )
 
     except ServiceNotFoundError:
         logger.warning(f"Album not found for rating page: {album_id}")
         raise HTTPException(status_code=404, detail="Album not found")
     except Exception as e:
-        logger.error(f"Error loading rating page for album {album_id}: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Error loading rating page: {str(e)}")
+        logger.error(
+            f"Error loading rating page for album {album_id}: {e}", exc_info=True
+        )
+        raise HTTPException(
+            status_code=500, detail=f"Error loading rating page: {str(e)}"
+        )
 
 
 @router.get("/albums/{album_id}/completed", response_class=HTMLResponse)
@@ -168,7 +167,7 @@ async def completed_page(
     request: Request,
     album_id: int = Path(..., description="Album ID", gt=0),
     service: RatingService = Depends(get_rating_service),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """Album completion/results page"""
     try:
@@ -178,18 +177,24 @@ async def completed_page(
         # Ensure album is actually completed
         if not album_data.get("is_rated"):
             # Redirect to rating page if not completed
-            return templates.TemplateResponse("album/rating.html", {
+            return templates.TemplateResponse(
+                "album/rating.html",
+                {
+                    "request": request,
+                    "album": album_data,
+                    "tracks": album_data.get("tracks", []),
+                    "progress": service.get_album_progress(album_id, db),
+                },
+            )
+
+        return templates.TemplateResponse(
+            "album/completed.html",
+            {
                 "request": request,
                 "album": album_data,
                 "tracks": album_data.get("tracks", []),
-                "progress": service.get_album_progress(album_id, db)
-            })
-
-        return templates.TemplateResponse("album/completed.html", {
-            "request": request,
-            "album": album_data,
-            "tracks": album_data.get("tracks", [])
-        })
+            },
+        )
 
     except ServiceNotFoundError:
         logger.warning(f"Album not found for completed page: {album_id}")
@@ -205,35 +210,49 @@ async def compare_albums_page(
     album1: int = Query(None, description="First album ID"),
     album2: int = Query(None, description="Second album ID"),
     comparison_service: ComparisonService = Depends(get_comparison_service),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """Album comparison page"""
     comparison_data = None
     error_message = None
-    
-    logger.info(f"Compare albums page accessed with params: album1={album1}, album2={album2}")
-    
+
+    logger.info(
+        f"Compare albums page accessed with params: album1={album1}, album2={album2}"
+    )
+
     try:
         # If both album IDs provided, generate comparison
         if album1 and album2:
-            logger.info(f"Both albums provided, generating comparison for {album1} vs {album2}")
+            logger.info(
+                f"Both albums provided, generating comparison for {album1} vs {album2}"
+            )
             comparison_data = comparison_service.compare_albums(album1, album2, db)
-            logger.info(f"Comparison data generated successfully: {bool(comparison_data)}")
+            logger.info(
+                f"Comparison data generated successfully: {bool(comparison_data)}"
+            )
         else:
             logger.info(f"Missing album parameters: album1={album1}, album2={album2}")
-            
+
     except Exception as e:
-        logger.error(f"Error generating comparison for albums {album1} vs {album2}: {e}", exc_info=True)
+        logger.error(
+            f"Error generating comparison for albums {album1} vs {album2}: {e}",
+            exc_info=True,
+        )
         error_message = str(e)
-    
-    logger.info(f"Returning template with comparison_data={bool(comparison_data)}, error_message={bool(error_message)}")
-    
-    return templates.TemplateResponse("albums/compare.html", {
-        "request": request,
-        "comparison": comparison_data,
-        "error_message": error_message,
-        "page_title": "Compare Albums"
-    })
+
+    logger.info(
+        f"Returning template with comparison_data={bool(comparison_data)}, error_message={bool(error_message)}"
+    )
+
+    return templates.TemplateResponse(
+        "albums/compare.html",
+        {
+            "request": request,
+            "comparison": comparison_data,
+            "error_message": error_message,
+            "page_title": "Compare Albums",
+        },
+    )
 
 
 # Helper function to add custom filters to Jinja2
@@ -246,7 +265,7 @@ def setup_template_filters(template_env):
         get_lazy_image_html,
         get_cache_stats,
         format_file_size,
-        format_cache_age
+        format_cache_age,
     )
 
     def format_duration(milliseconds):
