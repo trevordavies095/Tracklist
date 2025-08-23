@@ -410,16 +410,23 @@ function createCollageModal() {
                             </select>
                         </div>
                         
-                        <div class="flex items-center space-x-4">
-                            <label class="flex items-center">
-                                <input type="checkbox" id="collage-include-ranking" checked class="mr-2 rounded border-default bg-surface text-accent-blue focus:ring-accent-blue focus:ring-offset-0">
-                                <span class="text-sm text-primary">Include ranking list</span>
-                            </label>
-                            
-                            <label class="flex items-center">
-                                <input type="checkbox" id="collage-include-scores" checked class="mr-2 rounded border-default bg-surface text-accent-blue focus:ring-accent-blue focus:ring-offset-0">
-                                <span class="text-sm text-primary">Show scores</span>
-                            </label>
+                        <div class="space-y-2">
+                            <div class="flex items-center space-x-4">
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="collage-include-title" checked class="mr-2 rounded border-default bg-surface text-accent-blue focus:ring-accent-blue focus:ring-offset-0">
+                                    <span class="text-sm text-primary">Include title</span>
+                                </label>
+                                
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="collage-include-ranking" checked class="mr-2 rounded border-default bg-surface text-accent-blue focus:ring-accent-blue focus:ring-offset-0">
+                                    <span class="text-sm text-primary">Include ranking list</span>
+                                </label>
+                                
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="collage-include-scores" checked class="mr-2 rounded border-default bg-surface text-accent-blue focus:ring-accent-blue focus:ring-offset-0">
+                                    <span class="text-sm text-primary">Show scores</span>
+                                </label>
+                            </div>
                         </div>
                         
                         <!-- Preview Container -->
@@ -467,12 +474,14 @@ function createCollageModal() {
 
 async function generateCollage() {
     const maxAlbums = document.getElementById('collage-max-albums').value;
+    const includeTitle = document.getElementById('collage-include-title').checked;
     const includeRanking = document.getElementById('collage-include-ranking').checked;
     const includeScores = document.getElementById('collage-include-scores').checked;
     
     // Build URL with parameters
     let url = `/api/v1/reports/years/${year}/collage?`;
-    url += `include_ranking=${includeRanking}`;
+    url += `include_title=${includeTitle}`;
+    url += `&include_ranking=${includeRanking}`;
     url += `&include_scores=${includeScores}`;
     if (maxAlbums) {
         url += `&max_albums=${maxAlbums}`;
