@@ -47,7 +47,7 @@ class CollageService:
     
     # Font settings
     FONT_SIZE = 16
-    RANKING_FONT_SIZE = 12  # Reduced from 14 for better fit
+    RANKING_FONT_SIZE = 14  # Increased for better readability
     
     def __init__(self):
         """Initialize the collage service"""
@@ -256,22 +256,46 @@ class CollageService:
         img = Image.new('RGB', (total_width, total_height), color=self.BG_COLOR)
         draw = ImageDraw.Draw(img)
         
-        # Load font for text
-        try:
-            # Try to load system fonts
-            title_font = ImageFont.truetype("/System/Library/Fonts/Helvetica.ttc", 32)
-            ranking_font = ImageFont.truetype("/System/Library/Fonts/Helvetica.ttc", self.RANKING_FONT_SIZE)
-        except:
-            # Fallback to default font
-            title_font = ImageFont.load_default()
-            ranking_font = ImageFont.load_default()
+        # Load font for text - prefer monospace fonts
+        title_font = None
+        ranking_font = None
+        
+        # Try different monospace fonts
+        font_paths = [
+            "/System/Library/Fonts/Monaco.ttf",  # macOS Monaco
+            "/System/Library/Fonts/Menlo.ttc",  # macOS Menlo
+            "/System/Library/Fonts/Courier.ttc",  # macOS Courier
+            "/usr/share/fonts/truetype/liberation/LiberationMono-Regular.ttf",  # Linux
+            "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf",  # Linux
+            "C:\\Windows\\Fonts\\consola.ttf",  # Windows Consolas
+            "C:\\Windows\\Fonts\\cour.ttf",  # Windows Courier
+        ]
+        
+        for font_path in font_paths:
+            try:
+                title_font = ImageFont.truetype(font_path, 32)
+                ranking_font = ImageFont.truetype(font_path, self.RANKING_FONT_SIZE)
+                logger.info(f"Using monospace font: {font_path}")
+                break
+            except:
+                continue
+        
+        # Fallback to default if no monospace font found
+        if not title_font:
+            try:
+                title_font = ImageFont.load_default()
+                ranking_font = ImageFont.load_default()
+                logger.warning("Using default font - no monospace font found")
+            except:
+                pass
         
         # Draw title if provided
         y_offset = 0
         if title:
             title_bbox = draw.textbbox((0, 0), title, font=title_font)
             title_width = title_bbox[2] - title_bbox[0]
-            title_x = (collage_width - title_width) // 2
+            # Center title across full image width (not just collage width)
+            title_x = (total_width - title_width) // 2
             draw.text((title_x, 15), title, fill=self.TEXT_COLOR, font=title_font)
             y_offset = title_height
         
@@ -296,30 +320,63 @@ class CollageService:
         if include_ranking:
             ranking_x = collage_width + 40
             
-            # Calculate line height based on total height and number of albums
-            # We want the text to be evenly distributed across the collage height
-            line_height = 22  # Fixed line height for readability
+            # Track current Y position for text
+            current_text_y = y_offset  # Start flush with first row
             
-            # Start position for the first line
-            ranking_y_start = y_offset + 10
-            
-            for idx, album in enumerate(albums):
-                rank = idx + 1
-                # Get artist name (handle both string and Artist object)
-                artist_name = album.artist.name if hasattr(album.artist, 'name') else str(album.artist)
-                # Truncate long names
-                artist_name = artist_name[:25] + "..." if len(artist_name) > 25 else artist_name
-                album_name = album.name[:30] + "..." if len(album.name) > 30 else album.name
+            # Process albums row by row
+            for row_idx in range(rows):
+                # Get albums in this row
+                row_start_idx = row_idx * cols
+                row_end_idx = min(row_start_idx + cols, len(albums))
                 
-                if include_scores and album.rating_score is not None:
-                    text = f"{rank}. {artist_name} - {album_name} ({album.rating_score}/100)"
-                else:
-                    text = f"{rank}. {artist_name} - {album_name}"
+                if row_start_idx >= len(albums):
+                    break  # No more albums
                 
-                # Simple sequential positioning - each album gets its own line
-                text_y = ranking_y_start + (idx * line_height)
+                # Calculate line height based on font
+                line_height = self.RANKING_FONT_SIZE + 4  # Add small spacing between lines
                 
-                draw.text((ranking_x, text_y), text, fill=self.TEXT_COLOR, font=ranking_font)
+                # Draw each album in this row
+                for idx in range(row_start_idx, row_end_idx):
+                    album = albums[idx]
+                    rank = idx + 1
+                    
+                    # Get artist name (handle both string and Artist object)
+                    artist_name = album.artist.name if hasattr(album.artist, 'name') else str(album.artist)
+                    # Truncate long names for better readability
+                    if len(artist_name) > 20:
+                        artist_name = artist_name[:20] + "..."
+                    
+                    # Get album name
+                    album_name = album.name if album.name else "Unknown Album"
+                    if len(album_name) > 25:
+                        album_name = album_name[:25] + "..."
+                    
+                    if include_scores and album.rating_score is not None:
+                        # Format with padding for alignment
+                        text = f"{rank:2d}. {artist_name} - {album_name}"
+                        score_text = f" ({album.rating_score})"
+                        
+                        # Draw main text in white
+                        draw.text((ranking_x, current_text_y), text, fill=self.TEXT_COLOR, font=ranking_font)
+                        
+                        # Draw score in a slightly dimmed color for better hierarchy
+                        text_bbox = draw.textbbox((ranking_x, current_text_y), text, font=ranking_font)
+                        score_x = text_bbox[2] + 2
+                        draw.text((score_x, current_text_y), score_text, fill=(200, 200, 200), font=ranking_font)
+                    else:
+                        text = f"{rank:2d}. {artist_name} - {album_name}"
+                        draw.text((ranking_x, current_text_y), text, fill=self.TEXT_COLOR, font=ranking_font)
+                    
+                    # Move to next line position
+                    current_text_y += line_height
+                
+                # After finishing a row, add extra spacing to align with next row of albums
+                # Calculate where the next row of albums starts
+                next_row_y = (row_idx + 1) * (self.TILE_SIZE + self.SPACING) + y_offset
+                
+                # If our text hasn't reached the next row position, jump to it
+                if row_idx < rows - 1 and current_text_y < next_row_y:
+                    current_text_y = next_row_y
         
         # Save to bytes
         output = BytesIO()
@@ -335,6 +392,7 @@ class CollageService:
         db: Session,
         include_ranking: bool = True,
         include_scores: bool = True,
+        include_title: bool = True,
         max_albums: Optional[int] = None
     ) -> bytes:
         """
@@ -345,6 +403,7 @@ class CollageService:
             db: Database session
             include_ranking: Whether to include ranking list
             include_scores: Whether to include scores in ranking
+            include_title: Whether to include title at the top
             max_albums: Maximum number of albums to include
             
         Returns:
@@ -361,8 +420,8 @@ class CollageService:
         if not albums:
             raise ValueError(f"No rated albums found for year {year}")
         
-        # Generate title
-        title = f"{year} Year End"
+        # Generate title only if requested
+        title = f"{year} Year End" if include_title else None
         
         return await self.generate_collage(
             albums,

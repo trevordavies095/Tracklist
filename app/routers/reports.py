@@ -700,6 +700,7 @@ async def generate_year_collage(
     year: int,
     include_ranking: bool = Query(default=True, description="Include ranking list on the side"),
     include_scores: bool = Query(default=True, description="Include scores in ranking list"),
+    include_title: bool = Query(default=True, description="Include year title at the top"),
     max_albums: Optional[int] = Query(default=None, ge=1, le=100, description="Maximum number of albums to include"),
     service: CollageService = Depends(get_collage_service),
     db: Session = Depends(get_db)
@@ -714,6 +715,7 @@ async def generate_year_collage(
     Query Parameters:
     - include_ranking: Whether to include the ranking list (default: true)
     - include_scores: Whether to show scores in the ranking list (default: true)
+    - include_title: Whether to include the year title at the top (default: true)
     - max_albums: Maximum number of albums to include (default: all, max: 100)
     
     Returns:
@@ -739,6 +741,7 @@ async def generate_year_collage(
             db=db,
             include_ranking=include_ranking,
             include_scores=include_scores,
+            include_title=include_title,
             max_albums=max_albums
         )
         
