@@ -4,7 +4,15 @@
 
 # Tracklist
 
+![Python](https://img.shields.io/badge/python-3.9+-blue.svg)
+![Docker](https://img.shields.io/badge/docker-ready-brightgreen.svg)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-00ADD8.svg)
+![License](https://img.shields.io/badge/license-MIT-green.svg)
+[![MusicBrainz](https://img.shields.io/badge/powered%20by-MusicBrainz-orange.svg)](https://musicbrainz.org/)
+
 A self-hosted music album rating application that enables precise album scoring through track-by-track ratings.
+
+⭐ **If you find this project useful, please consider giving it a star!**
 
 ## Overview
 
