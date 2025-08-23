@@ -23,7 +23,7 @@ router = APIRouter(prefix="/api/v1/reports", tags=["reports"])
 @router.get("/overview")
 async def get_overview_statistics(
     service: ReportingService = Depends(get_reporting_service),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
     Get overview statistics for the user's album collection
@@ -63,10 +63,7 @@ async def get_overview_statistics(
         logger.error(f"Failed to get overview statistics: {e.message}")
         raise HTTPException(
             status_code=500,
-            detail={
-                "error": "Failed to generate statistics",
-                "message": str(e)
-            }
+            detail={"error": "Failed to generate statistics", "message": str(e)},
         )
     except Exception as e:
         logger.error(f"Unexpected error getting overview statistics: {e}")
@@ -74,16 +71,18 @@ async def get_overview_statistics(
             status_code=500,
             detail={
                 "error": "Internal server error",
-                "message": "Failed to retrieve statistics"
-            }
+                "message": "Failed to retrieve statistics",
+            },
         )
 
 
 @router.get("/activity")
 async def get_recent_activity(
-    limit: int = Query(default=10, ge=1, le=50, description="Maximum number of items to return"),
+    limit: int = Query(
+        default=10, ge=1, le=50, description="Maximum number of items to return"
+    ),
     service: ReportingService = Depends(get_reporting_service),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
     Get recent rating activity
@@ -134,10 +133,7 @@ async def get_recent_activity(
         logger.error(f"Failed to get recent activity: {e.message}")
         raise HTTPException(
             status_code=500,
-            detail={
-                "error": "Failed to get recent activity",
-                "message": str(e)
-            }
+            detail={"error": "Failed to get recent activity", "message": str(e)},
         )
     except Exception as e:
         logger.error(f"Unexpected error getting recent activity: {e}")
@@ -145,18 +141,27 @@ async def get_recent_activity(
             status_code=500,
             detail={
                 "error": "Internal server error",
-                "message": "Failed to retrieve recent activity"
-            }
+                "message": "Failed to retrieve recent activity",
+            },
         )
 
 
 @router.get("/top-albums")
 async def get_top_albums(
-    limit: int = Query(default=10, ge=1, le=100, description="Maximum number of albums to return"),
-    randomize: bool = Query(default=False, description="Randomly select from top-rated albums"),
-    pool_size: int = Query(default=20, ge=5, le=100, description="Size of top album pool to select from when randomizing"),
+    limit: int = Query(
+        default=10, ge=1, le=100, description="Maximum number of albums to return"
+    ),
+    randomize: bool = Query(
+        default=False, description="Randomly select from top-rated albums"
+    ),
+    pool_size: int = Query(
+        default=20,
+        ge=5,
+        le=100,
+        description="Size of top album pool to select from when randomizing",
+    ),
     service: ReportingService = Depends(get_reporting_service),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
     Get top rated albums
@@ -193,18 +198,19 @@ async def get_top_albums(
     ```
     """
     try:
-        logger.info(f"Fetching top {limit} albums (randomize={randomize}, pool_size={pool_size})")
-        top_albums = service.get_top_albums(db, limit=limit, randomize=randomize, pool_size=pool_size)
+        logger.info(
+            f"Fetching top {limit} albums (randomize={randomize}, pool_size={pool_size})"
+        )
+        top_albums = service.get_top_albums(
+            db, limit=limit, randomize=randomize, pool_size=pool_size
+        )
         return top_albums
 
     except TracklistException as e:
         logger.error(f"Failed to get top albums: {e.message}")
         raise HTTPException(
             status_code=500,
-            detail={
-                "error": "Failed to get top albums",
-                "message": str(e)
-            }
+            detail={"error": "Failed to get top albums", "message": str(e)},
         )
     except Exception as e:
         logger.error(f"Unexpected error getting top albums: {e}")
@@ -212,15 +218,15 @@ async def get_top_albums(
             status_code=500,
             detail={
                 "error": "Internal server error",
-                "message": "Failed to retrieve top albums"
-            }
+                "message": "Failed to retrieve top albums",
+            },
         )
 
 
 @router.get("/distribution")
 async def get_score_distribution(
     service: ReportingService = Depends(get_reporting_service),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
     Get distribution of album scores
@@ -288,10 +294,7 @@ async def get_score_distribution(
         logger.error(f"Failed to get score distribution: {e.message}")
         raise HTTPException(
             status_code=500,
-            detail={
-                "error": "Failed to get score distribution",
-                "message": str(e)
-            }
+            detail={"error": "Failed to get score distribution", "message": str(e)},
         )
     except Exception as e:
         logger.error(f"Unexpected error getting score distribution: {e}")
@@ -299,18 +302,27 @@ async def get_score_distribution(
             status_code=500,
             detail={
                 "error": "Internal server error",
-                "message": "Failed to retrieve score distribution"
-            }
+                "message": "Failed to retrieve score distribution",
+            },
         )
 
 
 @router.get("/worst-albums")
 async def get_worst_albums(
-    limit: int = Query(default=5, ge=1, le=100, description="Maximum number of albums to return"),
-    randomize: bool = Query(default=True, description="Randomly select from worst-rated albums"),
-    pool_size: int = Query(default=20, ge=5, le=100, description="Size of worst album pool to select from when randomizing"),
+    limit: int = Query(
+        default=5, ge=1, le=100, description="Maximum number of albums to return"
+    ),
+    randomize: bool = Query(
+        default=True, description="Randomly select from worst-rated albums"
+    ),
+    pool_size: int = Query(
+        default=20,
+        ge=5,
+        le=100,
+        description="Size of worst album pool to select from when randomizing",
+    ),
     service: ReportingService = Depends(get_reporting_service),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
     Get lowest rated albums
@@ -347,18 +359,19 @@ async def get_worst_albums(
     ```
     """
     try:
-        logger.info(f"Fetching worst {limit} albums (randomize={randomize}, pool_size={pool_size})")
-        worst_albums = service.get_worst_albums(db, limit=limit, randomize=randomize, pool_size=pool_size)
+        logger.info(
+            f"Fetching worst {limit} albums (randomize={randomize}, pool_size={pool_size})"
+        )
+        worst_albums = service.get_worst_albums(
+            db, limit=limit, randomize=randomize, pool_size=pool_size
+        )
         return worst_albums
 
     except TracklistException as e:
         logger.error(f"Failed to get worst albums: {e.message}")
         raise HTTPException(
             status_code=500,
-            detail={
-                "error": "Failed to get worst albums",
-                "message": str(e)
-            }
+            detail={"error": "Failed to get worst albums", "message": str(e)},
         )
     except Exception as e:
         logger.error(f"Unexpected error getting worst albums: {e}")
@@ -366,15 +379,15 @@ async def get_worst_albums(
             status_code=500,
             detail={
                 "error": "Internal server error",
-                "message": "Failed to retrieve worst albums"
-            }
+                "message": "Failed to retrieve worst albums",
+            },
         )
 
 
 @router.get("/top-artist")
 async def get_top_artist(
     service: ReportingService = Depends(get_reporting_service),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
     Get the artist with the most rated albums
@@ -430,10 +443,7 @@ async def get_top_artist(
         logger.error(f"Failed to get top artist: {e.message}")
         raise HTTPException(
             status_code=500,
-            detail={
-                "error": "Failed to get top artist",
-                "message": str(e)
-            }
+            detail={"error": "Failed to get top artist", "message": str(e)},
         )
     except Exception as e:
         logger.error(f"Unexpected error getting top artist: {e}")
@@ -441,17 +451,19 @@ async def get_top_artist(
             status_code=500,
             detail={
                 "error": "Internal server error",
-                "message": "Failed to retrieve top artist"
-            }
+                "message": "Failed to retrieve top artist",
+            },
         )
 
 
 @router.get("/top-albums-by-year")
 async def get_top_albums_by_year(
     year: int = Query(..., ge=1900, le=2100, description="Year to filter albums by"),
-    limit: int = Query(default=10, ge=1, le=50, description="Maximum number of albums to return"),
+    limit: int = Query(
+        default=10, ge=1, le=50, description="Maximum number of albums to return"
+    ),
     service: ReportingService = Depends(get_reporting_service),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
     Get top rated albums from a specific year
@@ -500,10 +512,7 @@ async def get_top_albums_by_year(
         logger.error(f"Failed to get top albums by year: {e.message}")
         raise HTTPException(
             status_code=500,
-            detail={
-                "error": "Failed to get top albums by year",
-                "message": str(e)
-            }
+            detail={"error": "Failed to get top albums by year", "message": str(e)},
         )
     except Exception as e:
         logger.error(f"Unexpected error getting top albums by year: {e}")
@@ -511,15 +520,15 @@ async def get_top_albums_by_year(
             status_code=500,
             detail={
                 "error": "Internal server error",
-                "message": "Failed to retrieve top albums by year"
-            }
+                "message": "Failed to retrieve top albums by year",
+            },
         )
 
 
 @router.get("/available-years")
 async def get_available_years(
     service: ReportingService = Depends(get_reporting_service),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
     Get list of years for which rated albums exist
@@ -544,10 +553,7 @@ async def get_available_years(
         logger.error(f"Failed to get available years: {e.message}")
         raise HTTPException(
             status_code=500,
-            detail={
-                "error": "Failed to get available years",
-                "message": str(e)
-            }
+            detail={"error": "Failed to get available years", "message": str(e)},
         )
     except Exception as e:
         logger.error(f"Unexpected error getting available years: {e}")
@@ -555,17 +561,24 @@ async def get_available_years(
             status_code=500,
             detail={
                 "error": "Internal server error",
-                "message": "Failed to retrieve available years"
-            }
+                "message": "Failed to retrieve available years",
+            },
         )
 
 
 @router.get("/no-skips")
 async def get_no_skip_albums(
-    limit: Optional[int] = Query(default=None, ge=1, le=100, description="Optional limit on number of albums to return"),
-    randomize: bool = Query(default=True, description="Randomize album selection (default: true)"),
+    limit: Optional[int] = Query(
+        default=None,
+        ge=1,
+        le=100,
+        description="Optional limit on number of albums to return",
+    ),
+    randomize: bool = Query(
+        default=True, description="Randomize album selection (default: true)"
+    ),
     service: ReportingService = Depends(get_reporting_service),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
     Get albums with no skip-worthy tracks
@@ -610,10 +623,7 @@ async def get_no_skip_albums(
         logger.error(f"Failed to get no-skip albums: {e.message}")
         raise HTTPException(
             status_code=500,
-            detail={
-                "error": "Failed to get no-skip albums",
-                "message": str(e)
-            }
+            detail={"error": "Failed to get no-skip albums", "message": str(e)},
         )
     except Exception as e:
         logger.error(f"Unexpected error getting no-skip albums: {e}")
@@ -621,17 +631,24 @@ async def get_no_skip_albums(
             status_code=500,
             detail={
                 "error": "Internal server error",
-                "message": "Failed to retrieve no-skip albums"
-            }
+                "message": "Failed to retrieve no-skip albums",
+            },
         )
 
 
 @router.get("/highest-rated-artists")
 async def get_highest_rated_artists(
-    min_albums: int = Query(default=3, ge=1, le=10, description="Minimum number of rated albums an artist must have"),
-    limit: int = Query(default=5, ge=1, le=20, description="Maximum number of artists to return"),
+    min_albums: int = Query(
+        default=3,
+        ge=1,
+        le=10,
+        description="Minimum number of rated albums an artist must have",
+    ),
+    limit: int = Query(
+        default=5, ge=1, le=20, description="Maximum number of artists to return"
+    ),
     service: ReportingService = Depends(get_reporting_service),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
     Get highest rated artists based on their average album scores
@@ -671,18 +688,19 @@ async def get_highest_rated_artists(
     ```
     """
     try:
-        logger.info(f"Fetching highest rated artists (min_albums={min_albums}, limit={limit})")
-        highest_rated_artists = service.get_highest_rated_artists(db, min_albums=min_albums, limit=limit)
+        logger.info(
+            f"Fetching highest rated artists (min_albums={min_albums}, limit={limit})"
+        )
+        highest_rated_artists = service.get_highest_rated_artists(
+            db, min_albums=min_albums, limit=limit
+        )
         return highest_rated_artists
 
     except TracklistException as e:
         logger.error(f"Failed to get highest rated artists: {e.message}")
         raise HTTPException(
             status_code=500,
-            detail={
-                "error": "Failed to get highest rated artists",
-                "message": str(e)
-            }
+            detail={"error": "Failed to get highest rated artists", "message": str(e)},
         )
     except Exception as e:
         logger.error(f"Unexpected error getting highest rated artists: {e}")
@@ -690,37 +708,45 @@ async def get_highest_rated_artists(
             status_code=500,
             detail={
                 "error": "Internal server error",
-                "message": "Failed to retrieve highest rated artists"
-            }
+                "message": "Failed to retrieve highest rated artists",
+            },
         )
 
 
 @router.get("/years/{year}/collage")
 async def generate_year_collage(
     year: int,
-    include_ranking: bool = Query(default=True, description="Include ranking list on the side"),
-    include_scores: bool = Query(default=True, description="Include scores in ranking list"),
-    include_title: bool = Query(default=True, description="Include year title at the top"),
-    max_albums: Optional[int] = Query(default=None, ge=1, le=100, description="Maximum number of albums to include"),
+    include_ranking: bool = Query(
+        default=True, description="Include ranking list on the side"
+    ),
+    include_scores: bool = Query(
+        default=True, description="Include scores in ranking list"
+    ),
+    include_title: bool = Query(
+        default=True, description="Include year title at the top"
+    ),
+    max_albums: Optional[int] = Query(
+        default=None, ge=1, le=100, description="Maximum number of albums to include"
+    ),
     service: CollageService = Depends(get_collage_service),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
     Generate a visual collage of top-rated albums for a specific year
-    
+
     Creates a Topsters-style collage image with album artwork arranged in a grid.
     Albums are sorted by rating score (highest first) and placed left-to-right,
     top-to-bottom. Optionally includes a numbered ranking list on the right side.
-    
+
     Query Parameters:
     - include_ranking: Whether to include the ranking list (default: true)
     - include_scores: Whether to show scores in the ranking list (default: true)
     - include_title: Whether to include the year title at the top (default: true)
     - max_albums: Maximum number of albums to include (default: all, max: 100)
-    
+
     Returns:
     - PNG image file as a download
-    
+
     Grid Layout:
     - 1-4 albums: 2x2 grid
     - 5-9 albums: 3x3 grid
@@ -734,7 +760,7 @@ async def generate_year_collage(
     """
     try:
         logger.info(f"Generating collage for year {year} (max_albums={max_albums})")
-        
+
         # Generate the collage
         image_bytes = await service.generate_year_collage(
             year=year,
@@ -742,26 +768,22 @@ async def generate_year_collage(
             include_ranking=include_ranking,
             include_scores=include_scores,
             include_title=include_title,
-            max_albums=max_albums
+            max_albums=max_albums,
         )
-        
+
         # Return as downloadable image
         return StreamingResponse(
             io.BytesIO(image_bytes),
             media_type="image/png",
             headers={
                 "Content-Disposition": f"attachment; filename=tracklist_{year}_yearend.png"
-            }
+            },
         )
-        
+
     except ValueError as e:
         logger.warning(f"Invalid request for year {year} collage: {e}")
         raise HTTPException(
-            status_code=404,
-            detail={
-                "error": "No albums found",
-                "message": str(e)
-            }
+            status_code=404, detail={"error": "No albums found", "message": str(e)}
         )
     except Exception as e:
         logger.error(f"Failed to generate collage for year {year}: {e}")
@@ -769,6 +791,6 @@ async def generate_year_collage(
             status_code=500,
             detail={
                 "error": "Collage generation failed",
-                "message": "Failed to generate the year-end collage"
-            }
+                "message": "Failed to generate the year-end collage",
+            },
         )

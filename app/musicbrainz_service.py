@@ -22,10 +22,7 @@ class MusicBrainzService:
         self.cache = get_cache()
 
     async def search_albums(
-        self,
-        query: str,
-        limit: int = 25,
-        offset: int = 0
+        self, query: str, limit: int = 25, offset: int = 0
     ) -> Dict[str, Any]:
         """
         Search for albums with caching
@@ -53,14 +50,16 @@ class MusicBrainzService:
                 # Cache the result for 30 minutes (search results change more frequently)
                 self.cache.set(result, 1800, f"search:{query}:{limit}:{offset}")
 
-                logger.info(f"Search completed for '{query}': {len(result.get('releases', []))} results")
+                logger.info(
+                    f"Search completed for '{query}': {len(result.get('releases', []))} results"
+                )
                 return result
 
             except MusicBrainzAPIError as e:
                 logger.error(f"MusicBrainz search failed for '{query}': {e.message}")
                 raise TracklistException(
                     f"Album search failed: {e.message}",
-                    {"query": query, "error": e.details}
+                    {"query": query, "error": e.details},
                 )
 
     async def search_albums_structured(
@@ -69,7 +68,7 @@ class MusicBrainzService:
         album: Optional[str] = None,
         year: Optional[int] = None,
         limit: int = 25,
-        offset: int = 0
+        offset: int = 0,
     ) -> Dict[str, Any]:
         """
         Search for albums using structured Lucene query with caching
@@ -85,37 +84,44 @@ class MusicBrainzService:
             Dict with formatted search results
         """
         # Build cache key from parameters
-        cache_key = f"structured:{artist or ''}:{album or ''}:{year or ''}:{limit}:{offset}"
+        cache_key = (
+            f"structured:{artist or ''}:{album or ''}:{year or ''}:{limit}:{offset}"
+        )
 
         # Check cache first
         cached_result = self.cache.get(cache_key)
         if cached_result:
-            logger.info(f"Returning cached structured search results for: artist={artist}, album={album}, year={year}")
+            logger.info(
+                f"Returning cached structured search results for: artist={artist}, album={album}, year={year}"
+            )
             return cached_result
 
         # Make API call
         async with MusicBrainzClient() as client:
             try:
                 raw_data = await client.search_releases_structured(
-                    artist=artist,
-                    album=album,
-                    year=year,
-                    limit=limit,
-                    offset=offset
+                    artist=artist, album=album, year=year, limit=limit, offset=offset
                 )
                 result = self._format_search_results(raw_data)
 
                 # Cache the result for 30 minutes
                 self.cache.set(result, 1800, cache_key)
 
-                logger.info(f"Structured search completed: {len(result.get('releases', []))} results")
+                logger.info(
+                    f"Structured search completed: {len(result.get('releases', []))} results"
+                )
                 return result
 
             except MusicBrainzAPIError as e:
                 logger.error(f"MusicBrainz structured search failed: {e.message}")
                 raise TracklistException(
                     f"Structured album search failed: {e.message}",
-                    {"artist": artist, "album": album, "year": year, "error": e.details}
+                    {
+                        "artist": artist,
+                        "album": album,
+                        "year": year,
+                        "error": e.details,
+                    },
                 )
 
     async def get_album_details(self, release_id: str) -> Dict[str, Any]:
@@ -138,9 +144,11 @@ class MusicBrainzService:
         async with MusicBrainzClient() as client:
             try:
                 raw_data = await client.get_release_with_tracks(release_id)
-                
+
                 # If we have a release-group, fetch its tags separately
-                if raw_data.get("release-group") and raw_data["release-group"].get("id"):
+                if raw_data.get("release-group") and raw_data["release-group"].get(
+                    "id"
+                ):
                     try:
                         rg_id = raw_data["release-group"]["id"]
                         rg_data = await client.get_release_group_with_tags(rg_id)
@@ -149,7 +157,7 @@ class MusicBrainzService:
                             raw_data["release-group"]["tags"] = rg_data["tags"]
                     except Exception as e:
                         logger.warning(f"Could not fetch release-group tags: {e}")
-                
+
                 result = self._format_album_details(raw_data)
 
                 # Cache album details for 24 hours (rarely change)
@@ -159,13 +167,17 @@ class MusicBrainzService:
                 return result
 
             except MusicBrainzAPIError as e:
-                logger.error(f"MusicBrainz album fetch failed for '{release_id}': {e.message}")
+                logger.error(
+                    f"MusicBrainz album fetch failed for '{release_id}': {e.message}"
+                )
                 raise TracklistException(
                     f"Album details fetch failed: {e.message}",
-                    {"release_id": release_id, "error": e.details}
+                    {"release_id": release_id, "error": e.details},
                 )
 
-    async def get_release_group_releases(self, release_group_id: str) -> List[Dict[str, Any]]:
+    async def get_release_group_releases(
+        self, release_group_id: str
+    ) -> List[Dict[str, Any]]:
         """
         Get all releases from a release group
 
@@ -188,7 +200,9 @@ class MusicBrainzService:
 
             # Query for releases in the release group
             async with MusicBrainzClient() as client:
-                raw_data = await client.search_releases_by_release_group(release_group_id, limit=100)
+                raw_data = await client.search_releases_by_release_group(
+                    release_group_id, limit=100
+                )
 
             releases = []
             for release in raw_data.get("releases", []):
@@ -220,15 +234,12 @@ class MusicBrainzService:
                 formatted_release = {
                     "musicbrainz_id": release.get("id"),
                     "title": release.get("title", "Unknown Title"),
-                    "artist": {
-                        "name": artist_name,
-                        "musicbrainz_id": artist_mbid
-                    },
+                    "artist": {"name": artist_name, "musicbrainz_id": artist_mbid},
                     "year": year,
                     "track_count": track_count,
                     "format": ", ".join(formats) if formats else None,
                     "country": release.get("country"),
-                    "status": release.get("status")
+                    "status": release.get("status"),
                 }
 
                 releases.append(formatted_release)
@@ -239,14 +250,18 @@ class MusicBrainzService:
             # Cache the result
             self.cache.set(releases, 3600, cache_key)  # Cache for 1 hour
 
-            logger.info(f"Found {len(releases)} releases in release group: {release_group_id}")
+            logger.info(
+                f"Found {len(releases)} releases in release group: {release_group_id}"
+            )
             return releases
 
         except MusicBrainzAPIError as e:
-            logger.error(f"MusicBrainz release group fetch failed for '{release_group_id}': {e.message}")
+            logger.error(
+                f"MusicBrainz release group fetch failed for '{release_group_id}': {e.message}"
+            )
             raise TracklistException(
                 f"Release group fetch failed: {e.message}",
-                {"release_group_id": release_group_id, "error": e.details}
+                {"release_group_id": release_group_id, "error": e.details},
             )
 
     def _format_search_results(self, raw_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -277,16 +292,18 @@ class MusicBrainzService:
                 "status": release.get("status"),
                 "packaging": release.get("packaging"),
                 "track_count": release.get("track-count"),
-                "media": []
+                "media": [],
             }
 
             # Extract media information
             for medium in release.get("media", []):
-                formatted_release["media"].append({
-                    "format": medium.get("format"),
-                    "track_count": medium.get("track-count"),
-                    "title": medium.get("title")
-                })
+                formatted_release["media"].append(
+                    {
+                        "format": medium.get("format"),
+                        "track_count": medium.get("track-count"),
+                        "title": medium.get("title"),
+                    }
+                )
 
             # Calculate release year
             if formatted_release["date"]:
@@ -302,7 +319,7 @@ class MusicBrainzService:
         return {
             "releases": releases,
             "count": raw_data.get("count", 0),
-            "offset": raw_data.get("offset", 0)
+            "offset": raw_data.get("offset", 0),
         }
 
     def _format_album_details(self, raw_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -328,19 +345,20 @@ class MusicBrainzService:
         album = {
             "musicbrainz_id": raw_data.get("id"),
             "title": raw_data.get("title", "Unknown Title"),
-            "artist": {
-                "name": artist_name,
-                "musicbrainz_id": artist_id
-            },
+            "artist": {"name": artist_name, "musicbrainz_id": artist_id},
             "date": raw_data.get("date"),
             "country": raw_data.get("country"),
             "status": raw_data.get("status"),
             "packaging": raw_data.get("packaging"),
             "barcode": raw_data.get("barcode"),
-            "release_group_id": raw_data.get("release-group", {}).get("id") if raw_data.get("release-group") else None,
+            "release_group_id": (
+                raw_data.get("release-group", {}).get("id")
+                if raw_data.get("release-group")
+                else None
+            ),
             "tracks": [],
             "total_tracks": 0,
-            "total_duration_ms": 0
+            "total_duration_ms": 0,
         }
 
         # Calculate release year
@@ -378,7 +396,7 @@ class MusicBrainzService:
                     "track_number": track_number,
                     "title": track_title,
                     "duration_ms": duration_ms,
-                    "musicbrainz_recording_id": recording_id
+                    "musicbrainz_recording_id": recording_id,
                 }
 
                 album["tracks"].append(formatted_track)
@@ -386,55 +404,90 @@ class MusicBrainzService:
 
         album["total_tracks"] = len(album["tracks"])
         album["total_duration_ms"] = total_duration if total_duration > 0 else None
-        
+
         # Extract genre from release-group tags if available
         album["genre"] = self._extract_genre_from_release(raw_data)
 
         return album
-    
-    def _extract_genre_from_release(self, release_data: Dict[str, Any]) -> Optional[str]:
+
+    def _extract_genre_from_release(
+        self, release_data: Dict[str, Any]
+    ) -> Optional[str]:
         """
         Extract genre information from MusicBrainz release data
-        
+
         Args:
             release_data: Raw MusicBrainz release data
-            
+
         Returns:
             Comma-separated genre string or None if no genres found
         """
         genres = []
-        
+
         # Common non-genre tags to filter out
         non_genre_tags = {
-            'english', 'spanish', 'french', 'german', 'italian', 'japanese', 'portuguese',
-            'instrumental', 'live', 'compilation', 'studio', 'remix',
-            '1', '2', '3', '4', '5', '2/5', '3/5', '4/5', '5/5',
-            '1–9 wochen', 'explicit', 'clean', 'single', 'ep', 'lp'
+            "english",
+            "spanish",
+            "french",
+            "german",
+            "italian",
+            "japanese",
+            "portuguese",
+            "instrumental",
+            "live",
+            "compilation",
+            "studio",
+            "remix",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "2/5",
+            "3/5",
+            "4/5",
+            "5/5",
+            "1–9 wochen",
+            "explicit",
+            "clean",
+            "single",
+            "ep",
+            "lp",
         }
-        
+
         # Try to get genres from release-group tags
-        if release_data.get("release-group") and release_data["release-group"].get("tags"):
+        if release_data.get("release-group") and release_data["release-group"].get(
+            "tags"
+        ):
             tags = release_data["release-group"]["tags"]
             # Sort by count (popularity) and take top 10 to filter from
-            sorted_tags = sorted(tags, key=lambda x: x.get("count", 0), reverse=True)[:10]
-            
+            sorted_tags = sorted(tags, key=lambda x: x.get("count", 0), reverse=True)[
+                :10
+            ]
+
             # Filter out non-genre tags and take top 5 genres
             for tag in sorted_tags:
                 tag_name = tag.get("name", "").lower()
-                if tag_name and tag_name not in non_genre_tags and not tag_name.isdigit():
+                if (
+                    tag_name
+                    and tag_name not in non_genre_tags
+                    and not tag_name.isdigit()
+                ):
                     genres.append(tag["name"])
                     if len(genres) >= 5:
                         break
-        
+
         if genres:
             # Format genres properly (capitalize, join with comma)
             formatted_genres = []
             for genre in genres:
                 # Basic formatting - capitalize each word
-                formatted_genre = " ".join(word.capitalize() for word in genre.split("-"))
+                formatted_genre = " ".join(
+                    word.capitalize() for word in genre.split("-")
+                )
                 formatted_genres.append(formatted_genre)
             return ", ".join(formatted_genres)
-        
+
         # Return None if no genres found
         return None
 

@@ -20,14 +20,29 @@ templates = Jinja2Templates(directory="templates")
 @router.get("/search/albums")
 async def search_albums(
     request: Request,
-    q: Optional[str] = Query(None, description="General search query for albums", min_length=1, max_length=200),
-    artist: Optional[str] = Query(None, description="Artist name for structured search", max_length=200),
-    album: Optional[str] = Query(None, description="Album title for structured search", max_length=200),
-    year: Optional[int] = Query(None, description="Release year for structured search", ge=1900, le=2100),
-    mbid: Optional[str] = Query(None, description="MusicBrainz Release ID for direct lookup", regex="^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$"),
+    q: Optional[str] = Query(
+        None,
+        description="General search query for albums",
+        min_length=1,
+        max_length=200,
+    ),
+    artist: Optional[str] = Query(
+        None, description="Artist name for structured search", max_length=200
+    ),
+    album: Optional[str] = Query(
+        None, description="Album title for structured search", max_length=200
+    ),
+    year: Optional[int] = Query(
+        None, description="Release year for structured search", ge=1900, le=2100
+    ),
+    mbid: Optional[str] = Query(
+        None,
+        description="MusicBrainz Release ID for direct lookup",
+        regex="^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$",
+    ),
     limit: int = Query(25, description="Maximum number of results", ge=1, le=100),
     offset: int = Query(0, description="Offset for pagination", ge=0),
-    service: MusicBrainzService = Depends(get_musicbrainz_service)
+    service: MusicBrainzService = Depends(get_musicbrainz_service),
 ):
     """
     Search for albums using MusicBrainz
@@ -50,8 +65,8 @@ async def search_albums(
                 status_code=400,
                 detail={
                     "error": "Missing search parameters",
-                    "message": "Please provide at least one search parameter (q, artist, album, or mbid)"
-                }
+                    "message": "Please provide at least one search parameter (q, artist, album, or mbid)",
+                },
             )
 
         # Handle direct MusicBrainz ID lookup
@@ -63,70 +78,62 @@ async def search_albums(
 
             # Format as search results for consistency
             results = {
-                "releases": [{
-                    "musicbrainz_id": album_details["musicbrainz_id"],
-                    "title": album_details["title"],
-                    "artist": album_details["artist"]["name"],
-                    "date": album_details["date"],
-                    "year": album_details["year"],
-                    "country": album_details["country"],
-                    "status": album_details["status"],
-                    "packaging": album_details["packaging"],
-                    "track_count": album_details["total_tracks"],
-                    "media": []
-                }],
+                "releases": [
+                    {
+                        "musicbrainz_id": album_details["musicbrainz_id"],
+                        "title": album_details["title"],
+                        "artist": album_details["artist"]["name"],
+                        "date": album_details["date"],
+                        "year": album_details["year"],
+                        "country": album_details["country"],
+                        "status": album_details["status"],
+                        "packaging": album_details["packaging"],
+                        "track_count": album_details["total_tracks"],
+                        "media": [],
+                    }
+                ],
                 "count": 1,
                 "offset": 0,
-                "search_context": {
-                    "type": "direct_lookup",
-                    "mbid": mbid
-                }
+                "search_context": {"type": "direct_lookup", "mbid": mbid},
             }
 
         # Handle structured search
         elif artist or album:
-            search_params = {
-                "artist": artist,
-                "album": album,
-                "year": year
-            }
+            search_params = {"artist": artist, "album": album, "year": year}
             logger.info(f"Structured album search request: {search_params}")
 
             results = await service.search_albums_structured(
-                artist=artist,
-                album=album,
-                year=year,
-                limit=limit,
-                offset=offset
+                artist=artist, album=album, year=year, limit=limit, offset=offset
             )
 
             results["search_context"] = {
                 "type": "structured",
                 "artist": artist,
                 "album": album,
-                "year": year
+                "year": year,
             }
 
         # Handle general search
         else:
-            logger.info(f"General album search request: '{q}' (limit={limit}, offset={offset})")
+            logger.info(
+                f"General album search request: '{q}' (limit={limit}, offset={offset})"
+            )
 
             results = await service.search_albums(q, limit, offset)
 
-            results["search_context"] = {
-                "type": "general",
-                "query": q
-            }
+            results["search_context"] = {"type": "general", "query": q}
 
         # Add pagination metadata
         results["pagination"] = {
             "limit": limit,
             "offset": offset,
             "total": results.get("count", 0),
-            "has_more": (offset + limit) < results.get("count", 0)
+            "has_more": (offset + limit) < results.get("count", 0),
         }
 
-        logger.info(f"Search completed: {len(results.get('releases', []))} results returned")
+        logger.info(
+            f"Search completed: {len(results.get('releases', []))} results returned"
+        )
 
         # Check if this is an HTMX request
         hx_request = request.headers.get("HX-Request")
@@ -144,13 +151,12 @@ async def search_albums(
                 "artist": artist,
                 "album": album,
                 "year": year,
-                "mbid": mbid
+                "mbid": mbid,
             }
 
             # Return HTML template for HTMX
             return templates.TemplateResponse(
-                "components/search_results.html",
-                template_context
+                "components/search_results.html", template_context
             )
 
         # Return JSON for API calls
@@ -163,8 +169,8 @@ async def search_albums(
             detail={
                 "error": "Search service unavailable",
                 "message": "Unable to search albums at this time. Please try again later.",
-                "details": e.details
-            }
+                "details": e.details,
+            },
         )
     except Exception as e:
         logger.error(f"Unexpected search error: {e}", exc_info=True)
@@ -172,15 +178,14 @@ async def search_albums(
             status_code=500,
             detail={
                 "error": "Internal server error",
-                "message": "An unexpected error occurred during search"
-            }
+                "message": "An unexpected error occurred during search",
+            },
         )
 
 
 @router.get("/albums/{musicbrainz_id}/details")
 async def get_album_details(
-    musicbrainz_id: str,
-    service: MusicBrainzService = Depends(get_musicbrainz_service)
+    musicbrainz_id: str, service: MusicBrainzService = Depends(get_musicbrainz_service)
 ) -> Dict[str, Any]:
     """
     Get detailed album information by MusicBrainz ID
@@ -198,18 +203,20 @@ async def get_album_details(
         logger.info(f"Album details request: {musicbrainz_id}")
 
         # Validate MusicBrainz ID format (36 character UUID)
-        if len(musicbrainz_id) != 36 or musicbrainz_id.count('-') != 4:
+        if len(musicbrainz_id) != 36 or musicbrainz_id.count("-") != 4:
             raise HTTPException(
                 status_code=400,
                 detail={
                     "error": "Invalid MusicBrainz ID",
-                    "message": "MusicBrainz ID must be a valid UUID format"
-                }
+                    "message": "MusicBrainz ID must be a valid UUID format",
+                },
             )
 
         album_details = await service.get_album_details(musicbrainz_id)
 
-        logger.info(f"Album details retrieved: {album_details.get('title', 'Unknown')} - {album_details.get('total_tracks', 0)} tracks")
+        logger.info(
+            f"Album details retrieved: {album_details.get('title', 'Unknown')} - {album_details.get('total_tracks', 0)} tracks"
+        )
         return album_details
 
     except TracklistException as e:
@@ -224,8 +231,8 @@ async def get_album_details(
                 detail={
                     "error": "Album not found",
                     "message": f"Album with MusicBrainz ID '{musicbrainz_id}' not found",
-                    "musicbrainz_id": musicbrainz_id
-                }
+                    "musicbrainz_id": musicbrainz_id,
+                },
             )
 
         raise HTTPException(
@@ -233,8 +240,8 @@ async def get_album_details(
             detail={
                 "error": "Music service unavailable",
                 "message": "Unable to fetch album details at this time. Please try again later.",
-                "details": e.details
-            }
+                "details": e.details,
+            },
         )
     except HTTPException:
         # Re-raise HTTP exceptions
@@ -245,14 +252,16 @@ async def get_album_details(
             status_code=500,
             detail={
                 "error": "Internal server error",
-                "message": "An unexpected error occurred while fetching album details"
-            }
+                "message": "An unexpected error occurred while fetching album details",
+            },
         )
 
 
 @router.get("/releases/{musicbrainz_id}/artwork-url")
 async def get_release_artwork_url(
-    musicbrainz_id: str = Path(..., description="MusicBrainz release ID", min_length=36, max_length=36)
+    musicbrainz_id: str = Path(
+        ..., description="MusicBrainz release ID", min_length=36, max_length=36
+    )
 ) -> Dict[str, Any]:
     """
     Get cover art URL for a MusicBrainz release ID
@@ -264,35 +273,32 @@ async def get_release_artwork_url(
         from ..services.cover_art_service import get_cover_art_service
 
         # Validate MusicBrainz ID format
-        if len(musicbrainz_id) != 36 or musicbrainz_id.count('-') != 4:
+        if len(musicbrainz_id) != 36 or musicbrainz_id.count("-") != 4:
             raise HTTPException(
                 status_code=400,
                 detail={
                     "error": "Invalid MusicBrainz ID",
-                    "message": "MusicBrainz ID must be a valid UUID format"
-                }
+                    "message": "MusicBrainz ID must be a valid UUID format",
+                },
             )
 
         cover_art_service = get_cover_art_service()
         cover_art_url = await cover_art_service.get_cover_art_url(musicbrainz_id)
 
-        return {
-            "url": cover_art_url,
-            "musicbrainz_id": musicbrainz_id
-        }
+        return {"url": cover_art_url, "musicbrainz_id": musicbrainz_id}
 
     except Exception as e:
         logger.debug(f"Could not fetch cover art for {musicbrainz_id}: {e}")
         return {
             "url": None,
             "musicbrainz_id": musicbrainz_id,
-            "error": "Cover art not available"
+            "error": "Cover art not available",
         }
 
 
 @router.get("/cache/stats")
 async def get_cache_stats(
-    service: MusicBrainzService = Depends(get_musicbrainz_service)
+    service: MusicBrainzService = Depends(get_musicbrainz_service),
 ) -> Dict[str, Any]:
     """
     Get cache statistics for monitoring and debugging
@@ -305,24 +311,18 @@ async def get_cache_stats(
     try:
         stats = service.get_cache_stats()
         logger.debug(f"Cache stats requested: {stats}")
-        return {
-            "cache_stats": stats,
-            "status": "healthy"
-        }
+        return {"cache_stats": stats, "status": "healthy"}
     except Exception as e:
         logger.error(f"Error getting cache stats: {e}")
         raise HTTPException(
             status_code=500,
-            detail={
-                "error": "Unable to get cache statistics",
-                "message": str(e)
-            }
+            detail={"error": "Unable to get cache statistics", "message": str(e)},
         )
 
 
 @router.delete("/cache")
 async def clear_cache(
-    service: MusicBrainzService = Depends(get_musicbrainz_service)
+    service: MusicBrainzService = Depends(get_musicbrainz_service),
 ) -> Dict[str, str]:
     """
     Clear all cached MusicBrainz data
@@ -333,16 +333,10 @@ async def clear_cache(
     try:
         service.clear_cache()
         logger.info("Cache cleared via API request")
-        return {
-            "message": "Cache cleared successfully",
-            "status": "success"
-        }
+        return {"message": "Cache cleared successfully", "status": "success"}
     except Exception as e:
         logger.error(f"Error clearing cache: {e}")
         raise HTTPException(
             status_code=500,
-            detail={
-                "error": "Unable to clear cache",
-                "message": str(e)
-            }
+            detail={"error": "Unable to clear cache", "message": str(e)},
         )

@@ -27,6 +27,7 @@ logger = logging.getLogger(__name__)
 # Try to import httpx, fallback to requests if needed
 try:
     import httpx
+
     HTTPX_AVAILABLE = True
 except ImportError:
     HTTPX_AVAILABLE = False
@@ -35,6 +36,7 @@ except ImportError:
 
 class ArtworkCacheError(TracklistException):
     """Exception raised for artwork cache operations"""
+
     pass
 
 
@@ -68,7 +70,7 @@ class ArtworkCacheService:
             self.client = httpx.AsyncClient(
                 timeout=self.CACHE_TIMEOUT,
                 follow_redirects=True,
-                limits=httpx.Limits(max_keepalive_connections=5)
+                limits=httpx.Limits(max_keepalive_connections=5),
             )
             self.downloader = ArtworkDownloader(self.client)
         else:
@@ -95,10 +97,7 @@ class ArtworkCacheService:
         return cache_key
 
     async def get_or_cache_artwork(
-        self,
-        album: Album,
-        size_variant: str,
-        db: Session
+        self, album: Album, size_variant: str, db: Session
     ) -> Optional[str]:
         """
         Get cached artwork URL or download and cache if needed
@@ -125,11 +124,15 @@ class ArtworkCacheService:
                 return self.cache_fs.get_web_path(cache_key, size_variant)
 
             # Check if we have the original cached
-            if size_variant != "original" and self.cache_fs.exists(cache_key, "original"):
+            if size_variant != "original" and self.cache_fs.exists(
+                cache_key, "original"
+            ):
                 logger.debug(f"Generating {size_variant} from cached original")
 
                 # Generate variant from original
-                success = await self._generate_variant_from_original(cache_key, size_variant)
+                success = await self._generate_variant_from_original(
+                    cache_key, size_variant
+                )
                 if success:
                     await self._update_access_tracking(album.id, size_variant, db)
                     return self.cache_fs.get_web_path(cache_key, size_variant)
@@ -141,7 +144,9 @@ class ArtworkCacheService:
             artwork_url = album.cover_art_url
             if not artwork_url:
                 # Try to fetch from Cover Art Archive
-                artwork_url = await self.cover_art_service.get_cover_art_url(album.musicbrainz_id)
+                artwork_url = await self.cover_art_service.get_cover_art_url(
+                    album.musicbrainz_id
+                )
 
                 if artwork_url:
                     # Update album with the URL
@@ -166,12 +171,7 @@ class ArtworkCacheService:
             logger.error(f"Error getting artwork for album {album.id}: {e}")
             return album.cover_art_url  # Fallback to external URL
 
-    async def cache_artwork(
-        self,
-        album: Album,
-        artwork_url: str,
-        db: Session
-    ) -> bool:
+    async def cache_artwork(self, album: Album, artwork_url: str, db: Session) -> bool:
         """
         Download and cache artwork in all size variants
 
@@ -199,7 +199,9 @@ class ArtworkCacheService:
             image_data, metadata = download_result
 
             # Generate all size variants (including original)
-            variants_metadata = await self._generate_all_variants_with_metadata(cache_key, image_data)
+            variants_metadata = await self._generate_all_variants_with_metadata(
+                cache_key, image_data
+            )
 
             if not variants_metadata:
                 logger.error(f"No variants could be created for album {album.id}")
@@ -215,7 +217,9 @@ class ArtworkCacheService:
             album.artwork_cache_date = datetime.now(timezone.utc)
             db.commit()
 
-            logger.info(f"Successfully cached artwork for album {album.id} with {len(variants_metadata)} variants")
+            logger.info(
+                f"Successfully cached artwork for album {album.id} with {len(variants_metadata)} variants"
+            )
             return True
 
         except Exception as e:
@@ -239,14 +243,16 @@ class ArtworkCacheService:
                 response = await self.client.get(url)
 
                 if response.status_code != 200:
-                    logger.warning(f"Failed to download image: HTTP {response.status_code}")
+                    logger.warning(
+                        f"Failed to download image: HTTP {response.status_code}"
+                    )
                     return None
 
                 image_data = response.content
                 metadata = {
-                    'url': str(response.url),
-                    'content_length': len(image_data),
-                    'content_type': response.headers.get('content-type', '')
+                    "url": str(response.url),
+                    "content_length": len(image_data),
+                    "content_type": response.headers.get("content-type", ""),
                 }
                 return image_data, metadata
 
@@ -257,7 +263,9 @@ class ArtworkCacheService:
         # Use enhanced downloader with retry and validation
         try:
             image_data, metadata = await self.downloader.download_with_retry(url)
-            logger.info(f"Successfully downloaded artwork from {url} ({metadata.get('content_length', 0)} bytes)")
+            logger.info(
+                f"Successfully downloaded artwork from {url} ({metadata.get('content_length', 0)} bytes)"
+            )
             return image_data, metadata
 
         except ArtworkDownloadError as e:
@@ -287,7 +295,7 @@ class ArtworkCacheService:
             file_path = self.cache_fs.get_cache_path(cache_key, "original", format_ext)
 
             # Save asynchronously
-            async with aiofiles.open(file_path, 'wb') as f:
+            async with aiofiles.open(file_path, "wb") as f:
                 await f.write(image_data)
 
             logger.debug(f"Saved original to {file_path}")
@@ -298,9 +306,7 @@ class ArtworkCacheService:
             return None
 
     async def _generate_all_variants_with_metadata(
-        self,
-        cache_key: str,
-        image_data: bytes
+        self, cache_key: str, image_data: bytes
     ) -> Dict[str, Dict[str, Any]]:
         """
         Generate all size variants and return with metadata
@@ -317,27 +323,28 @@ class ArtworkCacheService:
         try:
             # Process all variants using the image processor
             processed_variants = self.image_processor.process_all_variants(
-                image_data,
-                optimize=True
+                image_data, optimize=True
             )
 
             # Save each processed variant and collect metadata
             for variant_name, (variant_data, metadata) in processed_variants.items():
                 try:
                     # Determine file extension based on format
-                    ext = metadata.get('format', 'JPEG').lower()
-                    if ext == 'jpeg':
-                        ext = 'jpg'
+                    ext = metadata.get("format", "JPEG").lower()
+                    if ext == "jpeg":
+                        ext = "jpg"
 
                     # Get path for variant
-                    file_path = self.cache_fs.get_cache_path(cache_key, variant_name, ext)
+                    file_path = self.cache_fs.get_cache_path(
+                        cache_key, variant_name, ext
+                    )
 
                     # Save asynchronously
-                    async with aiofiles.open(file_path, 'wb') as f:
+                    async with aiofiles.open(file_path, "wb") as f:
                         await f.write(variant_data)
 
                     # Store metadata with file path
-                    metadata['file_path'] = str(file_path)
+                    metadata["file_path"] = str(file_path)
                     variants_metadata[variant_name] = metadata
 
                     logger.debug(
@@ -362,12 +369,12 @@ class ArtworkCacheService:
             logger.error(f"Failed to generate variants: {e}")
             # Try to at least save the original
             try:
-                file_path = self.cache_fs.get_cache_path(cache_key, 'original', 'jpg')
-                async with aiofiles.open(file_path, 'wb') as f:
+                file_path = self.cache_fs.get_cache_path(cache_key, "original", "jpg")
+                async with aiofiles.open(file_path, "wb") as f:
                     await f.write(image_data)
-                variants_metadata['original'] = {
-                    'file_path': str(file_path),
-                    'file_size_bytes': len(image_data)
+                variants_metadata["original"] = {
+                    "file_path": str(file_path),
+                    "file_size_bytes": len(image_data),
                 }
             except Exception as save_error:
                 logger.error(f"Failed to save original: {save_error}")
@@ -375,9 +382,7 @@ class ArtworkCacheService:
         return variants_metadata
 
     async def _generate_all_variants(
-        self,
-        cache_key: str,
-        image_data: bytes
+        self, cache_key: str, image_data: bytes
     ) -> List[str]:
         """
         Generate all size variants from original image using enhanced image processor
@@ -395,23 +400,24 @@ class ArtworkCacheService:
         try:
             # Process all variants using the image processor
             processed_variants = self.image_processor.process_all_variants(
-                image_data,
-                optimize=True
+                image_data, optimize=True
             )
 
             # Save each processed variant
             for variant_name, (variant_data, metadata) in processed_variants.items():
                 try:
                     # Determine file extension based on format
-                    ext = metadata.get('format', 'JPEG').lower()
-                    if ext == 'jpeg':
-                        ext = 'jpg'
+                    ext = metadata.get("format", "JPEG").lower()
+                    if ext == "jpeg":
+                        ext = "jpg"
 
                     # Get path for variant
-                    file_path = self.cache_fs.get_cache_path(cache_key, variant_name, ext)
+                    file_path = self.cache_fs.get_cache_path(
+                        cache_key, variant_name, ext
+                    )
 
                     # Save asynchronously
-                    async with aiofiles.open(file_path, 'wb') as f:
+                    async with aiofiles.open(file_path, "wb") as f:
                         await f.write(variant_data)
 
                     variants_created.append(variant_name)
@@ -436,13 +442,15 @@ class ArtworkCacheService:
         except ImageProcessingError as e:
             logger.error(f"Image processing failed: {e}")
             # If we have at least the original, continue
-            if 'original' not in variants_created:
+            if "original" not in variants_created:
                 # Try to at least save the original
                 try:
-                    file_path = self.cache_fs.get_cache_path(cache_key, 'original', 'jpg')
-                    async with aiofiles.open(file_path, 'wb') as f:
+                    file_path = self.cache_fs.get_cache_path(
+                        cache_key, "original", "jpg"
+                    )
+                    async with aiofiles.open(file_path, "wb") as f:
                         await f.write(image_data)
-                    variants_created.append('original')
+                    variants_created.append("original")
                 except Exception as save_error:
                     logger.error(f"Failed to save even original: {save_error}")
         except Exception as e:
@@ -454,9 +462,7 @@ class ArtworkCacheService:
         return variants_created
 
     async def _generate_variant_from_original(
-        self,
-        cache_key: str,
-        size_variant: str
+        self, cache_key: str, size_variant: str
     ) -> bool:
         """
         Generate a specific size variant from cached original using enhanced processor
@@ -471,7 +477,7 @@ class ArtworkCacheService:
         try:
             # Find original file
             original_path = None
-            for ext in ['jpg', 'jpeg', 'png', 'gif', 'webp']:
+            for ext in ["jpg", "jpeg", "png", "gif", "webp"]:
                 path = self.cache_fs.get_cache_path(cache_key, "original", ext)
                 if path.exists():
                     original_path = path
@@ -482,7 +488,7 @@ class ArtworkCacheService:
                 return False
 
             # Load original data
-            async with aiofiles.open(original_path, 'rb') as f:
+            async with aiofiles.open(original_path, "rb") as f:
                 original_data = await f.read()
 
             # Process using image processor
@@ -492,17 +498,17 @@ class ArtworkCacheService:
                     size_variant,
                     optimize=True,
                     maintain_aspect=True,
-                    smart_crop=True
+                    smart_crop=True,
                 )
 
                 # Save processed variant
-                ext = metadata.get('format', 'JPEG').lower()
-                if ext == 'jpeg':
-                    ext = 'jpg'
+                ext = metadata.get("format", "JPEG").lower()
+                if ext == "jpeg":
+                    ext = "jpg"
 
                 file_path = self.cache_fs.get_cache_path(cache_key, size_variant, ext)
 
-                async with aiofiles.open(file_path, 'wb') as f:
+                async with aiofiles.open(file_path, "wb") as f:
                     await f.write(processed_data)
 
                 logger.debug(
@@ -527,7 +533,7 @@ class ArtworkCacheService:
         original_url: str,
         variants_metadata: Dict[str, Dict[str, Any]],
         db: Session,
-        download_metadata: Optional[Dict[str, Any]] = None
+        download_metadata: Optional[Dict[str, Any]] = None,
     ) -> None:
         """
         Update database cache records with detailed variant metadata
@@ -545,10 +551,11 @@ class ArtworkCacheService:
 
             for variant_name, variant_meta in variants_metadata.items():
                 # Check if record exists
-                cache_record = db.query(ArtworkCache).filter_by(
-                    album_id=album.id,
-                    size_variant=variant_name
-                ).first()
+                cache_record = (
+                    db.query(ArtworkCache)
+                    .filter_by(album_id=album.id, size_variant=variant_name)
+                    .first()
+                )
 
                 if not cache_record:
                     # Create new record
@@ -559,7 +566,7 @@ class ArtworkCacheService:
                         size_variant=variant_name,
                         last_fetched_at=now,
                         last_accessed_at=now,
-                        access_count=1
+                        access_count=1,
                     )
                     db.add(cache_record)
                 else:
@@ -569,21 +576,23 @@ class ArtworkCacheService:
                     cache_record.access_count += 1
 
                 # Update with variant metadata
-                cache_record.file_path = variant_meta.get('file_path')
-                cache_record.file_size_bytes = variant_meta.get('file_size_bytes')
-                cache_record.width = variant_meta.get('width')
-                cache_record.height = variant_meta.get('height')
-                cache_record.content_type = f"image/{variant_meta.get('format', 'jpeg').lower()}"
+                cache_record.file_path = variant_meta.get("file_path")
+                cache_record.file_size_bytes = variant_meta.get("file_size_bytes")
+                cache_record.width = variant_meta.get("width")
+                cache_record.height = variant_meta.get("height")
+                cache_record.content_type = (
+                    f"image/{variant_meta.get('format', 'jpeg').lower()}"
+                )
 
                 # Add download metadata if available
                 if download_metadata:
-                    cache_record.etag = download_metadata.get('etag')
+                    cache_record.etag = download_metadata.get("etag")
 
                 # Store checksum if available
-                if 'checksum' in variant_meta:
+                if "checksum" in variant_meta:
                     # Store in etag field if not already used
                     if not cache_record.etag:
-                        cache_record.etag = variant_meta['checksum']
+                        cache_record.etag = variant_meta["checksum"]
 
                 logger.debug(
                     f"Updated cache record for {variant_name}: "
@@ -592,7 +601,9 @@ class ArtworkCacheService:
                 )
 
             db.commit()
-            logger.info(f"Updated {len(variants_metadata)} cache records for album {album.id}")
+            logger.info(
+                f"Updated {len(variants_metadata)} cache records for album {album.id}"
+            )
 
         except SQLAlchemyError as e:
             logger.error(f"Database error updating cache records: {e}")
@@ -606,7 +617,7 @@ class ArtworkCacheService:
         original_url: str,
         variants_created: List[str],
         db: Session,
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None,
     ) -> None:
         """
         Update database cache records for an album with metadata
@@ -624,10 +635,11 @@ class ArtworkCacheService:
 
             for variant in variants_created:
                 # Check if record exists
-                cache_record = db.query(ArtworkCache).filter_by(
-                    album_id=album.id,
-                    size_variant=variant
-                ).first()
+                cache_record = (
+                    db.query(ArtworkCache)
+                    .filter_by(album_id=album.id, size_variant=variant)
+                    .first()
+                )
 
                 if not cache_record:
                     # Create new record
@@ -638,7 +650,7 @@ class ArtworkCacheService:
                         size_variant=variant,
                         last_fetched_at=now,
                         last_accessed_at=now,
-                        access_count=1
+                        access_count=1,
                     )
                     db.add(cache_record)
                 else:
@@ -654,19 +666,24 @@ class ArtworkCacheService:
                     cache_record.file_size_bytes = file_info["size_bytes"]
 
                 # Set dimensions
-                if variant in self.cache_fs.SIZE_SPECS and self.cache_fs.SIZE_SPECS[variant]:
+                if (
+                    variant in self.cache_fs.SIZE_SPECS
+                    and self.cache_fs.SIZE_SPECS[variant]
+                ):
                     cache_record.width = self.cache_fs.SIZE_SPECS[variant][0]
                     cache_record.height = self.cache_fs.SIZE_SPECS[variant][1]
 
                 # Add metadata if available
                 if metadata:
-                    cache_record.etag = metadata.get('etag')
-                    cache_record.content_type = metadata.get('content_type', 'image/jpeg')
+                    cache_record.etag = metadata.get("etag")
+                    cache_record.content_type = metadata.get(
+                        "content_type", "image/jpeg"
+                    )
 
                     # Store original image dimensions for the original variant
-                    if variant == 'original' and 'width' in metadata:
-                        cache_record.width = metadata.get('width')
-                        cache_record.height = metadata.get('height')
+                    if variant == "original" and "width" in metadata:
+                        cache_record.width = metadata.get("width")
+                        cache_record.height = metadata.get("height")
                 else:
                     cache_record.content_type = "image/jpeg"
 
@@ -679,10 +696,7 @@ class ArtworkCacheService:
             raise
 
     async def _update_access_tracking(
-        self,
-        album_id: int,
-        size_variant: str,
-        db: Session
+        self, album_id: int, size_variant: str, db: Session
     ) -> None:
         """
         Update access tracking for cached artwork
@@ -693,10 +707,11 @@ class ArtworkCacheService:
             db: Database session
         """
         try:
-            cache_record = db.query(ArtworkCache).filter_by(
-                album_id=album_id,
-                size_variant=size_variant
-            ).first()
+            cache_record = (
+                db.query(ArtworkCache)
+                .filter_by(album_id=album_id, size_variant=size_variant)
+                .first()
+            )
 
             if cache_record:
                 cache_record.last_accessed_at = datetime.now(timezone.utc)
@@ -725,15 +740,17 @@ class ArtworkCacheService:
             threshold = datetime.now(timezone.utc) - timedelta(days=days_old)
 
             # Find stale cache records
-            stale_records = db.query(ArtworkCache).filter(
-                ArtworkCache.last_accessed_at < threshold
-            ).all()
+            stale_records = (
+                db.query(ArtworkCache)
+                .filter(ArtworkCache.last_accessed_at < threshold)
+                .all()
+            )
 
             deleted_count = 0
 
             for record in stale_records:
                 # Extract cache key (remove variant suffix)
-                cache_key = record.cache_key.rsplit('_', 1)[0]
+                cache_key = record.cache_key.rsplit("_", 1)[0]
 
                 # Delete file
                 if self.cache_fs.delete_cache(cache_key, record.size_variant) > 0:
@@ -818,30 +835,36 @@ class ArtworkCacheService:
                             bytes_freed += file_size
                             logger.debug(f"Deleted cache file: {file_path}")
                         except Exception as e:
-                            logger.warning(f"Failed to delete cache file {file_path}: {e}")
+                            logger.warning(
+                                f"Failed to delete cache file {file_path}: {e}"
+                            )
 
             # Delete database records
             records_count = len(cache_records)
             if cache_records:
                 db.query(ArtworkCache).filter_by(album_id=album_id).delete()
                 db.commit()
-                logger.debug(f"Deleted {records_count} cache database records for album {album_id}")
+                logger.debug(
+                    f"Deleted {records_count} cache database records for album {album_id}"
+                )
 
-            logger.info(f"Cleared cache for album {album_id}: {files_deleted} files, {bytes_freed / 1024:.2f} KB")
+            logger.info(
+                f"Cleared cache for album {album_id}: {files_deleted} files, {bytes_freed / 1024:.2f} KB"
+            )
 
             return {
-                'files_deleted': files_deleted,
-                'records_deleted': records_count,
-                'bytes_freed': bytes_freed
+                "files_deleted": files_deleted,
+                "records_deleted": records_count,
+                "bytes_freed": bytes_freed,
             }
 
         except Exception as e:
             logger.error(f"Failed to clear album cache: {e}")
             return {
-                'files_deleted': 0,
-                'records_deleted': 0,
-                'bytes_freed': 0,
-                'error': str(e)
+                "files_deleted": 0,
+                "records_deleted": 0,
+                "bytes_freed": 0,
+                "error": str(e),
             }
 
     async def get_cache_statistics(self, db: Session) -> Dict[str, Any]:
@@ -864,9 +887,12 @@ class ArtworkCacheService:
             total_albums = db.query(Album).count()
 
             # Access statistics
-            most_accessed = db.query(ArtworkCache).order_by(
-                ArtworkCache.access_count.desc()
-            ).limit(5).all()
+            most_accessed = (
+                db.query(ArtworkCache)
+                .order_by(ArtworkCache.access_count.desc())
+                .limit(5)
+                .all()
+            )
 
             return {
                 "filesystem": fs_stats,
@@ -874,16 +900,19 @@ class ArtworkCacheService:
                     "total_cache_records": total_cached,
                     "albums_cached": albums_cached,
                     "total_albums": total_albums,
-                    "cache_coverage": round((albums_cached / total_albums * 100) if total_albums > 0 else 0, 2)
+                    "cache_coverage": round(
+                        (albums_cached / total_albums * 100) if total_albums > 0 else 0,
+                        2,
+                    ),
                 },
                 "most_accessed": [
                     {
                         "album_id": record.album_id,
                         "size_variant": record.size_variant,
-                        "access_count": record.access_count
+                        "access_count": record.access_count,
                     }
                     for record in most_accessed
-                ]
+                ],
             }
 
         except Exception as e:

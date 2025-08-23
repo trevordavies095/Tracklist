@@ -39,6 +39,7 @@ class MusicBrainzRateLimiter:
 
 class MusicBrainzAPIError(TracklistException):
     """Exception raised when MusicBrainz API calls fail"""
+
     pass
 
 
@@ -57,8 +58,7 @@ class MusicBrainzClient:
     async def __aenter__(self):
         """Async context manager entry"""
         self.client = httpx.AsyncClient(
-            headers={"User-Agent": self.USER_AGENT},
-            timeout=httpx.Timeout(30.0)
+            headers={"User-Agent": self.USER_AGENT}, timeout=httpx.Timeout(30.0)
         )
         return self
 
@@ -67,7 +67,9 @@ class MusicBrainzClient:
         if self.client:
             await self.client.aclose()
 
-    async def _make_request(self, endpoint: str, params: Dict[str, Any]) -> Dict[str, Any]:
+    async def _make_request(
+        self, endpoint: str, params: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """
         Make a rate-limited request to MusicBrainz API
 
@@ -82,7 +84,9 @@ class MusicBrainzClient:
             MusicBrainzAPIError: If the API request fails
         """
         if not self.client:
-            raise MusicBrainzAPIError("Client not initialized. Use async context manager.")
+            raise MusicBrainzAPIError(
+                "Client not initialized. Use async context manager."
+            )
 
         # Ensure rate limiting
         await self.rate_limiter.acquire()
@@ -102,33 +106,33 @@ class MusicBrainzClient:
             response.raise_for_status()
 
             data = response.json()
-            logger.debug(f"MusicBrainz API response received: {len(str(data))} characters")
+            logger.debug(
+                f"MusicBrainz API response received: {len(str(data))} characters"
+            )
             return data
 
         except httpx.HTTPStatusError as e:
-            logger.error(f"MusicBrainz API HTTP error: {e.response.status_code} - {e.response.text}")
+            logger.error(
+                f"MusicBrainz API HTTP error: {e.response.status_code} - {e.response.text}"
+            )
             raise MusicBrainzAPIError(
                 f"MusicBrainz API HTTP error: {e.response.status_code}",
-                {"status_code": e.response.status_code, "response": e.response.text}
+                {"status_code": e.response.status_code, "response": e.response.text},
             )
         except httpx.RequestError as e:
             logger.error(f"MusicBrainz API request error: {e}")
             raise MusicBrainzAPIError(
                 f"MusicBrainz API request failed: {str(e)}",
-                {"error_type": type(e).__name__}
+                {"error_type": type(e).__name__},
             )
         except ValueError as e:
             logger.error(f"MusicBrainz API JSON parsing error: {e}")
             raise MusicBrainzAPIError(
-                "Failed to parse MusicBrainz API response",
-                {"error": str(e)}
+                "Failed to parse MusicBrainz API response", {"error": str(e)}
             )
 
     async def search_releases(
-        self,
-        query: str,
-        limit: int = 25,
-        offset: int = 0
+        self, query: str, limit: int = 25, offset: int = 0
     ) -> Dict[str, Any]:
         """
         Search for album releases
@@ -143,11 +147,7 @@ class MusicBrainzClient:
         """
         limit = min(limit, 100)  # MusicBrainz API limit
 
-        params = {
-            "query": query,
-            "limit": limit,
-            "offset": offset
-        }
+        params = {"query": query, "limit": limit, "offset": offset}
 
         return await self._make_request("release", params)
 
@@ -157,7 +157,7 @@ class MusicBrainzClient:
         album: Optional[str] = None,
         year: Optional[int] = None,
         limit: int = 25,
-        offset: int = 0
+        offset: int = 0,
     ) -> Dict[str, Any]:
         """
         Search for releases using structured Lucene query
@@ -190,7 +190,7 @@ class MusicBrainzClient:
         if year:
             # Use date field for year filtering
             # MusicBrainz accepts date:YYYY or date:[YYYY-01-01 TO YYYY-12-31]
-            query_parts.append(f'date:{year}')
+            query_parts.append(f"date:{year}")
 
         # Join query parts with AND operator
         query = " AND ".join(query_parts)
@@ -201,18 +201,12 @@ class MusicBrainzClient:
 
         logger.debug(f"Structured Lucene query: {query}")
 
-        params = {
-            "query": query,
-            "limit": limit,
-            "offset": offset
-        }
+        params = {"query": query, "limit": limit, "offset": offset}
 
         return await self._make_request("release", params)
 
     async def search_releases_by_release_group(
-        self,
-        release_group_id: str,
-        limit: int = 100
+        self, release_group_id: str, limit: int = 100
     ) -> Dict[str, Any]:
         """
         Search for releases in a specific release group
@@ -226,18 +220,12 @@ class MusicBrainzClient:
         """
         limit = min(limit, 100)  # MusicBrainz API limit
 
-        params = {
-            "query": f"rgid:{release_group_id}",
-            "limit": limit,
-            "offset": 0
-        }
+        params = {"query": f"rgid:{release_group_id}", "limit": limit, "offset": 0}
 
         return await self._make_request("release", params)
 
     async def get_release_details(
-        self,
-        release_id: str,
-        include: Optional[List[str]] = None
+        self, release_id: str, include: Optional[List[str]] = None
     ) -> Dict[str, Any]:
         """
         Get detailed information about a release
@@ -267,16 +255,26 @@ class MusicBrainzClient:
         Returns:
             Dict containing release with complete track information
         """
-        include = ["artist-credits", "recordings", "media", "release-groups", "tags", "release-group-level-rels", "genres"]
+        include = [
+            "artist-credits",
+            "recordings",
+            "media",
+            "release-groups",
+            "tags",
+            "release-group-level-rels",
+            "genres",
+        ]
         return await self.get_release_details(release_id, include)
-    
-    async def get_release_group_with_tags(self, release_group_id: str) -> Dict[str, Any]:
+
+    async def get_release_group_with_tags(
+        self, release_group_id: str
+    ) -> Dict[str, Any]:
         """
         Get release group information including genre tags
-        
+
         Args:
             release_group_id: MusicBrainz release group ID
-            
+
         Returns:
             Dict containing release group with tags
         """

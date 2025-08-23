@@ -34,51 +34,58 @@ class ScheduledTaskManager:
         from .settings_service import get_settings_service
         from ..database import get_db
         import os
-        
+
         # Try to get database session
         try:
             db = next(get_db())
             settings_service = get_settings_service()
-            
+
             # Get cache config from settings service (will check DB first, then env)
             cache_config = settings_service.get_cache_config(db)
-            
+
             default_config = {
                 "cache_cleanup": {
-                    "enabled": cache_config['cleanup_enabled'],
-                    "schedule": cache_config['cleanup_schedule'],
-                    "time": cache_config['cleanup_time'],
-                    "retention_days": cache_config['retention_days'],
-                    "max_cache_size_mb": cache_config['max_size_mb'],
-                    "dry_run": os.getenv("CACHE_CLEANUP_DRY_RUN", "false").lower() == "true"
+                    "enabled": cache_config["cleanup_enabled"],
+                    "schedule": cache_config["cleanup_schedule"],
+                    "time": cache_config["cleanup_time"],
+                    "retention_days": cache_config["retention_days"],
+                    "max_cache_size_mb": cache_config["max_size_mb"],
+                    "dry_run": os.getenv("CACHE_CLEANUP_DRY_RUN", "false").lower()
+                    == "true",
                 },
                 "memory_cache_clear": {
-                    "enabled": os.getenv("MEMORY_CACHE_CLEAR_ENABLED", "true").lower() == "true",
+                    "enabled": os.getenv("MEMORY_CACHE_CLEAR_ENABLED", "true").lower()
+                    == "true",
                     "schedule": os.getenv("MEMORY_CACHE_CLEAR_SCHEDULE", "weekly"),
                     "day": os.getenv("MEMORY_CACHE_CLEAR_DAY", "sunday"),
-                    "time": os.getenv("MEMORY_CACHE_CLEAR_TIME", "04:00")
-            },
-            "reports": {
-                "enabled": os.getenv("REPORTS_ENABLED", "true").lower() == "true",
-                "schedule": os.getenv("REPORTS_SCHEDULE", "weekly"),
-                "day": os.getenv("REPORTS_DAY", "monday"),
-                "time": os.getenv("REPORTS_TIME", "09:00")
-            },
-            "integrity_check": {
-                "enabled": os.getenv("INTEGRITY_CHECK_ENABLED", "true").lower() == "true",
-                "schedule": os.getenv("INTEGRITY_CHECK_SCHEDULE", "weekly"),
-                "day": os.getenv("INTEGRITY_CHECK_DAY", "sunday"),
-                "time": os.getenv("INTEGRITY_CHECK_TIME", "02:00"),  # 2 AM
-                "auto_repair": os.getenv("INTEGRITY_AUTO_REPAIR", "true").lower() == "true",
-                "quick_check_daily": os.getenv("INTEGRITY_QUICK_CHECK", "true").lower() == "true"
+                    "time": os.getenv("MEMORY_CACHE_CLEAR_TIME", "04:00"),
+                },
+                "reports": {
+                    "enabled": os.getenv("REPORTS_ENABLED", "true").lower() == "true",
+                    "schedule": os.getenv("REPORTS_SCHEDULE", "weekly"),
+                    "day": os.getenv("REPORTS_DAY", "monday"),
+                    "time": os.getenv("REPORTS_TIME", "09:00"),
+                },
+                "integrity_check": {
+                    "enabled": os.getenv("INTEGRITY_CHECK_ENABLED", "true").lower()
+                    == "true",
+                    "schedule": os.getenv("INTEGRITY_CHECK_SCHEDULE", "weekly"),
+                    "day": os.getenv("INTEGRITY_CHECK_DAY", "sunday"),
+                    "time": os.getenv("INTEGRITY_CHECK_TIME", "02:00"),  # 2 AM
+                    "auto_repair": os.getenv("INTEGRITY_AUTO_REPAIR", "true").lower()
+                    == "true",
+                    "quick_check_daily": os.getenv(
+                        "INTEGRITY_QUICK_CHECK", "true"
+                    ).lower()
+                    == "true",
+                },
             }
-        }
 
             # Optional: Load from config file if exists (overrides env vars)
             config_file = Path("config/scheduled_tasks.json")
             if config_file.exists():
                 try:
-                    with open(config_file, 'r') as f:
+                    with open(config_file, "r") as f:
                         loaded_config = json.load(f)
                         # Merge with defaults
                         for key in default_config:
@@ -86,48 +93,60 @@ class ScheduledTaskManager:
                                 default_config[key].update(loaded_config[key])
                         logger.info("Loaded scheduled tasks config from file")
                 except Exception as e:
-                    logger.warning(f"Could not load config file, using environment variables: {e}")
+                    logger.warning(
+                        f"Could not load config file, using environment variables: {e}"
+                    )
 
             db.close()
         except Exception as e:
-            logger.warning(f"Could not get database settings, using environment variables: {e}")
+            logger.warning(
+                f"Could not get database settings, using environment variables: {e}"
+            )
             # Fall back to pure environment variables
             default_config = {
                 "cache_cleanup": {
-                    "enabled": os.getenv("CACHE_CLEANUP_ENABLED", "true").lower() == "true",
+                    "enabled": os.getenv("CACHE_CLEANUP_ENABLED", "true").lower()
+                    == "true",
                     "schedule": os.getenv("CACHE_CLEANUP_SCHEDULE", "daily"),
                     "time": os.getenv("CACHE_CLEANUP_TIME", "03:00"),
                     "retention_days": int(os.getenv("CACHE_RETENTION_DAYS", "365")),
                     "max_cache_size_mb": int(os.getenv("CACHE_MAX_SIZE_MB", "5000")),
-                    "dry_run": os.getenv("CACHE_CLEANUP_DRY_RUN", "false").lower() == "true"
+                    "dry_run": os.getenv("CACHE_CLEANUP_DRY_RUN", "false").lower()
+                    == "true",
                 },
                 "memory_cache_clear": {
-                    "enabled": os.getenv("MEMORY_CACHE_CLEAR_ENABLED", "true").lower() == "true",
+                    "enabled": os.getenv("MEMORY_CACHE_CLEAR_ENABLED", "true").lower()
+                    == "true",
                     "schedule": os.getenv("MEMORY_CACHE_CLEAR_SCHEDULE", "weekly"),
                     "day": os.getenv("MEMORY_CACHE_CLEAR_DAY", "sunday"),
-                    "time": os.getenv("MEMORY_CACHE_CLEAR_TIME", "04:00")
+                    "time": os.getenv("MEMORY_CACHE_CLEAR_TIME", "04:00"),
                 },
                 "reports": {
                     "enabled": os.getenv("REPORTS_ENABLED", "true").lower() == "true",
                     "schedule": os.getenv("REPORTS_SCHEDULE", "weekly"),
                     "day": os.getenv("REPORTS_DAY", "monday"),
-                    "time": os.getenv("REPORTS_TIME", "09:00")
+                    "time": os.getenv("REPORTS_TIME", "09:00"),
                 },
                 "integrity_check": {
-                    "enabled": os.getenv("INTEGRITY_CHECK_ENABLED", "true").lower() == "true",
+                    "enabled": os.getenv("INTEGRITY_CHECK_ENABLED", "true").lower()
+                    == "true",
                     "schedule": os.getenv("INTEGRITY_CHECK_SCHEDULE", "weekly"),
                     "day": os.getenv("INTEGRITY_CHECK_DAY", "sunday"),
                     "time": os.getenv("INTEGRITY_CHECK_TIME", "02:00"),
-                    "auto_repair": os.getenv("INTEGRITY_AUTO_REPAIR", "true").lower() == "true",
-                    "quick_check_daily": os.getenv("INTEGRITY_QUICK_CHECK", "true").lower() == "true"
-                }
+                    "auto_repair": os.getenv("INTEGRITY_AUTO_REPAIR", "true").lower()
+                    == "true",
+                    "quick_check_daily": os.getenv(
+                        "INTEGRITY_QUICK_CHECK", "true"
+                    ).lower()
+                    == "true",
+                },
             }
-        
+
         # Optional: Load from config file if exists (overrides env vars)
         config_file = Path("config/scheduled_tasks.json")
         if config_file.exists():
             try:
-                with open(config_file, 'r') as f:
+                with open(config_file, "r") as f:
                     loaded_config = json.load(f)
                     # Merge with defaults
                     for key in default_config:
@@ -135,8 +154,10 @@ class ScheduledTaskManager:
                             default_config[key].update(loaded_config[key])
                     logger.info("Loaded scheduled tasks config from file")
             except Exception as e:
-                logger.warning(f"Could not load config file, using environment variables: {e}")
-        
+                logger.warning(
+                    f"Could not load config file, using environment variables: {e}"
+                )
+
         return default_config
 
     async def start(self):
@@ -169,21 +190,19 @@ class ScheduledTaskManager:
                     await self._check_and_run_task(
                         "cache_cleanup",
                         self._should_run_cache_cleanup,
-                        self._run_cache_cleanup
+                        self._run_cache_cleanup,
                     )
 
                 if self.config["memory_cache_clear"]["enabled"]:
                     await self._check_and_run_task(
                         "memory_cache_clear",
                         self._should_run_memory_clear,
-                        self._run_memory_clear
+                        self._run_memory_clear,
                     )
 
                 if self.config["reports"]["enabled"]:
                     await self._check_and_run_task(
-                        "reports",
-                        self._should_run_reports,
-                        self._run_reports
+                        "reports", self._should_run_reports, self._run_reports
                     )
 
                 if self.config["integrity_check"]["enabled"]:
@@ -191,7 +210,7 @@ class ScheduledTaskManager:
                     await self._check_and_run_task(
                         "integrity_check",
                         self._should_run_integrity_check,
-                        self._run_integrity_check
+                        self._run_integrity_check,
                     )
 
                     # Quick check (daily)
@@ -199,7 +218,7 @@ class ScheduledTaskManager:
                         await self._check_and_run_task(
                             "integrity_quick_check",
                             self._should_run_quick_check,
-                            self._run_quick_check
+                            self._run_quick_check,
                         )
 
                 # Sleep until next minute
@@ -210,50 +229,44 @@ class ScheduledTaskManager:
                 await asyncio.sleep(60)
 
     async def _check_and_run_task(
-        self,
-        task_name: str,
-        should_run: Callable,
-        run_func: Callable
+        self, task_name: str, should_run: Callable, run_func: Callable
     ):
         """Check if a task should run and execute it"""
         if task_name not in self.tasks:
-            self.tasks[task_name] = {
-                'last_run': None,
-                'running': False
-            }
+            self.tasks[task_name] = {"last_run": None, "running": False}
 
         task_info = self.tasks[task_name]
 
         # Don't run if already running
-        if task_info['running']:
+        if task_info["running"]:
             return
 
         # Check if should run
         if should_run():
             # Check if already ran today
-            if task_info['last_run']:
-                if task_info['last_run'].date() == datetime.now(timezone.utc).date():
+            if task_info["last_run"]:
+                if task_info["last_run"].date() == datetime.now(timezone.utc).date():
                     return
 
             # Run the task
             logger.info(f"Running scheduled task: {task_name}")
-            task_info['running'] = True
+            task_info["running"] = True
 
             try:
                 # Add to background queue
                 task_id = self.background_manager.add_task(
                     func=run_func,
                     name=f"scheduled_{task_name}",
-                    priority=7  # Low priority for scheduled tasks
+                    priority=7,  # Low priority for scheduled tasks
                 )
 
-                task_info['last_run'] = datetime.now(timezone.utc)
-                task_info['task_id'] = task_id
+                task_info["last_run"] = datetime.now(timezone.utc)
+                task_info["task_id"] = task_id
 
                 logger.info(f"Scheduled task {task_name} queued: {task_id}")
 
             finally:
-                task_info['running'] = False
+                task_info["running"] = False
 
     def _should_run_cache_cleanup(self) -> bool:
         """Check if cache cleanup should run"""
@@ -263,10 +276,7 @@ class ScheduledTaskManager:
 
         # Check if it's the right time
         if config["schedule"] == "daily":
-            return (
-                now.hour == schedule_time.hour and
-                now.minute == schedule_time.minute
-            )
+            return now.hour == schedule_time.hour and now.minute == schedule_time.minute
 
         return False
 
@@ -279,15 +289,20 @@ class ScheduledTaskManager:
         # Check if it's the right day and time
         if config["schedule"] == "weekly":
             day_map = {
-                'monday': 0, 'tuesday': 1, 'wednesday': 2,
-                'thursday': 3, 'friday': 4, 'saturday': 5, 'sunday': 6
+                "monday": 0,
+                "tuesday": 1,
+                "wednesday": 2,
+                "thursday": 3,
+                "friday": 4,
+                "saturday": 5,
+                "sunday": 6,
             }
             target_day = day_map.get(config["day"].lower(), 6)
 
             return (
-                now.weekday() == target_day and
-                now.hour == schedule_time.hour and
-                now.minute == schedule_time.minute
+                now.weekday() == target_day
+                and now.hour == schedule_time.hour
+                and now.minute == schedule_time.minute
             )
 
         return False
@@ -301,15 +316,20 @@ class ScheduledTaskManager:
         # Check if it's the right day and time
         if config["schedule"] == "weekly":
             day_map = {
-                'monday': 0, 'tuesday': 1, 'wednesday': 2,
-                'thursday': 3, 'friday': 4, 'saturday': 5, 'sunday': 6
+                "monday": 0,
+                "tuesday": 1,
+                "wednesday": 2,
+                "thursday": 3,
+                "friday": 4,
+                "saturday": 5,
+                "sunday": 6,
             }
             target_day = day_map.get(config["day"].lower(), 0)
 
             return (
-                now.weekday() == target_day and
-                now.hour == schedule_time.hour and
-                now.minute == schedule_time.minute
+                now.weekday() == target_day
+                and now.hour == schedule_time.hour
+                and now.minute == schedule_time.minute
             )
 
         return False
@@ -323,15 +343,20 @@ class ScheduledTaskManager:
         # Check if it's the right day and time (weekly)
         if config["schedule"] == "weekly":
             day_map = {
-                'monday': 0, 'tuesday': 1, 'wednesday': 2,
-                'thursday': 3, 'friday': 4, 'saturday': 5, 'sunday': 6
+                "monday": 0,
+                "tuesday": 1,
+                "wednesday": 2,
+                "thursday": 3,
+                "friday": 4,
+                "saturday": 5,
+                "sunday": 6,
             }
             target_day = day_map.get(config["day"].lower(), 6)
 
             return (
-                now.weekday() == target_day and
-                now.hour == schedule_time.hour and
-                now.minute == schedule_time.minute
+                now.weekday() == target_day
+                and now.hour == schedule_time.hour
+                and now.minute == schedule_time.minute
             )
 
         return False
@@ -350,7 +375,7 @@ class ScheduledTaskManager:
         cleanup_config = CleanupConfig(
             default_retention_days=config["retention_days"],
             max_cache_size_mb=config.get("max_cache_size_mb"),
-            dry_run=config.get("dry_run", False)
+            dry_run=config.get("dry_run", False),
         )
 
         cleanup_service = get_cleanup_service(cleanup_config)
@@ -371,14 +396,16 @@ class ScheduledTaskManager:
         memory_cache.clear()
 
         result = {
-            'cleared_at': datetime.now(timezone.utc).isoformat(),
-            'entries_cleared': stats_before['capacity']['current_entries'],
-            'memory_freed_mb': stats_before['memory']['mb_total']
+            "cleared_at": datetime.now(timezone.utc).isoformat(),
+            "entries_cleared": stats_before["capacity"]["current_entries"],
+            "memory_freed_mb": stats_before["memory"]["mb_total"],
         }
 
         self._save_task_result("memory_cache_clear", result)
 
-        logger.info(f"Cleared memory cache: {result['entries_cleared']} entries, {result['memory_freed_mb']:.2f} MB")
+        logger.info(
+            f"Cleared memory cache: {result['entries_cleared']} entries, {result['memory_freed_mb']:.2f} MB"
+        )
 
         return result
 
@@ -388,15 +415,16 @@ class ScheduledTaskManager:
 
         # Cache cleanup status
         cleanup_service = get_cleanup_service()
-        reports['cache_status'] = cleanup_service.get_cleanup_status()
+        reports["cache_status"] = cleanup_service.get_cleanup_status()
 
         # Memory cache stats
         from .artwork_memory_cache import get_artwork_memory_cache
+
         memory_cache = get_artwork_memory_cache()
-        reports['memory_cache'] = memory_cache.get_stats()
+        reports["memory_cache"] = memory_cache.get_stats()
 
         # Background tasks stats
-        reports['background_tasks'] = self.background_manager.get_status()
+        reports["background_tasks"] = self.background_manager.get_status()
 
         # Save report
         self._save_task_result("weekly_report", reports)
@@ -414,8 +442,7 @@ class ScheduledTaskManager:
 
         # Run verification with optional repair
         result = integrity_service.verify_integrity(
-            repair=config.get("auto_repair", True),
-            verbose=True
+            repair=config.get("auto_repair", True), verbose=True
         )
 
         # Save result
@@ -444,7 +471,7 @@ class ScheduledTaskManager:
         )
 
         # If integrity is below threshold, trigger full check
-        if result['estimated_integrity_score'] < 90:
+        if result["estimated_integrity_score"] < 90:
             logger.warning(
                 f"Integrity score below threshold ({result['estimated_integrity_score']}%), "
                 "consider running full check"
@@ -460,7 +487,7 @@ class ScheduledTaskManager:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         result_file = results_dir / f"{task_name}_{timestamp}.json"
 
-        with open(result_file, 'w') as f:
+        with open(result_file, "w") as f:
             json.dump(result, f, indent=2, default=str)
 
         logger.debug(f"Task result saved to {result_file}")
@@ -468,15 +495,17 @@ class ScheduledTaskManager:
     def get_status(self) -> Dict[str, Any]:
         """Get scheduled tasks status"""
         return {
-            'running': self.running,
-            'config': self.config,
-            'tasks': {
+            "running": self.running,
+            "config": self.config,
+            "tasks": {
                 name: {
-                    'last_run': info['last_run'].isoformat() if info['last_run'] else None,
-                    'running': info['running']
+                    "last_run": (
+                        info["last_run"].isoformat() if info["last_run"] else None
+                    ),
+                    "running": info["running"],
                 }
                 for name, info in self.tasks.items()
-            }
+            },
         }
 
     async def trigger_cleanup_now(self, dry_run: bool = False) -> Dict[str, Any]:
@@ -489,7 +518,7 @@ class ScheduledTaskManager:
         cleanup_config = CleanupConfig(
             default_retention_days=config["retention_days"],
             max_cache_size_mb=config.get("max_cache_size_mb"),
-            dry_run=dry_run
+            dry_run=dry_run,
         )
 
         cleanup_service = get_cleanup_service(cleanup_config)

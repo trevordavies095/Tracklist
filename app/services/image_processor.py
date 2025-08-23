@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 class ImageProcessingError(Exception):
     """Exception raised during image processing operations"""
+
     pass
 
 
@@ -26,37 +27,37 @@ class ImageProcessor:
 
     # Size variant specifications with aspect ratios
     SIZE_VARIANTS = {
-        'original': None,
-        'large': (192, 192),
-        'medium': (64, 64),
-        'small': (48, 48),
-        'thumbnail': (80, 80)
+        "original": None,
+        "large": (192, 192),
+        "medium": (64, 64),
+        "small": (48, 48),
+        "thumbnail": (80, 80),
     }
 
     # Quality settings per variant (for optimization)
     QUALITY_SETTINGS = {
-        'original': 95,
-        'large': 90,
-        'medium': 85,
-        'small': 85,
-        'thumbnail': 80
+        "original": 95,
+        "large": 90,
+        "medium": 85,
+        "small": 85,
+        "thumbnail": 80,
     }
 
     # Supported input formats
-    SUPPORTED_FORMATS = {'JPEG', 'PNG', 'GIF', 'WEBP', 'BMP', 'TIFF'}
+    SUPPORTED_FORMATS = {"JPEG", "PNG", "GIF", "WEBP", "BMP", "TIFF"}
 
     # Maximum dimensions for safety
     MAX_DIMENSION = 4096
 
     # Default output format
-    DEFAULT_OUTPUT_FORMAT = 'JPEG'
+    DEFAULT_OUTPUT_FORMAT = "JPEG"
 
     def __init__(self):
         """Initialize the image processor"""
         self.processing_stats = {
-            'total_processed': 0,
-            'total_bytes_saved': 0,
-            'failures': 0
+            "total_processed": 0,
+            "total_bytes_saved": 0,
+            "failures": 0,
         }
 
     def process_image(
@@ -65,7 +66,7 @@ class ImageProcessor:
         variant: str,
         optimize: bool = True,
         maintain_aspect: bool = True,
-        smart_crop: bool = True
+        smart_crop: bool = True,
     ) -> Tuple[bytes, Dict[str, Any]]:
         """
         Process an image to create a specific size variant
@@ -94,56 +95,44 @@ class ImageProcessor:
             original_metadata = self._extract_metadata(img, len(image_data))
 
             # Process based on variant
-            if variant == 'original':
+            if variant == "original":
                 # For original, just optimize without resizing
                 processed_img = self._optimize_original(img, optimize)
             else:
                 # Resize and optimize for specific variant
                 target_size = self.SIZE_VARIANTS[variant]
                 processed_img = self._resize_image(
-                    img,
-                    target_size,
-                    maintain_aspect,
-                    smart_crop
+                    img, target_size, maintain_aspect, smart_crop
                 )
 
             # Convert to RGB if needed (for JPEG output)
-            if processed_img.mode in ('RGBA', 'LA', 'P'):
+            if processed_img.mode in ("RGBA", "LA", "P"):
                 processed_img = self._convert_to_rgb(processed_img)
 
             # Save to bytes with optimization
-            output_data = self._save_optimized(
-                processed_img,
-                variant,
-                optimize
-            )
+            output_data = self._save_optimized(processed_img, variant, optimize)
 
             # Generate metadata for processed image
             metadata = self._generate_metadata(
-                processed_img,
-                output_data,
-                variant,
-                original_metadata
+                processed_img, output_data, variant, original_metadata
             )
 
             # Update stats
-            self.processing_stats['total_processed'] += 1
+            self.processing_stats["total_processed"] += 1
             bytes_saved = len(image_data) - len(output_data)
             if bytes_saved > 0:
-                self.processing_stats['total_bytes_saved'] += bytes_saved
+                self.processing_stats["total_bytes_saved"] += bytes_saved
 
             logger.debug(f"Processed {variant} variant: {metadata}")
             return output_data, metadata
 
         except Exception as e:
-            self.processing_stats['failures'] += 1
+            self.processing_stats["failures"] += 1
             logger.error(f"Image processing failed for {variant}: {e}")
             raise ImageProcessingError(f"Failed to process {variant}: {str(e)}")
 
     def process_all_variants(
-        self,
-        image_data: bytes,
-        optimize: bool = True
+        self, image_data: bytes, optimize: bool = True
     ) -> Dict[str, Tuple[bytes, Dict[str, Any]]]:
         """
         Process an image into all defined variants
@@ -161,9 +150,7 @@ class ImageProcessor:
         for variant in self.SIZE_VARIANTS.keys():
             try:
                 processed_data, metadata = self.process_image(
-                    image_data,
-                    variant,
-                    optimize
+                    image_data, variant, optimize
                 )
                 results[variant] = (processed_data, metadata)
                 logger.info(f"Successfully processed {variant} variant")
@@ -224,7 +211,7 @@ class ImageProcessor:
         img: Image.Image,
         target_size: Tuple[int, int],
         maintain_aspect: bool = True,
-        smart_crop: bool = True
+        smart_crop: bool = True,
     ) -> Image.Image:
         """
         Resize an image with smart cropping options
@@ -248,7 +235,7 @@ class ImageProcessor:
                 img,
                 target_size,
                 Image.Resampling.LANCZOS,
-                centering=(0.5, 0.5)  # Center crop
+                centering=(0.5, 0.5),  # Center crop
             )
         else:
             # Use thumbnail to maintain aspect ratio without cropping
@@ -257,9 +244,7 @@ class ImageProcessor:
             return img_copy
 
     def _optimize_original(
-        self,
-        img: Image.Image,
-        optimize: bool = True
+        self, img: Image.Image, optimize: bool = True
     ) -> Image.Image:
         """
         Optimize the original image without resizing
@@ -295,29 +280,26 @@ class ImageProcessor:
         Returns:
             RGB PIL Image
         """
-        if img.mode == 'RGBA':
+        if img.mode == "RGBA":
             # Create white background
-            rgb_img = Image.new('RGB', img.size, (255, 255, 255))
+            rgb_img = Image.new("RGB", img.size, (255, 255, 255))
             # Paste image using alpha channel as mask
             rgb_img.paste(img, mask=img.split()[3])
             return rgb_img
-        elif img.mode == 'LA':
+        elif img.mode == "LA":
             # Convert grayscale with alpha to RGB
-            rgb_img = Image.new('RGB', img.size, (255, 255, 255))
+            rgb_img = Image.new("RGB", img.size, (255, 255, 255))
             rgb_img.paste(img, mask=img.split()[1])
             return rgb_img
-        elif img.mode == 'P':
+        elif img.mode == "P":
             # Convert palette mode to RGB
-            return img.convert('RGB')
+            return img.convert("RGB")
         else:
             # Already RGB or grayscale without alpha
-            return img.convert('RGB')
+            return img.convert("RGB")
 
     def _save_optimized(
-        self,
-        img: Image.Image,
-        variant: str,
-        optimize: bool = True
+        self, img: Image.Image, variant: str, optimize: bool = True
     ) -> bytes:
         """
         Save image to bytes with optimization
@@ -337,28 +319,24 @@ class ImageProcessor:
 
         # Save with optimization
         save_kwargs = {
-            'format': self.DEFAULT_OUTPUT_FORMAT,
-            'quality': quality,
-            'optimize': optimize
+            "format": self.DEFAULT_OUTPUT_FORMAT,
+            "quality": quality,
+            "optimize": optimize,
         }
 
         # Add progressive encoding for larger images
-        if variant in ['original', 'large']:
-            save_kwargs['progressive'] = True
+        if variant in ["original", "large"]:
+            save_kwargs["progressive"] = True
 
         # Add specific optimizations for JPEG
-        if self.DEFAULT_OUTPUT_FORMAT == 'JPEG':
-            save_kwargs['subsampling'] = 2  # 4:2:0 subsampling
+        if self.DEFAULT_OUTPUT_FORMAT == "JPEG":
+            save_kwargs["subsampling"] = 2  # 4:2:0 subsampling
 
         img.save(output, **save_kwargs)
 
         return output.getvalue()
 
-    def _extract_metadata(
-        self,
-        img: Image.Image,
-        data_size: int
-    ) -> Dict[str, Any]:
+    def _extract_metadata(self, img: Image.Image, data_size: int) -> Dict[str, Any]:
         """
         Extract metadata from original image
 
@@ -370,14 +348,14 @@ class ImageProcessor:
             Dictionary of metadata
         """
         return {
-            'format': img.format,
-            'mode': img.mode,
-            'width': img.width,
-            'height': img.height,
-            'aspect_ratio': round(img.width / img.height, 2) if img.height > 0 else 1,
-            'file_size_bytes': data_size,
-            'has_transparency': img.mode in ('RGBA', 'LA', 'P'),
-            'info': dict(img.info) if hasattr(img, 'info') else {}
+            "format": img.format,
+            "mode": img.mode,
+            "width": img.width,
+            "height": img.height,
+            "aspect_ratio": round(img.width / img.height, 2) if img.height > 0 else 1,
+            "file_size_bytes": data_size,
+            "has_transparency": img.mode in ("RGBA", "LA", "P"),
+            "info": dict(img.info) if hasattr(img, "info") else {},
         }
 
     def _generate_metadata(
@@ -385,7 +363,7 @@ class ImageProcessor:
         img: Image.Image,
         output_data: bytes,
         variant: str,
-        original_metadata: Dict[str, Any]
+        original_metadata: Dict[str, Any],
     ) -> Dict[str, Any]:
         """
         Generate metadata for processed image
@@ -403,29 +381,29 @@ class ImageProcessor:
         checksum = hashlib.md5(output_data).hexdigest()
 
         metadata = {
-            'variant': variant,
-            'width': img.width,
-            'height': img.height,
-            'file_size_bytes': len(output_data),
-            'format': self.DEFAULT_OUTPUT_FORMAT,
-            'quality': self.QUALITY_SETTINGS.get(variant, 85),
-            'checksum': checksum,
-            'compression_ratio': round(
-                len(output_data) / original_metadata['file_size_bytes'], 3
-            ) if original_metadata['file_size_bytes'] > 0 else 1,
-            'original_format': original_metadata['format'],
-            'original_dimensions': (
-                original_metadata['width'],
-                original_metadata['height']
-            )
+            "variant": variant,
+            "width": img.width,
+            "height": img.height,
+            "file_size_bytes": len(output_data),
+            "format": self.DEFAULT_OUTPUT_FORMAT,
+            "quality": self.QUALITY_SETTINGS.get(variant, 85),
+            "checksum": checksum,
+            "compression_ratio": (
+                round(len(output_data) / original_metadata["file_size_bytes"], 3)
+                if original_metadata["file_size_bytes"] > 0
+                else 1
+            ),
+            "original_format": original_metadata["format"],
+            "original_dimensions": (
+                original_metadata["width"],
+                original_metadata["height"],
+            ),
         }
 
         return metadata
 
     def validate_processed_image(
-        self,
-        image_data: bytes,
-        expected_variant: str
+        self, image_data: bytes, expected_variant: str
     ) -> bool:
         """
         Validate a processed image meets requirements
@@ -440,7 +418,7 @@ class ImageProcessor:
         try:
             img = Image.open(BytesIO(image_data))
 
-            if expected_variant == 'original':
+            if expected_variant == "original":
                 # Original should just be valid
                 return img.format in self.SUPPORTED_FORMATS
 
@@ -467,17 +445,25 @@ class ImageProcessor:
             Dictionary of statistics
         """
         return {
-            'total_processed': self.processing_stats['total_processed'],
-            'total_failures': self.processing_stats['failures'],
-            'success_rate': round(
-                (self.processing_stats['total_processed'] -
-                 self.processing_stats['failures']) /
-                self.processing_stats['total_processed'] * 100, 2
-            ) if self.processing_stats['total_processed'] > 0 else 0,
-            'total_bytes_saved': self.processing_stats['total_bytes_saved'],
-            'mb_saved': round(
-                self.processing_stats['total_bytes_saved'] / (1024 * 1024), 2
-            )
+            "total_processed": self.processing_stats["total_processed"],
+            "total_failures": self.processing_stats["failures"],
+            "success_rate": (
+                round(
+                    (
+                        self.processing_stats["total_processed"]
+                        - self.processing_stats["failures"]
+                    )
+                    / self.processing_stats["total_processed"]
+                    * 100,
+                    2,
+                )
+                if self.processing_stats["total_processed"] > 0
+                else 0
+            ),
+            "total_bytes_saved": self.processing_stats["total_bytes_saved"],
+            "mb_saved": round(
+                self.processing_stats["total_bytes_saved"] / (1024 * 1024), 2
+            ),
         }
 
 

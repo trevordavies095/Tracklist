@@ -23,7 +23,7 @@ class UserRateLimiter:
         self,
         max_requests: int = 10,
         window_seconds: int = 3600,
-        identifier: str = "operation"
+        identifier: str = "operation",
     ):
         """
         Initialize user rate limiter
@@ -53,8 +53,7 @@ class UserRateLimiter:
 
         # Keep only requests within the window
         self._requests[user_id] = [
-            timestamp for timestamp in self._requests[user_id]
-            if timestamp > cutoff
+            timestamp for timestamp in self._requests[user_id] if timestamp > cutoff
         ]
 
     def check_rate_limit(self, user_id: str) -> tuple[bool, Optional[Dict]]:
@@ -86,7 +85,7 @@ class UserRateLimiter:
                     "max_requests": self.max_requests,
                     "window_seconds": self.window_seconds,
                     "reset_in_seconds": int(wait_seconds),
-                    "reset_at": datetime.fromtimestamp(reset_time).isoformat()
+                    "reset_at": datetime.fromtimestamp(reset_time).isoformat(),
                 }
 
             # Request is allowed
@@ -96,7 +95,7 @@ class UserRateLimiter:
                 "requests_made": request_count,
                 "requests_remaining": remaining,
                 "max_requests": self.max_requests,
-                "window_seconds": self.window_seconds
+                "window_seconds": self.window_seconds,
             }
 
     def record_request(self, user_id: str) -> None:
@@ -133,7 +132,7 @@ class UserRateLimiter:
                 "max_requests": self.max_requests,
                 "window_seconds": self.window_seconds,
                 "active_users": total_users,
-                "total_requests": total_requests
+                "total_requests": total_requests,
             }
 
 
@@ -154,13 +153,13 @@ class ArtworkRefreshLimiter:
         self.hourly_limiter = UserRateLimiter(
             max_requests=self.MAX_REFRESHES_PER_HOUR,
             window_seconds=3600,  # 1 hour
-            identifier="artwork_refresh_hourly"
+            identifier="artwork_refresh_hourly",
         )
 
         self.daily_limiter = UserRateLimiter(
             max_requests=self.MAX_REFRESHES_PER_DAY,
             window_seconds=86400,  # 24 hours
-            identifier="artwork_refresh_daily"
+            identifier="artwork_refresh_daily",
         )
 
         logger.info(
@@ -184,7 +183,7 @@ class ArtworkRefreshLimiter:
             return False, {
                 "limit_type": "hourly",
                 "message": f"Hourly refresh limit exceeded ({self.MAX_REFRESHES_PER_HOUR} per hour)",
-                **hourly_info
+                **hourly_info,
             }
 
         # Check daily limit
@@ -193,15 +192,11 @@ class ArtworkRefreshLimiter:
             return False, {
                 "limit_type": "daily",
                 "message": f"Daily refresh limit exceeded ({self.MAX_REFRESHES_PER_DAY} per day)",
-                **daily_info
+                **daily_info,
             }
 
         # Both limits OK
-        return True, {
-            "allowed": True,
-            "hourly": hourly_info,
-            "daily": daily_info
-        }
+        return True, {"allowed": True, "hourly": hourly_info, "daily": daily_info}
 
     def record_refresh(self, session_id: str) -> None:
         """Record an artwork refresh"""
@@ -212,7 +207,7 @@ class ArtworkRefreshLimiter:
         """Get rate limiter statistics"""
         return {
             "hourly": self.hourly_limiter.get_stats(),
-            "daily": self.daily_limiter.get_stats()
+            "daily": self.daily_limiter.get_stats(),
         }
 
 

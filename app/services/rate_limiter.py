@@ -34,7 +34,9 @@ class RateLimiter:
         self._last_update = time.monotonic()
         self._lock = asyncio.Lock()
 
-        logger.debug(f"RateLimiter initialized: {calls_per_second} calls/sec, burst size: {self.burst_size}")
+        logger.debug(
+            f"RateLimiter initialized: {calls_per_second} calls/sec, burst size: {self.burst_size}"
+        )
 
     async def acquire(self, tokens: int = 1) -> float:
         """
@@ -61,7 +63,9 @@ class RateLimiter:
                 if tokens > self._tokens:
                     # Still not enough tokens, wait for more
                     wait_time = (tokens - self._tokens) / self.calls_per_second
-                    logger.debug(f"Rate limit: waiting {wait_time:.2f}s for {tokens} tokens")
+                    logger.debug(
+                        f"Rate limit: waiting {wait_time:.2f}s for {tokens} tokens"
+                    )
                     await asyncio.sleep(wait_time)
 
             # We have enough tokens, consume them
@@ -86,10 +90,10 @@ class DomainRateLimiter:
 
     # Default rate limits per domain
     DOMAIN_LIMITS = {
-        'coverartarchive.org': 1.0,  # 1 request per second
-        'archive.org': 1.0,           # Cover Art Archive mirror
-        'musicbrainz.org': 1.0,       # MusicBrainz API
-        'default': 10.0               # Default for other domains
+        "coverartarchive.org": 1.0,  # 1 request per second
+        "archive.org": 1.0,  # Cover Art Archive mirror
+        "musicbrainz.org": 1.0,  # MusicBrainz API
+        "default": 10.0,  # Default for other domains
     }
 
     def __init__(self):
@@ -100,11 +104,12 @@ class DomainRateLimiter:
     def _get_domain(self, url: str) -> str:
         """Extract domain from URL"""
         from urllib.parse import urlparse
+
         parsed = urlparse(url)
         domain = parsed.netloc.lower()
 
         # Remove www. prefix
-        if domain.startswith('www.'):
+        if domain.startswith("www."):
             domain = domain[4:]
 
         return domain
@@ -118,7 +123,7 @@ class DomainRateLimiter:
                     rate = limit
                     break
             else:
-                rate = self.DOMAIN_LIMITS['default']
+                rate = self.DOMAIN_LIMITS["default"]
 
             self._limiters[domain] = RateLimiter(calls_per_second=rate)
             logger.info(f"Created rate limiter for {domain}: {rate} req/s")
@@ -149,9 +154,9 @@ class DomainRateLimiter:
         stats = {}
         for domain, limiter in self._limiters.items():
             stats[domain] = {
-                'rate': limiter.calls_per_second,
-                'tokens_available': limiter._tokens,
-                'last_request': self._last_request.get(domain, 0)
+                "rate": limiter.calls_per_second,
+                "tokens_available": limiter._tokens,
+                "last_request": self._last_request.get(domain, 0),
             }
         return stats
 

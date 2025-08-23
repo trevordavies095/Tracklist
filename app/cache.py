@@ -52,20 +52,14 @@ class SimpleCache:
     def _generate_key(self, *args, **kwargs) -> str:
         """Generate a cache key from arguments"""
         # Create a deterministic string from args and kwargs
-        key_data = {
-            'args': args,
-            'kwargs': sorted(kwargs.items())
-        }
+        key_data = {"args": args, "kwargs": sorted(kwargs.items())}
         key_string = json.dumps(key_data, sort_keys=True, default=str)
         return hashlib.md5(key_string.encode()).hexdigest()
 
     def _cleanup_expired(self):
         """Remove expired entries from cache"""
         current_time = time.time()
-        expired_keys = [
-            key for key, entry in self._cache.items()
-            if entry.is_expired()
-        ]
+        expired_keys = [key for key, entry in self._cache.items() if entry.is_expired()]
 
         for key in expired_keys:
             del self._cache[key]
@@ -80,10 +74,7 @@ class SimpleCache:
             return
 
         # Sort by access time and remove oldest entries
-        sorted_keys = sorted(
-            self._access_times.items(),
-            key=lambda x: x[1]
-        )
+        sorted_keys = sorted(self._access_times.items(), key=lambda x: x[1])
 
         entries_to_remove = len(self._cache) - self.max_size
         for key, _ in sorted_keys[:entries_to_remove]:
@@ -114,7 +105,9 @@ class SimpleCache:
 
         # Update access time
         self._access_times[key] = time.time()
-        logger.debug(f"Cache hit for key: {key[:12]}... (expires in {entry.time_until_expiry():.0f}s)")
+        logger.debug(
+            f"Cache hit for key: {key[:12]}... (expires in {entry.time_until_expiry():.0f}s)"
+        )
         return entry.data
 
     def set(self, data: Any, ttl: Optional[int] = None, *args, **kwargs):
@@ -148,24 +141,21 @@ class SimpleCache:
     def get_stats(self) -> Dict[str, Any]:
         """Get cache statistics"""
         current_time = time.time()
-        expired_count = sum(
-            1 for entry in self._cache.values()
-            if entry.is_expired()
-        )
+        expired_count = sum(1 for entry in self._cache.values() if entry.is_expired())
 
         return {
             "total_entries": len(self._cache),
             "expired_entries": expired_count,
             "active_entries": len(self._cache) - expired_count,
             "max_size": self.max_size,
-            "default_ttl": self.default_ttl
+            "default_ttl": self.default_ttl,
         }
 
 
 # Global cache instance
 _musicbrainz_cache = SimpleCache(
     default_ttl=3600,  # 1 hour TTL for MusicBrainz data
-    max_size=500       # Keep up to 500 cached responses
+    max_size=500,  # Keep up to 500 cached responses
 )
 
 
