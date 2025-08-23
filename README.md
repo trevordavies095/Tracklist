@@ -55,7 +55,9 @@ Track ratings:
 - **0.67** - Good: Playlist-worthy track
 - **1.0** - Standout: Exceptional track
 
-Album scores are calculated using: `Floor((Average Track Rating × 10 + Album Bonus) × 10)`
+Album scores are calculated using:
+<br>
+$\lfloor \left (\left (\frac{Sum of track ratings}{Total Number of Tracks} \cdot 10  \right ) + Album Bonus  \right ) \cdot 10 \rfloor$
 
 The album bonus defaults to 0.33 and can be configured between 0.1 and 0.4.
 
