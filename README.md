@@ -20,7 +20,9 @@ Tracklist is a web application for rating and tracking music albums. It integrat
 
 ## Demo
 
-![Tracklist Demo](https://i.imgur.com/jCjYYRw.gif)
+Click below for a quick demo
+
+[![Tracklist Demo](https://img.youtube.com/vi/jvPUX0ZAfY0/0.jpg)](https://www.youtube.com/watch?v=jvPUX0ZAfY0)
 
 *Complete workflow: Search → Rate → Track Progress → View Stats*
 
