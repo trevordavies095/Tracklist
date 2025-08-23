@@ -12,13 +12,32 @@ Tracklist is a web application for rating and tracking music albums. It integrat
 
 ### Features
 
-- Search and import album data from MusicBrainz database
-- Rate individual tracks on a four-point scale
+**Core Functionality**
+- Search and import album metadata from MusicBrainz database
+- Track-by-track rating system with four-point scale
 - Automatic album score calculation (0-100 scale)
-- Cover art fetching from Cover Art Archive
-- Album collection management with filtering and sorting
-- Statistical reports and insights
-- Responsive web interface
+- Cover art fetching and intelligent caching from Cover Art Archive
+- Artist and album relationship tracking
+
+**Collection Management**
+- Advanced filtering by artist, year, rating status, and score ranges
+- Multi-criteria sorting (rating, release date, artist name)
+- Album comparison tool for side-by-side analysis
+- Bulk operations for collection organization
+
+**Analytics & Visualization**
+- Comprehensive statistics dashboard with rating distributions
+- Artist performance metrics and top-rated album tracking
+- Year-based analytics and trends
+- No-skip album identification
+- Topsters-style collage generation for visual album grids
+
+**User Experience**
+- Dark mode support with system-aware theming
+- Mobile-responsive interface
+- Real-time search with debouncing
+- Progress tracking for in-progress albums
+- Customizable album bonus scoring (0.1-0.4 range)
 
 ### Rating System
 
