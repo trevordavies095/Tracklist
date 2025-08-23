@@ -828,7 +828,20 @@ function renderTopAlbumsByYear(data, year) {
     const albumsHtml = `
         <div class="mb-4">
             <div class="flex items-center justify-between">
-                <h3 class="text-lg font-semibold text-primary">Top Albums from ${year}</h3>
+                <div class="flex items-center">
+                    <h3 class="text-lg font-semibold text-primary">Top Albums from ${year}</h3>
+                    <!-- Collage Button -->
+                    <button onclick="openStatsCollageModal()"
+                            title="Generate Year End Collage"
+                            class="ml-3 p-1.5 text-muted hover:text-accent-blue hover:bg-info-light rounded-lg transition-all duration-200 group relative">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                        <span class="absolute -bottom-8 left-0 text-xs bg-surface-hover text-primary px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap border border-default z-10">
+                            Year End Collage
+                        </span>
+                    </button>
+                </div>
                 <div class="text-sm text-secondary">
                     ${data.albums.length} of ${data.total_albums_in_year} rated albums shown
                 </div>
@@ -1017,6 +1030,192 @@ function renderHighestRatedArtists(data) {
     `;
     
     contentDiv.innerHTML = artistsHtml;
+}
+
+// Collage modal functions for stats page
+function openStatsCollageModal() {
+    // Always remove and recreate the modal to ensure fresh data
+    const existingModal = document.getElementById('stats-collage-modal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    // Get the selected year from the year selector each time we open
+    const yearSelector = document.getElementById('yearSelector');
+    const selectedYear = yearSelector ? yearSelector.value : new Date().getFullYear();
+    
+    // Fetch the album count for the selected year
+    fetchStatsAlbumCount(selectedYear).then(count => {
+        createStatsCollageModal(selectedYear, count);
+        document.getElementById('stats-collage-modal').classList.remove('hidden');
+    });
+}
+
+async function fetchStatsAlbumCount(year) {
+    try {
+        const countUrl = `/api/v1/albums?limit=100&offset=0&year=${year}`;
+        const response = await fetch(countUrl);
+        const data = await response.json();
+        
+        // Filter to only rated albums
+        const ratedAlbums = data.albums.filter(album => album.is_rated);
+        return ratedAlbums.length;
+    } catch (error) {
+        console.error('Error fetching album count:', error);
+        return 0;
+    }
+}
+
+function closeStatsCollageModal() {
+    const modal = document.getElementById('stats-collage-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+}
+
+function createStatsCollageModal(year, albumCount) {
+    const allAlbumsOption = albumCount > 0 ? 
+        `<option value="">All Rated Albums (${albumCount})</option>` : 
+        `<option value="">All Rated Albums</option>`;
+    
+    const modalHTML = `
+        <div id="stats-collage-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
+            <div class="flex items-center justify-center min-h-screen px-4">
+                <!-- Backdrop -->
+                <div class="fixed inset-0 bg-black opacity-50" onclick="closeStatsCollageModal()"></div>
+                
+                <!-- Modal Content -->
+                <div class="relative bg-surface rounded-lg shadow-xl max-w-2xl w-full p-6">
+                    <h2 class="text-2xl font-bold text-primary mb-4">Generate ${year} Year End Collage</h2>
+                    
+                    <div class="space-y-4">
+                        <!-- Options -->
+                        <div>
+                            <label class="block text-sm font-medium text-primary mb-2">Maximum Albums</label>
+                            <select id="stats-collage-max-albums" class="w-full px-3 py-2 bg-surface text-primary border border-default rounded-md shadow-sm focus:border-accent-blue focus:ring-accent-blue">
+                                ${allAlbumsOption}
+                                <option value="9">Top 9 (3x3 grid)</option>
+                                <option value="16">Top 16 (4x4 grid)</option>
+                                <option value="25">Top 25 (5x5 grid)</option>
+                                <option value="36">Top 36 (6x6 grid)</option>
+                                <option value="49">Top 49 (7x7 grid)</option>
+                                <option value="64">Top 64 (8x8 grid)</option>
+                                <option value="81">Top 81 (9x9 grid)</option>
+                                <option value="100">Top 100 (10x10 grid)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="flex items-center space-x-4">
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" id="stats-collage-include-ranking" checked class="rounded border-default bg-surface text-accent-blue focus:ring-accent-blue">
+                                <span class="text-sm text-primary">Include ranking list</span>
+                            </label>
+                            
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" id="stats-collage-include-scores" checked class="rounded border-default bg-surface text-accent-blue focus:ring-accent-blue">
+                                <span class="text-sm text-primary">Show scores in ranking</span>
+                            </label>
+                        </div>
+                        
+                        <!-- Progress -->
+                        <div id="stats-collage-progress" class="hidden">
+                            <div class="bg-surface-hover rounded-lg p-4">
+                                <div class="flex items-center space-x-3">
+                                    <svg class="animate-spin h-5 w-5 text-accent-blue" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    <span class="text-sm text-primary">Generating collage...</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Result -->
+                        <div id="stats-collage-result" class="hidden">
+                            <div class="bg-surface-hover rounded-lg p-4">
+                                <img id="stats-collage-image" src="" alt="Year End Collage" class="w-full rounded">
+                                <div class="mt-4 flex justify-center">
+                                    <a id="stats-collage-download" href="" download="year-end-collage.png" class="btn btn-primary">
+                                        Download Collage
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Actions -->
+                    <div class="mt-6 flex justify-end space-x-3">
+                        <button onclick="closeStatsCollageModal()" class="px-4 py-2 text-sm font-medium text-secondary bg-surface-secondary border border-default rounded-md hover:bg-surface-hover transition-colors">
+                            Cancel
+                        </button>
+                        <button id="stats-generate-collage-btn" onclick="generateStatsCollage()" class="px-4 py-2 text-sm font-medium text-white bg-accent-blue rounded-md hover:bg-blue-700 transition-colors">
+                            Generate Collage
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+
+async function generateStatsCollage() {
+    // Get the current year from the year selector
+    const yearSelector = document.getElementById('yearSelector');
+    const year = yearSelector ? yearSelector.value : new Date().getFullYear();
+    
+    const maxAlbumsSelect = document.getElementById('stats-collage-max-albums');
+    const includeRankingCheck = document.getElementById('stats-collage-include-ranking');
+    const includeScoresCheck = document.getElementById('stats-collage-include-scores');
+    const progressDiv = document.getElementById('stats-collage-progress');
+    const resultDiv = document.getElementById('stats-collage-result');
+    const generateBtn = document.getElementById('stats-generate-collage-btn');
+    
+    // Show progress
+    progressDiv.classList.remove('hidden');
+    resultDiv.classList.add('hidden');
+    generateBtn.disabled = true;
+    generateBtn.classList.add('opacity-50');
+    
+    // Build URL with parameters
+    let url = `/api/v1/reports/years/${year}/collage?`;
+    const params = new URLSearchParams();
+    
+    if (maxAlbumsSelect.value) {
+        params.append('max_albums', maxAlbumsSelect.value);
+    }
+    params.append('include_ranking', includeRankingCheck.checked);
+    params.append('include_scores', includeScoresCheck.checked);
+    
+    url += params.toString();
+    
+    try {
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+            throw new Error('Failed to generate collage');
+        }
+        
+        const blob = await response.blob();
+        const imageUrl = URL.createObjectURL(blob);
+        
+        // Show result
+        document.getElementById('stats-collage-image').src = imageUrl;
+        document.getElementById('stats-collage-download').href = imageUrl;
+        document.getElementById('stats-collage-download').download = `${year}-year-end-collage.png`;
+        
+        progressDiv.classList.add('hidden');
+        resultDiv.classList.remove('hidden');
+        
+    } catch (error) {
+        console.error('Error generating collage:', error);
+        alert('Failed to generate collage. Please try again.');
+        progressDiv.classList.add('hidden');
+    } finally {
+        generateBtn.disabled = false;
+        generateBtn.classList.remove('opacity-50');
+    }
 }
 
 // Load statistics when page loads
