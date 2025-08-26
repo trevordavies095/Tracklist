@@ -1,0 +1,368 @@
+"""
+Pytest configuration and fixtures for the Tracklist test suite.
+This file provides shared fixtures for database setup, test client, and sample data.
+"""
+
+import os
+import pytest
+<<<<<<< HEAD
+import pytest_asyncio
+=======
+>>>>>>> origin/develop
+import asyncio
+from typing import Generator, AsyncGenerator
+from datetime import datetime
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.pool import StaticPool
+from fastapi.testclient import TestClient
+from faker import Faker
+from unittest.mock import patch, AsyncMock
+
+# Set testing environment variables before importing app
+os.environ["TESTING"] = "true"
+os.environ["DISABLE_BACKGROUND_TASKS"] = "true"
+os.environ["DISABLE_SCHEDULED_TASKS"] = "true"
+os.environ["AUTO_MIGRATE_ARTWORK"] = "false"
+os.environ["DATABASE_URL"] = "sqlite:///:memory:"
+os.environ["LOG_LEVEL"] = "ERROR"  # Reduce log noise during tests
+
+# Import app modules after setting environment
+from app.main import app
+from app.database import get_db
+<<<<<<< HEAD
+from app.models import Base, Album, Artist, Track, UserSettings, ArtworkCache
+=======
+from app.models import Base, Album, Artist, Track, UserSettings
+>>>>>>> origin/develop
+
+# Initialize Faker for test data generation
+fake = Faker()
+
+# Test database URL - using in-memory SQLite for speed
+SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
+
+
+@pytest.fixture(scope="session")
+def event_loop():
+    """Create an event loop for the test session."""
+    policy = asyncio.get_event_loop_policy()
+    loop = policy.new_event_loop()
+    yield loop
+    loop.close()
+
+
+@pytest.fixture(scope="function")
+def db_engine():
+    """
+    Create a fresh database engine for each test.
+    Uses in-memory SQLite with StaticPool for connection reuse.
+    """
+    engine = create_engine(
+        SQLALCHEMY_DATABASE_URL,
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
+    Base.metadata.create_all(bind=engine)
+    yield engine
+    Base.metadata.drop_all(bind=engine)
+    engine.dispose()
+
+
+@pytest.fixture(scope="function")
+def db_session(db_engine) -> Generator[Session, None, None]:
+    """
+    Create a fresh database session for each test.
+    Automatically rolls back changes after test completion.
+    """
+    TestingSessionLocal = sessionmaker(
+        autocommit=False, autoflush=False, bind=db_engine
+    )
+    session = TestingSessionLocal()
+    
+    try:
+        yield session
+    finally:
+        session.rollback()
+        session.close()
+
+
+@pytest.fixture(scope="function")
+def client(db_session) -> TestClient:
+    """
+    Create a test client with overridden database dependency.
+    This ensures tests use the test database instead of production.
+    """
+    def override_get_db():
+        try:
+            yield db_session
+        finally:
+            pass
+    
+    app.dependency_overrides[get_db] = override_get_db
+    
+    with TestClient(app) as test_client:
+        yield test_client
+    
+    app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def sample_artist_data() -> dict:
+    """Generate sample artist data for testing."""
+    return {
+        "name": fake.name(),
+        "musicbrainz_id": fake.uuid4(),
+    }
+
+
+@pytest.fixture
+def sample_album_data() -> dict:
+    """Generate sample album data for testing."""
+    return {
+        "name": fake.catch_phrase(),
+        "artist_name": fake.name(),
+        "musicbrainz_id": fake.uuid4(),
+        "release_year": fake.year(),
+        "total_tracks": fake.random_int(min=5, max=15),
+        "genre": fake.random_element(["Rock", "Pop", "Jazz", "Electronic", "Classical"]),
+    }
+
+
+@pytest.fixture
+def sample_track_data() -> dict:
+    """Generate sample track data for testing."""
+    return {
+        "name": fake.sentence(nb_words=3),
+        "track_number": fake.random_int(min=1, max=20),
+        "duration_ms": fake.random_int(min=60000, max=600000),  # 1-10 minutes
+        "musicbrainz_id": fake.uuid4(),
+    }
+
+
+@pytest.fixture
+def created_artist(db_session, sample_artist_data) -> Artist:
+    """Create and return a test artist in the database."""
+    artist = Artist(**sample_artist_data)
+    db_session.add(artist)
+    db_session.commit()
+    db_session.refresh(artist)
+    return artist
+
+
+@pytest.fixture
+def created_album(db_session, created_artist) -> Album:
+    """Create and return a test album in the database."""
+    album = Album(
+        artist_id=created_artist.id,
+        name=fake.catch_phrase(),
+        release_year=fake.year(),
+        musicbrainz_id=fake.uuid4(),
+        cover_art_url=fake.image_url(),
+        genre="Rock",
+        total_tracks=10,
+        total_duration_ms=2400000,  # 40 minutes
+        album_bonus=0.33,
+        is_rated=False,
+    )
+    db_session.add(album)
+    db_session.commit()
+    db_session.refresh(album)
+    return album
+
+
+@pytest.fixture
+def created_track(db_session, created_album) -> Track:
+    """Create and return a test track in the database."""
+    track = Track(
+        album_id=created_album.id,
+        track_number=1,
+        name=fake.sentence(nb_words=3),
+        duration_ms=180000,  # 3 minutes
+        musicbrainz_id=fake.uuid4(),
+    )
+    db_session.add(track)
+    db_session.commit()
+    db_session.refresh(track)
+    return track
+
+
+@pytest.fixture
+def album_with_tracks(db_session, created_album) -> Album:
+    """Create an album with multiple tracks for testing."""
+    tracks = []
+    for i in range(1, 11):  # Create 10 tracks
+        track = Track(
+            album_id=created_album.id,
+            track_number=i,
+            name=f"Track {i}",
+            duration_ms=fake.random_int(min=120000, max=300000),
+            musicbrainz_id=fake.uuid4(),
+        )
+        tracks.append(track)
+    
+    db_session.bulk_save_objects(tracks)
+    db_session.commit()
+    db_session.refresh(created_album)
+    
+    return created_album
+
+
+@pytest.fixture
+def rated_album(db_session, album_with_tracks) -> Album:
+    """Create a fully rated album for testing."""
+    album = album_with_tracks
+    
+    # Rate all tracks
+    for track in album.tracks:
+        track.track_rating = fake.random_element([0.0, 0.33, 0.67, 1.0])
+    
+    # Calculate album score
+    track_ratings = [t.track_rating for t in album.tracks]
+    avg_rating = sum(track_ratings) / len(track_ratings)
+    album.rating_score = int((avg_rating * 10 + album.album_bonus) * 10)
+    album.is_rated = True
+    album.rated_at = datetime.utcnow()
+    
+    db_session.commit()
+    db_session.refresh(album)
+    
+    return album
+
+
+@pytest.fixture
+def user_settings(db_session) -> UserSettings:
+    """Create default user settings for testing."""
+    settings = UserSettings(
+        user_id=1,
+        album_bonus=0.33,
+        theme="light",
+        auto_migrate_artwork=True,
+        auto_cache_artwork=True,
+        migration_batch_size=10,
+        cache_retention_days=365,
+        cache_max_size_mb=5000,
+        cache_cleanup_enabled=True,
+        cache_cleanup_schedule="daily",
+        cache_cleanup_time="03:00",
+        default_sort_order="created_desc",
+        date_format="YYYY-MM-DD",
+    )
+    db_session.add(settings)
+    db_session.commit()
+    db_session.refresh(settings)
+    return settings
+
+
+@pytest.fixture
+def auth_headers() -> dict:
+    """
+    Provide authentication headers for protected endpoints.
+    Note: This will be updated when authentication is implemented.
+    """
+    return {"Authorization": "Bearer test_token"}
+
+
+@pytest.fixture
+def mock_musicbrainz_response() -> dict:
+    """Mock response from MusicBrainz API for testing."""
+    return {
+        "releases": [
+            {
+                "id": fake.uuid4(),
+                "title": fake.catch_phrase(),
+                "artist-credit": [
+                    {
+                        "name": fake.name(),
+                        "artist": {"id": fake.uuid4()},
+                    }
+                ],
+                "date": str(fake.year()),
+                "country": "US",
+                "medium-list": [
+                    {
+                        "track-list": [
+                            {
+                                "id": fake.uuid4(),
+                                "title": fake.sentence(nb_words=3),
+                                "length": fake.random_int(min=120000, max=300000),
+                                "position": i,
+                            }
+                            for i in range(1, 11)
+                        ]
+                    }
+                ],
+            }
+        ]
+    }
+
+
+@pytest.fixture
+def cleanup_test_files(request):
+    """
+    Cleanup any test files created during tests.
+    Use this for tests that create temporary files or directories.
+    """
+    files_to_cleanup = []
+    
+    def add_file(filepath):
+        files_to_cleanup.append(filepath)
+    
+    request.addfinalizer(lambda: _cleanup_files(files_to_cleanup))
+    return add_file
+
+
+def _cleanup_files(files):
+    """Helper function to clean up test files."""
+    import os
+    import shutil
+    
+    for filepath in files:
+        if os.path.isfile(filepath):
+            os.remove(filepath)
+        elif os.path.isdir(filepath):
+            shutil.rmtree(filepath)
+
+
+# Async fixtures for testing async functions
+<<<<<<< HEAD
+@pytest_asyncio.fixture
+async def async_client(db_session):
+=======
+@pytest.fixture
+async def async_client(db_session) -> AsyncGenerator:
+>>>>>>> origin/develop
+    """
+    Async test client for testing async endpoints.
+    """
+    from httpx import AsyncClient
+    
+    def override_get_db():
+        try:
+            yield db_session
+        finally:
+            pass
+    
+    app.dependency_overrides[get_db] = override_get_db
+    
+    async with AsyncClient(app=app, base_url="http://test") as ac:
+        yield ac
+    
+    app.dependency_overrides.clear()
+
+
+# Markers for test organization
+def pytest_configure(config):
+    """Register custom markers."""
+    config.addinivalue_line(
+        "markers", "slow: marks tests as slow (deselect with '-m \"not slow\"')"
+    )
+    config.addinivalue_line(
+        "markers", "integration: marks tests as integration tests"
+    )
+    config.addinivalue_line(
+        "markers", "unit: marks tests as unit tests"
+    )
+    config.addinivalue_line(
+        "markers", "security: marks tests as security-related tests"
+    )
