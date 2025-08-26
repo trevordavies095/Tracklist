@@ -338,11 +338,20 @@ async def fix_genre_country_codes():
 async def startup_event():
     """Initialize database, cache directories, and background tasks on startup"""
     logger.info("Starting Tracklist application...")
+    
+    # Check if running in test mode
+    is_testing = os.getenv("TESTING", "false").lower() == "true"
+    
     try:
         # Initialize database
         create_tables()
         init_db()
         logger.info("Database initialized successfully")
+
+        # Skip validation and background tasks in test mode
+        if is_testing:
+            logger.info("Running in test mode - skipping background tasks")
+            return
 
         # Validate and fix artwork_cached flags
         try:

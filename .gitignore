@@ -95,10 +95,13 @@ static/artwork_cache/thumbnail/*
 !static/artwork_cache/thumbnail/.gitkeep
 !static/artwork_cache/README.md
 
-# Test files
-tests/
-test_*.py
-*_test.py
-
 # Claude configuration
 CLAUDE.md
+PHASE-1-USER-STORIES.md
+PHASE-1-USER-STORIES.md
+ROADMAP-GITHUB-ISSUES.md
+ROADMAP.md
+scripts/import-roadmap-to-github.sh
+scripts/roadmap_to_github.py
+scripts/.github/ISSUE_TEMPLATE/bug_report.md
+scripts/.github/ISSUE_TEMPLATE/feature_request.md
