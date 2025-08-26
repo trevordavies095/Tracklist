@@ -5,6 +5,7 @@ This file provides shared fixtures for database setup, test client, and sample d
 
 import os
 import pytest
+import pytest_asyncio
 import asyncio
 from typing import Generator, AsyncGenerator
 from datetime import datetime
@@ -26,7 +27,7 @@ os.environ["LOG_LEVEL"] = "ERROR"  # Reduce log noise during tests
 # Import app modules after setting environment
 from app.main import app
 from app.database import get_db
-from app.models import Base, Album, Artist, Track, UserSettings
+from app.models import Base, Album, Artist, Track, UserSettings, ArtworkCache
 
 # Initialize Faker for test data generation
 fake = Faker()
@@ -317,8 +318,8 @@ def _cleanup_files(files):
 
 
 # Async fixtures for testing async functions
-@pytest.fixture
-async def async_client(db_session) -> AsyncGenerator:
+@pytest_asyncio.fixture
+async def async_client(db_session):
     """
     Async test client for testing async endpoints.
     """
