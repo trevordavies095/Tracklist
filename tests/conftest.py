@@ -291,6 +291,42 @@ def mock_musicbrainz_response() -> dict:
 
 
 @pytest.fixture
+def sample_albums(db_session, created_artist):
+    """Create multiple sample albums for testing."""
+    albums = []
+    for i in range(3):
+        album = Album(
+            artist_id=created_artist.id,
+            name=f"Test Album {i+1}",
+            release_year=2020 + i,
+            musicbrainz_id=f"test-mbid-{i+1}",
+            is_rated=False,
+            total_tracks=3,
+            album_bonus=0.33,
+            created_at=datetime.now(timezone.utc),
+            updated_at=datetime.now(timezone.utc),
+        )
+        db_session.add(album)
+        db_session.flush()
+        
+        # Add tracks
+        for j in range(3):
+            track = Track(
+                album_id=album.id,
+                title=f"Track {j+1}",
+                track_number=j+1,
+                length_ms=(j+1) * 60000,
+                is_rated=False,
+            )
+            db_session.add(track)
+        
+        albums.append(album)
+    
+    db_session.commit()
+    return albums
+
+
+@pytest.fixture
 def cleanup_test_files(request):
     """
     Cleanup any test files created during tests.

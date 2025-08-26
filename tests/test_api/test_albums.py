@@ -29,7 +29,7 @@ class TestAlbumCRUD:
             })
             mock_rating_service.return_value = mock_service
             
-            response = client.post("/api/albums", json={"musicbrainz_id": "test-mbid"})
+            response = client.post("/api/v1/albums", data={"musicbrainz_id": "test-mbid"})
             
             assert response.status_code == 200
             data = response.json()
@@ -59,7 +59,7 @@ class TestAlbumCRUD:
             }
             mock_rating_service.return_value = mock_service
             
-            response = client.get(f"/api/albums/{created_album.id}")
+            response = client.get(f"/api/v1/albums/{created_album.id}")
             
             assert response.status_code == 200
             data = response.json()
@@ -70,7 +70,7 @@ class TestAlbumCRUD:
     @pytest.mark.integration
     def test_get_nonexistent_album(self, client: TestClient):
         """Test fetching an album that doesn't exist."""
-        response = client.get("/api/albums/99999")
+        response = client.get("/api/v1/albums/99999")
         assert response.status_code == 404
     
     @pytest.mark.integration
@@ -88,7 +88,7 @@ class TestAlbumCRUD:
             update_data = {
                 "notes": "This is a great album!"
             }
-            response = client.put(f"/api/albums/{created_album.id}/notes", json=update_data)
+            response = client.put(f"/api/v1/albums/{created_album.id}/notes", json=update_data)
             
             assert response.status_code == 200
             data = response.json()
@@ -112,7 +112,7 @@ class TestAlbumCRUD:
             mock_rating_service.return_value = mock_service
             
             # Delete the album
-            response = client.delete(f"/api/albums/{album_id}")
+            response = client.delete(f"/api/v1/albums/{album_id}")
             assert response.status_code == 200
             
             data = response.json()
@@ -120,7 +120,7 @@ class TestAlbumCRUD:
             assert "deleted_tracks" in data
             
             # Verify it's deleted
-            response = client.get(f"/api/albums/{album_id}")
+            response = client.get(f"/api/v1/albums/{album_id}")
             assert response.status_code == 404
 
 
@@ -151,7 +151,7 @@ class TestAlbumListing:
         db_session.commit()
         
         # Get all albums
-        response = client.get("/api/albums")
+        response = client.get("/api/v1/albums")
         assert response.status_code == 200
         
         data = response.json()
@@ -161,7 +161,7 @@ class TestAlbumListing:
     @pytest.mark.integration
     def test_list_albums_with_pagination(self, client: TestClient):
         """Test album listing with limit and offset."""
-        response = client.get("/api/albums?limit=2&offset=0")
+        response = client.get("/api/v1/albums?limit=2&offset=0")
         assert response.status_code == 200
         
         data = response.json()
@@ -170,7 +170,7 @@ class TestAlbumListing:
     @pytest.mark.integration
     def test_filter_rated_albums(self, client: TestClient, rated_album):
         """Test filtering for rated albums only."""
-        response = client.get("/api/albums/rated")
+        response = client.get("/api/v1/albums/rated")
         assert response.status_code == 200
         
         data = response.json()
@@ -180,7 +180,7 @@ class TestAlbumListing:
     @pytest.mark.integration
     def test_filter_unrated_albums(self, client: TestClient, created_album):
         """Test filtering for unrated albums only."""
-        response = client.get("/api/albums?rated=false")
+        response = client.get("/api/v1/albums?rated=false")
         assert response.status_code == 200
         
         data = response.json()
@@ -193,7 +193,7 @@ class TestAlbumListing:
         sort_options = ["created_desc", "created_asc", "rating_desc", "artist_asc"]
         
         for sort in sort_options:
-            response = client.get(f"/api/albums?sort={sort}")
+            response = client.get(f"/api/v1/albums?sort={sort}")
             assert response.status_code == 200
 
 
@@ -205,7 +205,7 @@ class TestTrackRating:
     def test_rate_track_valid_values(self, client: TestClient, created_track, rating):
         """Test rating a track with all valid values."""
         response = client.put(
-            f"/api/tracks/{created_track.id}/rating",
+            f"/api/v1/tracks/{created_track.id}/rating",
             json={"rating": rating}
         )
         
@@ -218,7 +218,7 @@ class TestTrackRating:
     def test_rate_track_invalid_value(self, client: TestClient, created_track):
         """Test that invalid rating values are rejected."""
         response = client.put(
-            f"/api/tracks/{created_track.id}/rating",
+            f"/api/v1/tracks/{created_track.id}/rating",
             json={"rating": 0.5}
         )
         
@@ -228,7 +228,7 @@ class TestTrackRating:
     def test_rate_nonexistent_track(self, client: TestClient):
         """Test rating a track that doesn't exist."""
         response = client.put(
-            "/api/tracks/99999/rating",
+            "/api/v1/tracks/99999/rating",
             json={"rating": 0.67}
         )
         
@@ -244,12 +244,12 @@ class TestAlbumSubmission:
         # Rate all tracks first
         for track in album_with_tracks.tracks:
             client.put(
-                f"/api/tracks/{track.id}/rating",
+                f"/api/v1/tracks/{track.id}/rating",
                 json={"rating": 0.67}
             )
         
         # Submit the album
-        response = client.post(f"/api/albums/{album_with_tracks.id}/submit")
+        response = client.post(f"/api/v1/albums/{album_with_tracks.id}/submit")
         
         assert response.status_code == 200
         data = response.json()
@@ -262,12 +262,12 @@ class TestAlbumSubmission:
         # Rate only some tracks
         for track in album_with_tracks.tracks[:3]:
             client.put(
-                f"/api/tracks/{track.id}/rating",
+                f"/api/v1/tracks/{track.id}/rating",
                 json={"rating": 0.67}
             )
         
         # Try to submit
-        response = client.post(f"/api/albums/{album_with_tracks.id}/submit")
+        response = client.post(f"/api/v1/albums/{album_with_tracks.id}/submit")
         
         assert response.status_code == 400  # Bad request
         assert "incomplete" in response.json()["detail"].lower()
@@ -275,7 +275,7 @@ class TestAlbumSubmission:
     @pytest.mark.integration
     def test_get_album_progress(self, client: TestClient, album_with_tracks):
         """Test getting album rating progress."""
-        response = client.get(f"/api/albums/{album_with_tracks.id}/progress")
+        response = client.get(f"/api/v1/albums/{album_with_tracks.id}/progress")
         
         assert response.status_code == 200
         data = response.json()
@@ -291,7 +291,7 @@ class TestAlbumManagement:
     @pytest.mark.integration
     def test_revert_album_to_in_progress(self, client: TestClient, rated_album):
         """Test reverting a completed album."""
-        response = client.put(f"/api/albums/{rated_album.id}/revert")
+        response = client.put(f"/api/v1/albums/{rated_album.id}/revert")
         
         assert response.status_code == 200
         data = response.json()
@@ -302,7 +302,7 @@ class TestAlbumManagement:
     def test_compare_albums(self, client: TestClient, rated_album, created_album):
         """Test album comparison endpoint."""
         response = client.get(
-            f"/api/albums/compare?album_ids={rated_album.id},{created_album.id}"
+            f"/api/v1/albums/compare?album_ids={rated_album.id},{created_album.id}"
         )
         
         assert response.status_code == 200
@@ -313,7 +313,7 @@ class TestAlbumManagement:
     @pytest.mark.integration
     def test_get_artwork_url(self, client: TestClient, created_album):
         """Test getting album artwork URL."""
-        response = client.get(f"/api/albums/{created_album.id}/artwork-url")
+        response = client.get(f"/api/v1/albums/{created_album.id}/artwork-url")
         
         assert response.status_code == 200
         data = response.json()
@@ -332,7 +332,7 @@ class TestAlbumManagement:
             })
             mock_rating_service.return_value = mock_service
             
-            response = client.post("/api/albums/update-cover-art")
+            response = client.post("/api/v1/albums/update-cover-art")
             
             assert response.status_code == 200
             data = response.json()
@@ -346,7 +346,7 @@ class TestSystemEndpoints:
     @pytest.mark.integration
     def test_get_system_info(self, client: TestClient):
         """Test getting system information."""
-        response = client.get("/api/system/info")
+        response = client.get("/api/v1/system/info")
         
         assert response.status_code == 200
         data = response.json()
@@ -356,7 +356,7 @@ class TestSystemEndpoints:
     @pytest.mark.integration
     def test_get_cache_cleanup_status(self, client: TestClient):
         """Test getting cache cleanup status."""
-        response = client.get("/api/system/cache-cleanup")
+        response = client.get("/api/v1/system/cache-cleanup")
         
         assert response.status_code == 200
         data = response.json()
@@ -365,7 +365,7 @@ class TestSystemEndpoints:
     @pytest.mark.integration
     def test_get_scheduled_tasks(self, client: TestClient):
         """Test getting scheduled tasks status."""
-        response = client.get("/api/system/scheduled-tasks")
+        response = client.get("/api/v1/system/scheduled-tasks")
         
         assert response.status_code == 200
         data = response.json()
@@ -374,7 +374,7 @@ class TestSystemEndpoints:
     @pytest.mark.integration
     def test_get_memory_cache_stats(self, client: TestClient):
         """Test getting memory cache statistics."""
-        response = client.get("/api/system/memory-cache")
+        response = client.get("/api/v1/system/memory-cache")
         
         assert response.status_code == 200
         data = response.json()
