@@ -19,7 +19,7 @@ class ImportService:
     """Service for importing database from JSON backup"""
 
     REQUIRED_KEYS = ["export_metadata", "settings", "artists", "albums", "tracks"]
-    SUPPORTED_VERSIONS = ["1.0", "2.0"]
+    SUPPORTED_VERSIONS = ["1.0", "2.0", "2.1"]  # 2.1 adds auth_enabled and auth_was_enabled fields
 
     def __init__(self):
         """Initialize the import service"""

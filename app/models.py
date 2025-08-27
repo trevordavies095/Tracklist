@@ -151,6 +151,14 @@ class UserSettings(Base):
 
     Configuration for user-specific preferences like theme and rating parameters.
     Currently supports single-user mode (user_id defaults to 1).
+    
+    IMPORTANT: When adding new fields to this model:
+    1. Create an Alembic migration
+    2. Update app/services/export_service.py 
+    3. Update app/services/import_service.py
+    4. BUMP THE EXPORT VERSION in both services
+    5. Update docs/EXPORT_VERSIONING.md
+    6. Run tests/test_export_version.py to verify
 
     Attributes:
         id: Primary key identifier
