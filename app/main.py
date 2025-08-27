@@ -6,11 +6,15 @@ from starlette.middleware.base import BaseHTTPMiddleware
 import logging
 import os
 import asyncio
+from dotenv import load_dotenv
 from .database import create_tables, init_db
 from .exceptions import TracklistException
 from .logging_config import setup_logging
 from .routers import search, albums, templates, reports, settings, auth
 from .middleware.auth import auth_middleware
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Setup logging
 log_level = os.getenv("LOG_LEVEL", "INFO")

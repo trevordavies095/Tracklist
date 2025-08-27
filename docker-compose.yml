@@ -41,6 +41,11 @@ services:
       - INTEGRITY_QUICK_CHECK=true
       # Album rating configuration
       - DEFAULT_ALBUM_BONUS=0.33
+      # Authentication configuration
+      # IMPORTANT: Generate a secure key with: openssl rand -hex 32
+      # - SESSION_SECRET_KEY=your-secret-key-here
+      - SESSION_EXPIRY_DAYS=30
+      - REMEMBER_ME_DAYS=90
     volumes:
       - ./data:/app/data
       - ./logs:/app/logs

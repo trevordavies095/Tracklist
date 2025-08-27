@@ -215,13 +215,17 @@ async def complete_setup(
     
     # Set cookie and redirect
     response = RedirectResponse(url="/", status_code=303)
+    
+    # Use default session expiry for initial setup
+    max_age = auth_service.DEFAULT_EXPIRY_DAYS * 24 * 60 * 60
+    
     response.set_cookie(
         key="tracklist_session",
         value=token,
         httponly=True,  # Not accessible via JavaScript
         secure=request.url.scheme == "https",  # HTTPS only in production
         samesite="strict",  # CSRF protection
-        max_age=30 * 24 * 60 * 60  # 30 days
+        max_age=max_age
     )
     
     return response
@@ -269,8 +273,12 @@ async def login(
     # Set HttpOnly cookie and redirect
     response = RedirectResponse(url=next_url, status_code=303)
     
-    # Determine cookie expiry
-    max_age = 90 * 24 * 60 * 60 if remember_me else 30 * 24 * 60 * 60
+    # Calculate cookie expiry based on actual session configuration
+    # This ensures cookie expiry matches the JWT token expiry
+    expiry_days = auth_service.REMEMBER_ME_DAYS if remember_me else auth_service.DEFAULT_EXPIRY_DAYS
+    max_age = expiry_days * 24 * 60 * 60  # Convert days to seconds
+    
+    logger.debug(f"Setting cookie with max_age={max_age} seconds ({expiry_days} days) for remember_me={remember_me}")
     
     response.set_cookie(
         key="tracklist_session",
@@ -360,8 +368,11 @@ async def login_api(
     if not token:
         raise HTTPException(500, "Failed to create session")
     
-    # Set HttpOnly cookie
-    max_age = 90 * 24 * 60 * 60 if request.remember_me else 30 * 24 * 60 * 60
+    # Calculate cookie expiry based on actual session configuration
+    expiry_days = auth_service.REMEMBER_ME_DAYS if request.remember_me else auth_service.DEFAULT_EXPIRY_DAYS
+    max_age = expiry_days * 24 * 60 * 60  # Convert days to seconds
+    
+    logger.debug(f"API login: Setting cookie with max_age={max_age} seconds ({expiry_days} days) for remember_me={request.remember_me}")
     
     response.set_cookie(
         key="tracklist_session",

@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from jose import jwt, JWTError
 
 from ..models import UserSettings
+from .session_key_manager import SessionKeyManager
 
 logger = logging.getLogger(__name__)
 
@@ -28,10 +29,23 @@ class AuthService:
     """
     
     # JWT configuration
-    SECRET_KEY = os.getenv("SESSION_SECRET_KEY", os.urandom(32).hex())
+    _SECRET_KEY = None
     ALGORITHM = "HS256"
     DEFAULT_EXPIRY_DAYS = int(os.getenv("SESSION_EXPIRY_DAYS", "30"))
     REMEMBER_ME_DAYS = int(os.getenv("REMEMBER_ME_DAYS", "90"))
+    
+    @classmethod
+    def get_secret_key(cls):
+        """Get or generate the secret key for JWT signing."""
+        if cls._SECRET_KEY is None:
+            # Use SessionKeyManager for automatic persistence
+            cls._SECRET_KEY = SessionKeyManager.get_or_create_key()
+        return cls._SECRET_KEY
+    
+    @property
+    def SECRET_KEY(self):
+        """Property to get secret key."""
+        return self.get_secret_key()
     
     @classmethod
     def is_auth_enabled(cls, db: Session) -> bool:
@@ -197,10 +211,14 @@ class AuthService:
         try:
             settings = db.query(UserSettings).filter(UserSettings.user_id == 1).first()
             if not settings:
+                logger.error("No user settings found when creating session")
                 return None
             
             # Determine expiry
             expiry_days = cls.REMEMBER_ME_DAYS if remember_me else cls.DEFAULT_EXPIRY_DAYS
+            logger.info(f"Creating session with remember_me={remember_me}, expiry_days={expiry_days}")
+            logger.debug(f"REMEMBER_ME_DAYS={cls.REMEMBER_ME_DAYS}, DEFAULT_EXPIRY_DAYS={cls.DEFAULT_EXPIRY_DAYS}")
+            
             expiry = datetime.now(timezone.utc) + timedelta(days=expiry_days)
             
             # Create JWT token
@@ -211,13 +229,21 @@ class AuthService:
                 "remember_me": remember_me
             }
             
-            token = jwt.encode(payload, cls.SECRET_KEY, algorithm=cls.ALGORITHM)
+            logger.debug(f"JWT payload: exp={expiry}, remember_me={remember_me}")
             
-            # Store token and expiry in database (ensure timezone-aware)
+            token = jwt.encode(payload, cls.get_secret_key(), algorithm=cls.ALGORITHM)
+            
+            # Store token and expiry in database
+            # SQLite stores datetimes as text, so we ensure UTC but store without timezone info
+            # to avoid SQLite compatibility issues
             settings.session_token = token
-            settings.session_expiry = expiry.replace(tzinfo=timezone.utc) if expiry.tzinfo is None else expiry
-            settings.last_login = datetime.now(timezone.utc)
+            # Store as naive datetime (SQLite doesn't handle timezones well)
+            # But we know it's always UTC
+            settings.session_expiry = expiry.replace(tzinfo=None) if expiry.tzinfo else expiry
+            settings.last_login = datetime.now(timezone.utc).replace(tzinfo=None)
             db.commit()
+            
+            logger.info(f"Session created successfully - Token: {token[:20]}..., Expiry: {settings.session_expiry}")
             
             return token
             
@@ -232,16 +258,68 @@ class AuthService:
         Checks both JWT validity and database session.
         """
         if not token:
+            logger.debug("No token provided for validation")
             return False
             
         try:
-            # Decode JWT
-            payload = jwt.decode(token, cls.SECRET_KEY, algorithms=[cls.ALGORITHM])
-            
-            # Check database session
+            # First check if token exists in database before attempting JWT decode
+            # This avoids JWT expiry exceptions for known invalid tokens
             settings = db.query(UserSettings).filter(UserSettings.user_id == 1).first()
-            if not settings or settings.session_token != token:
+            if not settings:
+                logger.debug("No user settings found in database")
                 return False
+            
+            if settings.session_token != token:
+                logger.debug("Token mismatch - database token differs from provided token")
+                logger.debug(f"DB token: {settings.session_token[:20] if settings.session_token else 'None'}...")
+                return False
+            
+            # Try to decode JWT - this will raise an exception if expired
+            logger.debug(f"Attempting to decode JWT token: {token[:20]}...")
+            
+            try:
+                # First try normal decode (will fail if expired)
+                # Add leeway to handle small clock skew issues (5 minutes)
+                payload = jwt.decode(token, cls.get_secret_key(), algorithms=[cls.ALGORITHM], 
+                                   options={"leeway": 300})  # 5 minutes leeway for clock skew
+            except jwt.ExpiredSignatureError:
+                # Token is expired according to JWT - but let's check if we should extend it
+                logger.warning("JWT token expired according to signature")
+                
+                # Decode without verification to inspect the payload
+                payload = jwt.decode(token, cls.get_secret_key(), algorithms=[cls.ALGORITHM], 
+                                    options={"verify_exp": False})
+                
+                jwt_exp = payload.get('exp')
+                remember_me = payload.get('remember_me', False)
+                
+                if jwt_exp:
+                    jwt_exp_dt = datetime.fromtimestamp(jwt_exp, tz=timezone.utc)
+                    logger.debug(f"Expired JWT expiry: {jwt_exp_dt}")
+                    logger.debug(f"Remember me flag: {remember_me}")
+                
+                # Check database expiry as fallback
+                if settings.session_expiry:
+                    db_expiry = settings.session_expiry
+                    if db_expiry.tzinfo is None:
+                        db_expiry = db_expiry.replace(tzinfo=timezone.utc)
+                    
+                    if db_expiry > datetime.now(timezone.utc):
+                        logger.warning("JWT expired but database session still valid - possible clock/timezone issue")
+                        # Database says session is still valid, but JWT is expired
+                        # This suggests a timezone or clock sync issue
+                        # For safety, we'll still reject the session
+                
+                return False
+            
+            # Log JWT payload details
+            jwt_exp = payload.get('exp')
+            if jwt_exp:
+                jwt_exp_dt = datetime.fromtimestamp(jwt_exp, tz=timezone.utc)
+                logger.debug(f"JWT expiry from token: {jwt_exp_dt}")
+                logger.debug(f"Current UTC time: {datetime.now(timezone.utc)}")
+                logger.debug(f"JWT is_expired: {jwt_exp_dt < datetime.now(timezone.utc)}")
+                logger.debug(f"Remember me flag in JWT: {payload.get('remember_me', False)}")
             
             # Check expiry
             if settings.session_expiry:
@@ -249,14 +327,25 @@ class AuthService:
                 expiry = settings.session_expiry
                 if expiry.tzinfo is None:
                     # Make expiry timezone-aware if it isn't already
+                    logger.debug(f"Converting naive datetime to UTC: {expiry}")
                     expiry = expiry.replace(tzinfo=timezone.utc)
+                
+                logger.debug(f"DB session expiry: {expiry}")
+                logger.debug(f"Current UTC time: {datetime.now(timezone.utc)}")
+                logger.debug(f"DB session is_expired: {expiry < datetime.now(timezone.utc)}")
+                
                 if expiry < datetime.now(timezone.utc):
+                    logger.info(f"Session expired - DB expiry {expiry} < current time {datetime.now(timezone.utc)}")
                     return False
+            else:
+                logger.debug("No session expiry set in database")
             
+            logger.debug("Session validation successful")
             return True
             
         except JWTError as e:
-            logger.debug(f"JWT validation error: {e}")
+            logger.warning(f"JWT validation error: {e}")
+            logger.debug(f"Token that failed: {token[:20]}...")
             return False
         except Exception as e:
             logger.error(f"Session validation error: {e}")
