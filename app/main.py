@@ -2,13 +2,15 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from fastapi.staticfiles import StaticFiles
+from starlette.middleware.base import BaseHTTPMiddleware
 import logging
 import os
 import asyncio
 from .database import create_tables, init_db
 from .exceptions import TracklistException
 from .logging_config import setup_logging
-from .routers import search, albums, templates, reports, settings
+from .routers import search, albums, templates, reports, settings, auth
+from .middleware.auth import auth_middleware
 
 # Setup logging
 log_level = os.getenv("LOG_LEVEL", "INFO")
@@ -74,10 +76,14 @@ This API currently does not require authentication as it's designed for personal
     ],
 )
 
+# Add authentication middleware
+app.add_middleware(BaseHTTPMiddleware, dispatch=auth_middleware)
+
 # Mount static files
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Include routers
+app.include_router(auth.router)  # Authentication routes (must be before template routes)
 app.include_router(templates.router)  # Template routes (no prefix)
 app.include_router(search.router)  # API routes
 app.include_router(albums.router)  # API routes
@@ -347,6 +353,28 @@ async def startup_event():
         create_tables()
         init_db()
         logger.info("Database initialized successfully")
+        
+        # Check authentication status
+        from .services.auth_service import get_auth_service
+        from .database import SessionLocal
+        
+        db = SessionLocal()
+        try:
+            auth_service = get_auth_service()
+            auth_status = auth_service.get_auth_status(db)
+            
+            if auth_status["auth_enabled"]:
+                if auth_status["requires_setup"]:
+                    logger.warning(
+                        "Authentication is enabled but not configured. "
+                        "Please visit /setup to set a password."
+                    )
+                else:
+                    logger.info("Authentication is enabled and configured")
+            else:
+                logger.info("Authentication is disabled")
+        finally:
+            db.close()
 
         # Skip validation and background tasks in test mode
         if is_testing:

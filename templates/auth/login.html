@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}Login - Tracklist{% endblock %}
+
+{% block content %}
+<style>
+    /* Remove the default padding from main for the login page */
+    main.flex-1 {
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+    }
+</style>
+<div class="flex items-center justify-center px-4" style="min-height: calc(100vh - 12rem);">
+    <div class="max-w-md w-full">
+        <!-- Logo and Title -->
+        <div class="text-center mb-8">
+            <img src="/static/img/logo.png" alt="Tracklist Logo" class="h-20 w-auto mx-auto mb-4 dark:invert dark:brightness-90">
+            <h2 class="text-primary text-3xl font-bold">Welcome to Tracklist</h2>
+            <p class="text-secondary mt-2">Please enter your password to continue</p>
+        </div>
+
+        <!-- Login Card -->
+        <div class="bg-surface rounded-lg shadow-sm border border-default p-8">
+            <!-- Error Message -->
+            {% if error %}
+            <div class="bg-error-light border border-error rounded-lg p-4 mb-6">
+                <p class="text-error font-medium">{{ error }}</p>
+            </div>
+            {% endif %}
+
+            <!-- Login Form -->
+            <form method="POST" action="/api/v1/auth/login" class="space-y-6">
+                <input type="hidden" name="next_url" value="{{ next_url }}">
+                
+                <!-- Password Field -->
+                <div>
+                    <label for="password" class="block text-primary font-medium mb-2">
+                        Password
+                    </label>
+                    <div class="relative">
+                        <input 
+                            type="password" 
+                            id="password" 
+                            name="password" 
+                            required
+                            autofocus
+                            autocomplete="current-password"
+                            class="w-full rounded-md border-default bg-surface text-primary 
+                                   shadow-sm focus:border-accent-blue focus:ring-accent-blue
+                                   px-4 py-2 pr-10"
+                            placeholder="Enter your password"
+                        >
+                        <!-- Show/Hide Password Toggle -->
+                        <button 
+                            type="button"
+                            onclick="togglePassword()"
+                            class="absolute inset-y-0 right-0 flex items-center pr-3 text-muted hover:text-primary"
+                        >
+                            <svg id="show-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                            </svg>
+                            <svg id="hide-icon" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                      d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Remember Me Checkbox -->
+                <div class="flex items-center">
+                    <input 
+                        type="checkbox" 
+                        id="remember_me" 
+                        name="remember_me"
+                        value="true"
+                        class="rounded border-default text-accent-blue focus:ring-accent-blue"
+                    >
+                    <label for="remember_me" class="ml-2 text-secondary">
+                        Remember me for 90 days
+                    </label>
+                </div>
+
+                <!-- Submit Button -->
+                <button 
+                    type="submit"
+                    class="w-full px-4 py-2 bg-accent-blue text-white rounded-md 
+                           hover:opacity-90 transition-colors font-medium"
+                >
+                    Login
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function togglePassword() {
+    const passwordInput = document.getElementById('password');
+    const showIcon = document.getElementById('show-icon');
+    const hideIcon = document.getElementById('hide-icon');
+    
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        showIcon.classList.add('hidden');
+        hideIcon.classList.remove('hidden');
+    } else {
+        passwordInput.type = 'password';
+        showIcon.classList.remove('hidden');
+        hideIcon.classList.add('hidden');
+    }
+}
+
+// Focus password field on load
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('password').focus();
+});
+</script>
+{% endblock %}

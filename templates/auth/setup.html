@@ -1,0 +1,317 @@
+{% extends "base.html" %}
+
+{% block title %}Setup Authentication - Tracklist{% endblock %}
+
+{% block content %}
+<style>
+    /* Remove the default padding from main for the setup page */
+    main.flex-1 {
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+    }
+</style>
+<div class="flex items-center justify-center px-4" style="min-height: calc(100vh - 12rem);">
+    <div class="max-w-md w-full">
+        <!-- Logo and Title -->
+        <div class="text-center mb-8">
+            <img src="/static/img/logo.png" alt="Tracklist Logo" class="h-20 w-auto mx-auto mb-4 dark:invert dark:brightness-90">
+            <h2 class="text-primary text-3xl font-bold">Welcome to Tracklist</h2>
+            <p class="text-secondary mt-2">Let's secure your instance with a password</p>
+        </div>
+
+        <!-- Setup Card -->
+        <div class="bg-surface rounded-lg shadow-sm border border-default p-8">
+            <!-- Info Message -->
+            <div class="bg-info-light border border-info rounded-lg p-4 mb-6">
+                <div class="flex">
+                    <svg class="w-5 h-5 text-accent-blue mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <div class="ml-3">
+                        <p class="text-accent-blue font-medium">First Time Setup</p>
+                        <p class="text-secondary text-sm mt-1">
+                            Authentication has been enabled. Please create a password to protect your Tracklist instance.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Error Message -->
+            <div id="error-message" class="bg-error-light border border-error rounded-lg p-4 mb-6 hidden">
+                <p class="text-error font-medium" id="error-text"></p>
+            </div>
+
+            <!-- Setup Form -->
+            <form method="POST" action="/api/v1/auth/setup" onsubmit="return validateForm()" class="space-y-6">
+                <!-- New Password -->
+                <div>
+                    <label for="password" class="block text-primary font-medium mb-2">
+                        Create Password
+                    </label>
+                    <div class="relative">
+                        <input 
+                            type="password" 
+                            id="password" 
+                            name="password" 
+                            required
+                            minlength="8"
+                            maxlength="128"
+                            autocomplete="new-password"
+                            class="w-full rounded-md border-default bg-surface text-primary 
+                                   shadow-sm focus:border-accent-blue focus:ring-accent-blue
+                                   px-4 py-2 pr-10"
+                            placeholder="Enter a strong password"
+                            oninput="checkPasswordStrength()"
+                        >
+                        <!-- Show/Hide Password Toggle -->
+                        <button 
+                            type="button"
+                            onclick="togglePassword('password')"
+                            class="absolute inset-y-0 right-0 flex items-center pr-3 text-muted hover:text-primary"
+                        >
+                            <svg class="w-5 h-5 show-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                            </svg>
+                            <svg class="w-5 h-5 hide-icon hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                      d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <!-- Password Strength Indicator -->
+                    <div class="mt-2">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-muted text-xs">Password strength</span>
+                            <span id="strength-text" class="text-muted text-xs"></span>
+                        </div>
+                        <div class="w-full bg-surface-secondary rounded-full h-2">
+                            <div id="strength-bar" class="h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Confirm Password -->
+                <div>
+                    <label for="confirm_password" class="block text-primary font-medium mb-2">
+                        Confirm Password
+                    </label>
+                    <div class="relative">
+                        <input 
+                            type="password" 
+                            id="confirm_password" 
+                            name="confirm_password" 
+                            required
+                            minlength="8"
+                            maxlength="128"
+                            autocomplete="new-password"
+                            class="w-full rounded-md border-default bg-surface text-primary 
+                                   shadow-sm focus:border-accent-blue focus:ring-accent-blue
+                                   px-4 py-2 pr-10"
+                            placeholder="Re-enter your password"
+                            oninput="checkPasswordMatch()"
+                        >
+                        <!-- Show/Hide Password Toggle -->
+                        <button 
+                            type="button"
+                            onclick="togglePassword('confirm_password')"
+                            class="absolute inset-y-0 right-0 flex items-center pr-3 text-muted hover:text-primary"
+                        >
+                            <svg class="w-5 h-5 show-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                            </svg>
+                            <svg class="w-5 h-5 hide-icon hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                      d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <p id="match-indicator" class="text-muted text-sm mt-1 hidden">
+                        <span id="match-text"></span>
+                    </p>
+                </div>
+
+                <!-- Password Requirements -->
+                <div class="bg-surface-secondary rounded-lg p-4">
+                    <p class="text-primary font-medium mb-2">Password Requirements:</p>
+                    <ul class="text-secondary text-sm space-y-1">
+                        <li class="flex items-center">
+                            <svg id="req-length" class="w-4 h-4 mr-2 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                            At least 8 characters
+                        </li>
+                        <li class="flex items-center">
+                            <svg id="req-secure" class="w-4 h-4 mr-2 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                            Use a mix of letters, numbers, and symbols for better security
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Submit Button -->
+                <button 
+                    type="submit"
+                    id="submit-button"
+                    class="w-full px-4 py-2 bg-accent-blue text-white rounded-md 
+                           hover:opacity-90 transition-colors font-medium disabled:opacity-50"
+                    disabled
+                >
+                    Complete Setup
+                </button>
+            </form>
+        </div>
+
+        <!-- Skip Option -->
+        <div class="mt-6 text-center">
+            <p class="text-muted text-sm">
+                Changed your mind? You can disable authentication later in settings.
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+function togglePassword(fieldId) {
+    const field = document.getElementById(fieldId);
+    const showIcon = field.parentElement.querySelector('.show-icon');
+    const hideIcon = field.parentElement.querySelector('.hide-icon');
+    
+    if (field.type === 'password') {
+        field.type = 'text';
+        showIcon.classList.add('hidden');
+        hideIcon.classList.remove('hidden');
+    } else {
+        field.type = 'password';
+        showIcon.classList.remove('hidden');
+        hideIcon.classList.add('hidden');
+    }
+}
+
+function checkPasswordStrength() {
+    const password = document.getElementById('password').value;
+    const strengthBar = document.getElementById('strength-bar');
+    const strengthText = document.getElementById('strength-text');
+    const reqLength = document.getElementById('req-length');
+    
+    let strength = 0;
+    
+    // Check length
+    if (password.length >= 8) {
+        strength += 25;
+        reqLength.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>';
+        reqLength.classList.remove('text-muted');
+        reqLength.classList.add('text-success');
+    } else {
+        reqLength.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>';
+        reqLength.classList.remove('text-success');
+        reqLength.classList.add('text-muted');
+    }
+    
+    // Check for lowercase
+    if (/[a-z]/.test(password)) strength += 25;
+    
+    // Check for uppercase
+    if (/[A-Z]/.test(password)) strength += 25;
+    
+    // Check for numbers or special characters
+    if (/[0-9]/.test(password) || /[^A-Za-z0-9]/.test(password)) {
+        strength += 25;
+        document.getElementById('req-secure').innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>';
+        document.getElementById('req-secure').classList.remove('text-muted');
+        document.getElementById('req-secure').classList.add('text-success');
+    }
+    
+    // Update strength bar
+    strengthBar.style.width = strength + '%';
+    
+    // Update color and text
+    if (strength <= 25) {
+        strengthBar.className = 'h-2 rounded-full transition-all duration-300 bg-accent-red';
+        strengthText.textContent = 'Weak';
+        strengthText.className = 'text-accent-red text-xs';
+    } else if (strength <= 50) {
+        strengthBar.className = 'h-2 rounded-full transition-all duration-300 bg-warning';
+        strengthText.textContent = 'Fair';
+        strengthText.className = 'text-warning text-xs';
+    } else if (strength <= 75) {
+        strengthBar.className = 'h-2 rounded-full transition-all duration-300 bg-accent-blue';
+        strengthText.textContent = 'Good';
+        strengthText.className = 'text-accent-blue text-xs';
+    } else {
+        strengthBar.className = 'h-2 rounded-full transition-all duration-300 bg-success';
+        strengthText.textContent = 'Strong';
+        strengthText.className = 'text-success text-xs';
+    }
+    
+    checkPasswordMatch();
+}
+
+function checkPasswordMatch() {
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirm_password').value;
+    const matchIndicator = document.getElementById('match-indicator');
+    const matchText = document.getElementById('match-text');
+    const submitButton = document.getElementById('submit-button');
+    
+    if (confirmPassword.length > 0) {
+        matchIndicator.classList.remove('hidden');
+        
+        if (password === confirmPassword) {
+            matchText.textContent = '✓ Passwords match';
+            matchText.className = 'text-success';
+            
+            // Enable submit if password is at least 8 chars
+            if (password.length >= 8) {
+                submitButton.disabled = false;
+            }
+        } else {
+            matchText.textContent = '✗ Passwords do not match';
+            matchText.className = 'text-accent-red';
+            submitButton.disabled = true;
+        }
+    } else {
+        matchIndicator.classList.add('hidden');
+        submitButton.disabled = true;
+    }
+}
+
+function validateForm() {
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirm_password').value;
+    const errorMessage = document.getElementById('error-message');
+    const errorText = document.getElementById('error-text');
+    
+    // Hide previous errors
+    errorMessage.classList.add('hidden');
+    
+    // Check password length
+    if (password.length < 8) {
+        errorText.textContent = 'Password must be at least 8 characters long';
+        errorMessage.classList.remove('hidden');
+        return false;
+    }
+    
+    // Check passwords match
+    if (password !== confirmPassword) {
+        errorText.textContent = 'Passwords do not match';
+        errorMessage.classList.remove('hidden');
+        return false;
+    }
+    
+    return true;
+}
+
+// Focus password field on load
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('password').focus();
+});
+</script>
+{% endblock %}

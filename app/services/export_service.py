@@ -69,6 +69,11 @@ class ExportService:
                     "cache_cleanup_enabled": settings.cache_cleanup_enabled,
                     "cache_cleanup_schedule": settings.cache_cleanup_schedule,
                     "cache_cleanup_time": settings.cache_cleanup_time,
+                    # Authentication fields - NEVER export password_hash or session data
+                    "auth_enabled": getattr(settings, 'auth_enabled', False),
+                    # Just flag that auth was enabled (user must set new password after import)
+                    "auth_was_enabled": bool(getattr(settings, 'password_hash', None)),
+                    # NEVER EXPORT: password_hash, session_token, session_expiry
                 }
 
             # Export Artists
