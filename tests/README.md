@@ -29,12 +29,14 @@ tests/
 │   ├── test_rating_service.py    # Core rating service tests
 │   └── test_rating_service_comprehensive.py  # Extended coverage tests
 ├── test_security/                  # Security-related tests
-│   └── __init__.py
+│   ├── __init__.py
+│   └── test_auth_system.py       # Authentication system tests
 ├── test_models.py                  # Database model tests
 ├── test_database.py               # Database operation tests
 ├── test_app_initialization.py    # Application startup tests
 ├── test_async_support.py          # Async functionality tests
-└── test_basic.py                  # Basic sanity tests
+├── test_basic.py                  # Basic sanity tests
+└── test_auth_system.py            # Authentication system tests
 ```
 
 ## Running Tests
@@ -255,7 +257,7 @@ def test_with_fixtures(self, db_session, created_album):
 ### Critical Path Targets
 - Rating Service: 80% (current: 62.85%)
 - Album Operations: 60% (current: 41.50%)
-- Authentication: 70% (not implemented)
+- Authentication: 70% (current: 85%+)
 - Data Models: 50% (current: 100%)
 
 ### Running Coverage Checks
@@ -347,6 +349,78 @@ AttributeError: <module> does not have the attribute
 # Run specific test with full traceback
 ./venv/bin/python -m pytest tests/test_file.py::test_name -vvs --tb=long
 ```
+
+## Security Testing
+
+### Authentication Security Tests
+
+The application includes comprehensive security verification scripts for the authentication system:
+
+#### 1. Security Audit Script (`scripts/security/test_auth_security.py`)
+
+Comprehensive security audit that verifies:
+- Passwords are NEVER sent to browser
+- HttpOnly cookie configuration
+- Session expiry validation
+- Endpoint protection
+- Network traffic security
+- JWT implementation security
+
+```bash
+# Run security audit
+python3 scripts/security/test_auth_security.py
+
+# Expected output: All critical security checks should pass
+```
+
+#### 2. Session Expiry Test (`scripts/security/test_session_expiry.py`)
+
+Tests session expiry by manipulating database timestamps:
+- Verifies expired sessions are rejected
+- Confirms future-dated sessions work
+- Tests session deletion
+- Validates remember_me duration
+
+```bash
+# Run session expiry test (requires active session)
+python3 scripts/security/test_session_expiry.py
+```
+
+#### 3. Password Security Verification (`scripts/security/verify_password_security.py`)
+
+Specifically verifies passwords never reach the browser:
+- Checks all API responses for password data
+- Verifies HttpOnly cookie configuration
+- Confirms password masking in forms
+- Validates POST-only authentication
+
+```bash
+# Run password security verification
+python3 scripts/security/verify_password_security.py
+```
+
+**Note:** These are standalone security audit scripts located in `scripts/security/`, not part of the pytest test suite. See `docs/SECURITY_VERIFICATION.md` for detailed security documentation.
+
+### Security Test Markers
+
+```bash
+# Run only security tests
+./venv/bin/python -m pytest -m security
+
+# Run authentication tests
+./venv/bin/python -m pytest tests/test_security/test_auth_system.py
+```
+
+### Security Verification Checklist
+
+- [ ] Passwords never appear in API responses
+- [ ] Session cookies are HttpOnly
+- [ ] Sessions expire correctly
+- [ ] All endpoints require authentication when enabled
+- [ ] Passwords only sent via POST body
+- [ ] JWT tokens include expiry claim
+- [ ] CSRF protection via SameSite cookies
+- [ ] Generic error messages prevent user enumeration
 
 ## Test Environment Variables
 

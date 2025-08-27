@@ -146,7 +146,20 @@ class ImportService:
                         "cache_cleanup_enabled", True
                     ),
                     cache_cleanup_time=settings_data.get("cache_cleanup_time", "03:00"),
+                    # Handle authentication settings (but NOT passwords)
+                    auth_enabled=settings_data.get("auth_enabled", False),
+                    # If auth was enabled in the backup, require new password setup
+                    is_setup_complete=False if settings_data.get("auth_was_enabled", False) else False,
+                    # NEVER import: password_hash, session_token, session_expiry
                 )
+                
+                # Warn if auth was enabled in backup
+                if settings_data.get("auth_was_enabled", False):
+                    logger.warning(
+                        "Imported database had authentication enabled. "
+                        "User must set a new password to enable authentication."
+                    )
+                
                 db.add(settings)
                 db.flush()
 

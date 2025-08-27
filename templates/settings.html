@@ -218,6 +218,54 @@
         </form>
     </div>
     
+    <!-- Security Settings -->
+    <div class="bg-surface shadow rounded-lg mb-6">
+        <div class="px-6 py-4 border-b border-default">
+            <h2 class="text-xl font-semibold text-primary">Security Settings</h2>
+            <p class="text-sm text-secondary mt-1">Manage authentication and password settings</p>
+        </div>
+        <form id="security-form" class="p-6 space-y-6">
+            <!-- Authentication Status -->
+            <div>
+                <label class="text-sm font-medium text-primary">Authentication</label>
+                <div class="mt-2 flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <span class="text-secondary">Status:</span>
+                        <span id="auth-status-badge" class="px-2 py-1 text-xs font-medium rounded-md">
+                            <!-- Badge set dynamically -->
+                        </span>
+                    </div>
+                    <button type="button" id="toggle-auth-btn" onclick="toggleAuthDialog()"
+                            class="px-3 py-1 text-sm rounded-md hover:opacity-90 transition-colors">
+                        <!-- Button set dynamically -->
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Password Status (shown only if auth enabled) -->
+            <div id="password-section" class="hidden">
+                <label class="text-sm font-medium text-primary">Password</label>
+                <div class="mt-2 flex items-center space-x-4">
+                    <span id="password-status" class="text-secondary">
+                        <!-- Shows "Set" or "Not Set", NEVER the actual hash -->
+                    </span>
+                    <button type="button" onclick="showPasswordModal()"
+                            class="px-3 py-1 bg-accent-blue text-white text-sm rounded-md hover:opacity-90">
+                        Change Password
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Info Message -->
+            <div class="bg-info-light rounded-lg p-4">
+                <p class="text-accent-blue text-sm">
+                    <strong>Note:</strong> Authentication is optional. When enabled, you'll need to login to access your Tracklist instance.
+                    Your password is securely hashed and never sent to the browser.
+                </p>
+            </div>
+        </form>
+    </div>
+    
     <!-- Display Settings -->
     <div class="bg-surface shadow rounded-lg mb-6">
         <div class="px-6 py-4 border-b border-default">
@@ -714,6 +762,351 @@
             showNotification(`Import error: ${error.message}`, 'error');
         }
     }
+    
+    // Security Settings Functions
+    let authEnabled = false;
+    
+    // Load auth status on page load
+    document.addEventListener('DOMContentLoaded', async function() {
+        await loadAuthStatus();
+    });
+    
+    async function loadAuthStatus() {
+        try {
+            const response = await fetch('/api/v1/auth/status');
+            const data = await response.json();
+            
+            // Update auth status display (NO password data in response)
+            authEnabled = data.auth_enabled;
+            
+            // Update status badge with proper styling
+            const statusBadge = document.getElementById('auth-status-badge');
+            if (authEnabled) {
+                statusBadge.textContent = 'Enabled';
+                statusBadge.className = 'px-2 py-1 text-xs font-medium rounded-md bg-success-light text-success';
+            } else {
+                statusBadge.textContent = 'Disabled';
+                statusBadge.className = 'px-2 py-1 text-xs font-medium rounded-md bg-surface-secondary text-secondary';
+            }
+            
+            // Update toggle button with clear action
+            const toggleBtn = document.getElementById('toggle-auth-btn');
+            if (authEnabled) {
+                toggleBtn.textContent = 'Disable Authentication';
+                toggleBtn.className = 'px-3 py-1 text-sm rounded-md hover:opacity-90 transition-colors bg-accent-red text-white';
+            } else {
+                toggleBtn.textContent = 'Enable Authentication';
+                toggleBtn.className = 'px-3 py-1 text-sm rounded-md hover:opacity-90 transition-colors bg-accent-blue text-white';
+            }
+            
+            // Show/hide password section
+            const passwordSection = document.getElementById('password-section');
+            if (authEnabled) {
+                passwordSection.classList.remove('hidden');
+                const passwordStatus = document.getElementById('password-status');
+                if (data.is_password_configured) {
+                    passwordStatus.textContent = 'Set';
+                    passwordStatus.className = 'text-success';
+                } else {
+                    passwordStatus.textContent = 'Not Set';
+                    passwordStatus.className = 'text-warning';
+                }
+            } else {
+                passwordSection.classList.add('hidden');
+            }
+        } catch (error) {
+            console.error('Failed to load auth status:', error);
+        }
+    }
+    
+    function toggleAuthDialog() {
+        if (authEnabled) {
+            showDisableAuthDialog();
+        } else {
+            showEnableAuthDialog();
+        }
+    }
+    
+    function showEnableAuthDialog() {
+        document.getElementById('enableAuthDialog').classList.remove('hidden');
+    }
+    
+    function hideEnableAuthDialog() {
+        document.getElementById('enableAuthDialog').classList.add('hidden');
+        // Clear form
+        document.getElementById('enableAuthForm').reset();
+    }
+    
+    function showDisableAuthDialog() {
+        document.getElementById('disableAuthDialog').classList.remove('hidden');
+    }
+    
+    function hideDisableAuthDialog() {
+        document.getElementById('disableAuthDialog').classList.add('hidden');
+        // Clear form
+        document.getElementById('disableAuthForm').reset();
+    }
+    
+    async function enableAuth(event) {
+        event.preventDefault();
+        const form = event.target;
+        const newPassword = form.new_password.value;
+        const confirmPassword = form.confirm_password.value;
+        
+        if (newPassword !== confirmPassword) {
+            showNotification('Passwords do not match', 'error');
+            return;
+        }
+        
+        try {
+            const response = await fetch('/api/v1/auth/enable', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    new_password: newPassword,
+                    confirm_password: confirmPassword
+                })
+            });
+            
+            if (response.ok) {
+                showNotification('Authentication enabled successfully', 'success');
+                hideEnableAuthDialog();
+                await loadAuthStatus();
+                // Redirect to login after short delay
+                setTimeout(() => {
+                    window.location.href = '/login';
+                }, 1500);
+            } else {
+                const error = await response.json();
+                showNotification(error.detail || 'Failed to enable authentication', 'error');
+            }
+        } catch (error) {
+            showNotification('Error enabling authentication', 'error');
+        }
+        
+        // Clear form immediately after sending
+        form.reset();
+    }
+    
+    async function disableAuth(event) {
+        event.preventDefault();
+        const form = event.target;
+        const currentPassword = form.current_password.value;
+        
+        try {
+            const response = await fetch('/api/v1/auth/disable', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    current_password: currentPassword
+                })
+            });
+            
+            if (response.ok) {
+                showNotification('Authentication disabled successfully', 'success');
+                hideDisableAuthDialog();
+                await loadAuthStatus();
+            } else {
+                const error = await response.json();
+                showNotification(error.detail || 'Invalid password', 'error');
+            }
+        } catch (error) {
+            showNotification('Error disabling authentication', 'error');
+        }
+        
+        // Clear form immediately after sending
+        form.reset();
+    }
+    
+    function showPasswordModal() {
+        document.getElementById('passwordModal').classList.remove('hidden');
+    }
+    
+    function hidePasswordModal() {
+        document.getElementById('passwordModal').classList.add('hidden');
+        // Clear form
+        document.getElementById('passwordChangeForm').reset();
+    }
+    
+    async function changePassword(event) {
+        event.preventDefault();
+        const form = event.target;
+        const oldPassword = form.old_password.value;
+        const newPassword = form.new_password.value;
+        const confirmPassword = form.confirm_password.value;
+        
+        if (newPassword !== confirmPassword) {
+            showNotification('New passwords do not match', 'error');
+            return;
+        }
+        
+        try {
+            const response = await fetch('/api/v1/auth/change-password', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    old_password: oldPassword,
+                    new_password: newPassword,
+                    confirm_password: confirmPassword
+                })
+            });
+            
+            if (response.ok) {
+                showNotification('Password changed successfully. Please log in again.', 'success');
+                hidePasswordModal();
+                // Redirect to login after short delay
+                setTimeout(() => {
+                    window.location.href = '/login';
+                }, 1500);
+            } else {
+                const error = await response.json();
+                showNotification(error.detail || 'Failed to change password', 'error');
+            }
+        } catch (error) {
+            showNotification('Error changing password', 'error');
+        }
+        
+        // Clear form immediately after sending
+        form.reset();
+    }
+    
+    function togglePasswordVisibility(fieldId) {
+        const field = document.getElementById(fieldId);
+        field.type = field.type === 'password' ? 'text' : 'password';
+    }
 </script>
+
+<!-- Password Change Modal -->
+<div id="passwordModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div class="bg-surface rounded-lg border border-default p-6 max-w-md w-full">
+        <h3 class="text-primary font-semibold mb-4">Change Password</h3>
+        
+        <form id="passwordChangeForm" onsubmit="changePassword(event)" class="space-y-4">
+            <!-- Current Password -->
+            <div>
+                <label for="old_password" class="block text-sm font-medium text-primary mb-1">
+                    Current Password
+                </label>
+                <input type="password" id="old_password" name="old_password" required
+                       autocomplete="current-password"
+                       class="w-full rounded-md border-default bg-surface text-primary shadow-sm">
+            </div>
+            
+            <!-- New Password -->
+            <div>
+                <label for="new_password" class="block text-sm font-medium text-primary mb-1">
+                    New Password
+                </label>
+                <input type="password" id="new_password" name="new_password" required
+                       minlength="8" maxlength="128"
+                       autocomplete="new-password"
+                       class="w-full rounded-md border-default bg-surface text-primary shadow-sm">
+            </div>
+            
+            <!-- Confirm New Password -->
+            <div>
+                <label for="confirm_password" class="block text-sm font-medium text-primary mb-1">
+                    Confirm New Password
+                </label>
+                <input type="password" id="confirm_password" name="confirm_password" required
+                       minlength="8" maxlength="128"
+                       autocomplete="new-password"
+                       class="w-full rounded-md border-default bg-surface text-primary shadow-sm">
+            </div>
+            
+            <!-- Buttons -->
+            <div class="flex space-x-3 pt-2">
+                <button type="button" onclick="hidePasswordModal()"
+                        class="flex-1 px-4 py-2 bg-surface-secondary text-primary rounded-md border border-default hover:bg-surface-hover">
+                    Cancel
+                </button>
+                <button type="submit"
+                        class="flex-1 px-4 py-2 bg-accent-blue text-white rounded-md hover:opacity-90">
+                    Change Password
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Enable Auth Dialog -->
+<div id="enableAuthDialog" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div class="bg-surface rounded-lg border border-default p-6 max-w-md w-full">
+        <h3 class="text-primary font-semibold mb-4">Enable Authentication</h3>
+        <p class="text-secondary mb-4">Create a password to protect your Tracklist instance.</p>
+        
+        <form id="enableAuthForm" onsubmit="enableAuth(event)" class="space-y-4">
+            <!-- New Password -->
+            <div>
+                <label for="enable_new_password" class="block text-sm font-medium text-primary mb-1">
+                    Password
+                </label>
+                <input type="password" id="enable_new_password" name="new_password" required
+                       minlength="8" maxlength="128"
+                       autocomplete="new-password"
+                       class="w-full rounded-md border-default bg-surface text-primary shadow-sm">
+            </div>
+            
+            <!-- Confirm Password -->
+            <div>
+                <label for="enable_confirm_password" class="block text-sm font-medium text-primary mb-1">
+                    Confirm Password
+                </label>
+                <input type="password" id="enable_confirm_password" name="confirm_password" required
+                       minlength="8" maxlength="128"
+                       autocomplete="new-password"
+                       class="w-full rounded-md border-default bg-surface text-primary shadow-sm">
+            </div>
+            
+            <!-- Buttons -->
+            <div class="flex space-x-3 pt-2">
+                <button type="button" onclick="hideEnableAuthDialog()"
+                        class="flex-1 px-4 py-2 bg-surface-secondary text-primary rounded-md border border-default hover:bg-surface-hover">
+                    Cancel
+                </button>
+                <button type="submit"
+                        class="flex-1 px-4 py-2 bg-accent-blue text-white rounded-md hover:opacity-90">
+                    Enable
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Disable Auth Dialog -->
+<div id="disableAuthDialog" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div class="bg-surface rounded-lg border border-default p-6 max-w-md w-full">
+        <h3 class="text-primary font-semibold mb-4">Disable Authentication</h3>
+        <div class="bg-warning-light rounded-lg p-3 mb-4">
+            <p class="text-warning text-sm">
+                <strong>Warning:</strong> Disabling authentication will make your Tracklist instance publicly accessible.
+            </p>
+        </div>
+        
+        <form id="disableAuthForm" onsubmit="disableAuth(event)" class="space-y-4">
+            <!-- Current Password -->
+            <div>
+                <label for="disable_current_password" class="block text-sm font-medium text-primary mb-1">
+                    Enter your password to confirm
+                </label>
+                <input type="password" id="disable_current_password" name="current_password" required
+                       autocomplete="current-password"
+                       class="w-full rounded-md border-default bg-surface text-primary shadow-sm">
+            </div>
+            
+            <!-- Buttons -->
+            <div class="flex space-x-3 pt-2">
+                <button type="button" onclick="hideDisableAuthDialog()"
+                        class="flex-1 px-4 py-2 bg-surface-secondary text-primary rounded-md border border-default hover:bg-surface-hover">
+                    Cancel
+                </button>
+                <button type="submit"
+                        class="flex-1 px-4 py-2 bg-accent-red text-white rounded-md hover:opacity-90">
+                    Disable Authentication
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 
 {% endblock %}
