@@ -115,16 +115,9 @@ def init_db():
             default_album_bonus = float(os.getenv("DEFAULT_ALBUM_BONUS", "0.33"))
             # Ensure it's within valid range (0.1 to 0.4)
             default_album_bonus = max(0.1, min(0.4, default_album_bonus))
-            
-            # Check if auth should be enabled by default (from env var)
-            auth_enabled = os.getenv("ENABLE_AUTH", "false").lower() == "true"
 
             default_settings = UserSettings(
-                user_id=1, 
-                album_bonus=default_album_bonus, 
-                theme="light",
-                auth_enabled=auth_enabled,
-                is_setup_complete=False  # Will need password setup if auth enabled
+                user_id=1, album_bonus=default_album_bonus, theme="light"
             )
             db.add(default_settings)
             db.commit()

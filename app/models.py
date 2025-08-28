@@ -157,12 +157,6 @@ class UserSettings(Base):
         user_id: User identifier (default: 1 for single-user mode)
         album_bonus: Default bonus points for albums
         theme: UI theme preference ('light' or 'dark')
-        auth_enabled: Whether authentication is enabled
-        password_hash: Bcrypt hashed password (server-side only, never sent to client)
-        session_token: Current active session token
-        session_expiry: Session token expiration timestamp
-        last_login: Last successful login timestamp
-        is_setup_complete: Whether initial auth setup is complete
         auto_migrate_artwork: Auto-migrate artwork on album creation
         cache_retention_days: Days to retain cached artwork
         cache_max_size_mb: Maximum cache size in MB
@@ -183,14 +177,6 @@ class UserSettings(Base):
     user_id = Column(Integer, default=1)
     album_bonus = Column(REAL, default=0.33)
     theme = Column(Text, default="light")
-    
-    # Authentication fields
-    auth_enabled = Column(Boolean, default=False)
-    password_hash = Column(Text)  # Never sent to client
-    session_token = Column(Text)  # Server-side session management
-    session_expiry = Column(DateTime)
-    last_login = Column(DateTime)
-    is_setup_complete = Column(Boolean, default=False)
 
     # Automation Settings
     auto_migrate_artwork = Column(Boolean, default=True)

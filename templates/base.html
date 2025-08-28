@@ -55,10 +55,6 @@
     <!-- Alpine.js -->
     <script defer src="https://unpkg.com/alpinejs@3.14.1/dist/cdn.min.js"></script>
     
-    <!-- Authentication Status Check -->
-    <!-- Auth status is now handled server-side via template context -->
-    <!-- Debug: auth_enabled={{ auth_enabled }}, is_authenticated={{ is_authenticated }} -->
-    
     <!-- Theme Manager -->
     <script>
         // Theme management with database sync
@@ -166,17 +162,6 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                             </svg>
                         </a>
-                        
-                        <!-- Logout button (shown only if auth is enabled and user is logged in) -->
-                        {% if auth_enabled and is_authenticated %}
-                        <form id="logout-button-desktop" action="/api/v1/auth/logout" method="POST" style="display: inline-block;">
-                            <button type="submit" class="text-accent-red hover:text-red-700 px-3 py-2 rounded-md text-sm font-medium transition-colors" title="Logout">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-                                </svg>
-                            </button>
-                        </form>
-                        {% endif %}
                     </div>
                 </div>
                 
@@ -216,16 +201,6 @@
                                 <a href="/albums" @click="open = false" class="block px-4 py-2 text-sm text-primary hover:bg-surface-hover transition-colors duration-200">My Albums</a>
                                 <a href="/stats" @click="open = false" class="block px-4 py-2 text-sm text-primary hover:bg-surface-hover transition-colors duration-200">Statistics</a>
                                 <a href="/settings" @click="open = false" class="block px-4 py-2 text-sm text-primary hover:bg-surface-hover transition-colors duration-200">Settings</a>
-                                <!-- Logout button (shown only if auth is enabled and user is logged in) -->
-                                {% if auth_enabled and is_authenticated %}
-                                <div id="logout-button-mobile">
-                                    <form action="/api/v1/auth/logout" method="POST" class="m-0">
-                                        <button type="submit" class="block w-full text-left px-4 py-2 text-sm text-accent-red hover:bg-surface-hover transition-colors duration-200">
-                                            Logout
-                                        </button>
-                                    </form>
-                                </div>
-                                {% endif %}
                             </div>
                         </div>
                     </div>
