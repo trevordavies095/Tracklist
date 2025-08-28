@@ -24,6 +24,7 @@ class CoverArtService:
     TIMEOUT = 10.0
 
     def __init__(self):
+        self._closed = False  # Track if service has been closed
         if HTTPX_AVAILABLE:
             self.client = httpx.AsyncClient(
                 timeout=self.TIMEOUT,
@@ -31,6 +32,7 @@ class CoverArtService:
                 headers={
                     "User-Agent": "Tracklist/1.0 (https://github.com/yourusername/tracklist)"
                 },
+                limits=httpx.Limits(max_keepalive_connections=5),  # Limit connections
             )
         else:
             self.client = None
@@ -100,8 +102,23 @@ class CoverArtService:
 
     async def close(self):
         """Close the HTTP client"""
-        if self.client:
-            await self.client.aclose()
+        if self._closed:
+            return  # Already closed
+            
+        try:
+            if self.client:
+                await self.client.aclose()
+                self.client = None
+            self._closed = True
+            logger.info("CoverArtService closed successfully")
+        except Exception as e:
+            logger.error(f"Error closing CoverArtService: {e}")
+            raise
+    
+    def __del__(self):
+        """Cleanup on garbage collection if not properly closed"""
+        if not self._closed and self.client:
+            logger.warning("CoverArtService not properly closed, client may leak resources")
 
 
 # Global instance

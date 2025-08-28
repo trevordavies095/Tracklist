@@ -54,18 +54,25 @@ class MusicBrainzClient:
     def __init__(self):
         self.rate_limiter = MusicBrainzRateLimiter(calls_per_second=1.0)
         self.client = None
+        self._closed = False
 
     async def __aenter__(self):
         """Async context manager entry"""
-        self.client = httpx.AsyncClient(
-            headers={"User-Agent": self.USER_AGENT}, timeout=httpx.Timeout(30.0)
-        )
+        if not self.client or self._closed:
+            self.client = httpx.AsyncClient(
+                headers={"User-Agent": self.USER_AGENT}, 
+                timeout=httpx.Timeout(30.0),
+                limits=httpx.Limits(max_keepalive_connections=5)
+            )
+            self._closed = False
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         """Async context manager exit"""
         if self.client:
             await self.client.aclose()
+            self.client = None
+            self._closed = True
 
     async def _make_request(
         self, endpoint: str, params: Dict[str, Any]
@@ -280,6 +287,14 @@ class MusicBrainzClient:
         """
         params = {"inc": "tags"}
         return await self._make_request(f"release-group/{release_group_id}", params)
+    
+    async def close(self):
+        """Close the HTTP client if open"""
+        if self.client and not self._closed:
+            await self.client.aclose()
+            self.client = None
+            self._closed = True
+            logger.info("MusicBrainzClient closed successfully")
 
 
 # Global client instance for dependency injection
