@@ -7,12 +7,10 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
 import logging
-import os
 
 from ..database import get_db
 from ..rating_service import get_rating_service, RatingService
 from ..services.comparison_service import get_comparison_service, ComparisonService
-from ..services.auth_service import get_auth_service
 from ..exceptions import ServiceNotFoundError
 
 logger = logging.getLogger(__name__)
@@ -21,57 +19,16 @@ router = APIRouter(tags=["templates"])
 templates = Jinja2Templates(directory="templates")
 
 
-def get_template_context(request: Request, db: Session = None) -> dict:
-    """Get common template context including auth status."""
-    context = {"request": request}
-    
-    # Check if user is authenticated
-    auth_service = get_auth_service()
-    
-    # Check if auth is enabled (from database or environment)
-    auth_enabled = False
-    if db:
-        from ..models import UserSettings
-        settings = db.query(UserSettings).filter(UserSettings.user_id == 1).first()
-        if settings:
-            auth_enabled = settings.auth_enabled or False
-    
-    # Fallback to environment variable if no DB settings
-    if not auth_enabled:
-        auth_enabled = os.getenv('ENABLE_AUTH', 'false').lower() == 'true'
-    
-    context["auth_enabled"] = auth_enabled
-    
-    # Only check authentication if auth is enabled
-    if auth_enabled:
-        token = request.cookies.get("tracklist_session")  # Fixed cookie name
-        logger.info(f"Auth check - enabled: {auth_enabled}, token present: {bool(token)}, db present: {bool(db)}")
-        if token and db:
-            context["is_authenticated"] = auth_service.validate_session(db, token)
-            logger.info(f"Session validation result: {context['is_authenticated']}")
-        else:
-            context["is_authenticated"] = False
-            logger.info(f"No token or db - token: {bool(token)}, db: {bool(db)}")
-    else:
-        context["is_authenticated"] = False
-        logger.info(f"Auth disabled - auth_enabled: {auth_enabled}")
-    
-    logger.info(f"Final context: auth_enabled={context.get('auth_enabled')}, is_authenticated={context.get('is_authenticated')}")
-    return context
-
-
 @router.get("/", response_class=HTMLResponse)
-async def homepage(request: Request, db: Session = Depends(get_db)):
+async def homepage(request: Request):
     """Homepage/Dashboard"""
-    context = get_template_context(request, db)
-    return templates.TemplateResponse("index.html", context)
+    return templates.TemplateResponse("index.html", {"request": request})
 
 
 @router.get("/search", response_class=HTMLResponse)
-async def search_page(request: Request, db: Session = Depends(get_db)):
+async def search_page(request: Request):
     """Album search page"""
-    context = get_template_context(request, db)
-    return templates.TemplateResponse("search.html", context)
+    return templates.TemplateResponse("search.html", {"request": request})
 
 
 @router.get("/albums", response_class=HTMLResponse)
@@ -95,16 +52,15 @@ async def albums_page(request: Request, db: Session = Depends(get_db)):
             settings.default_sort_order, settings.default_sort_order
         )
 
-    context = get_template_context(request, db)
-    context["default_sort"] = default_sort
-    return templates.TemplateResponse("albums.html", context)
+    return templates.TemplateResponse(
+        "albums.html", {"request": request, "default_sort": default_sort}
+    )
 
 
 @router.get("/stats", response_class=HTMLResponse)
-async def stats_page(request: Request, db: Session = Depends(get_db)):
+async def stats_page(request: Request):
     """User statistics dashboard page"""
-    context = get_template_context(request, db)
-    return templates.TemplateResponse("stats.html", context)
+    return templates.TemplateResponse("stats.html", {"request": request})
 
 
 @router.get("/settings", response_class=HTMLResponse)
@@ -122,16 +78,15 @@ async def settings_page(request: Request, db: Session = Depends(get_db)):
         db.commit()
         db.refresh(settings)
 
-    context = get_template_context(request, db)
-    context["settings"] = settings
-    return templates.TemplateResponse("settings.html", context)
+    return templates.TemplateResponse(
+        "settings.html", {"request": request, "settings": settings}
+    )
 
 
 @router.get("/test-export", response_class=HTMLResponse)
-async def test_export_page(request: Request, db: Session = Depends(get_db)):
+async def test_export_page(request: Request):
     """Test page for export functionality"""
-    context = get_template_context(request, db)
-    return templates.TemplateResponse("test_export.html", context)
+    return templates.TemplateResponse("test_export.html", {"request": request})
 
 
 @router.get("/artists/{artist_id}/albums", response_class=HTMLResponse)
@@ -148,9 +103,9 @@ async def artist_albums_page(
     if not artist:
         raise HTTPException(status_code=404, detail="Artist not found")
 
-    context = get_template_context(request, db)
-    context["artist"] = artist
-    return templates.TemplateResponse("artist_albums.html", context)
+    return templates.TemplateResponse(
+        "artist_albums.html", {"request": request, "artist": artist}
+    )
 
 
 @router.get("/years/{year}/albums", response_class=HTMLResponse)
@@ -160,9 +115,9 @@ async def year_albums_page(
     db: Session = Depends(get_db),
 ):
     """Year's albums page"""
-    context = get_template_context(request, db)
-    context["year"] = year
-    return templates.TemplateResponse("year_albums.html", context)
+    return templates.TemplateResponse(
+        "year_albums.html", {"request": request, "year": year}
+    )
 
 
 @router.get("/albums/{album_id}/rate", response_class=HTMLResponse)
@@ -185,13 +140,15 @@ async def rating_page(
         )
 
         # Try to render original template
-        context = get_template_context(request, db)
-        context.update({
-            "album": album_data,
-            "tracks": album_data.get("tracks", []),
-            "progress": progress_data,
-        })
-        return templates.TemplateResponse("album/rating.html", context)
+        return templates.TemplateResponse(
+            "album/rating.html",
+            {
+                "request": request,
+                "album": album_data,
+                "tracks": album_data.get("tracks", []),
+                "progress": progress_data,
+            },
+        )
 
     except ServiceNotFoundError:
         logger.warning(f"Album not found for rating page: {album_id}")
@@ -220,20 +177,24 @@ async def completed_page(
         # Ensure album is actually completed
         if not album_data.get("is_rated"):
             # Redirect to rating page if not completed
-            context = get_template_context(request, db)
-            context.update({
+            return templates.TemplateResponse(
+                "album/rating.html",
+                {
+                    "request": request,
+                    "album": album_data,
+                    "tracks": album_data.get("tracks", []),
+                    "progress": service.get_album_progress(album_id, db),
+                },
+            )
+
+        return templates.TemplateResponse(
+            "album/completed.html",
+            {
+                "request": request,
                 "album": album_data,
                 "tracks": album_data.get("tracks", []),
-                "progress": service.get_album_progress(album_id, db),
-            })
-            return templates.TemplateResponse("album/rating.html", context)
-
-        context = get_template_context(request, db)
-        context.update({
-            "album": album_data,
-            "tracks": album_data.get("tracks", []),
-        })
-        return templates.TemplateResponse("album/completed.html", context)
+            },
+        )
 
     except ServiceNotFoundError:
         logger.warning(f"Album not found for completed page: {album_id}")
@@ -283,13 +244,15 @@ async def compare_albums_page(
         f"Returning template with comparison_data={bool(comparison_data)}, error_message={bool(error_message)}"
     )
 
-    context = get_template_context(request, db)
-    context.update({
-        "comparison": comparison_data,
-        "error_message": error_message,
-        "page_title": "Compare Albums",
-    })
-    return templates.TemplateResponse("albums/compare.html", context)
+    return templates.TemplateResponse(
+        "albums/compare.html",
+        {
+            "request": request,
+            "comparison": comparison_data,
+            "error_message": error_message,
+            "page_title": "Compare Albums",
+        },
+    )
 
 
 # Helper function to add custom filters to Jinja2

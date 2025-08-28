@@ -55,12 +55,6 @@ Click below for a quick demo
 - Progress tracking for in-progress albums
 - Customizable album bonus scoring (0.1-0.4 range)
 
-**Security**
-- Optional authentication system for protecting your instance
-- Secure password hashing with bcrypt
-- Session management with JWT tokens
-- Password-protected settings and data export
-
 ### Rating System
 
 Track ratings:
@@ -97,9 +91,6 @@ services:
     environment:
       - DATABASE_URL=sqlite:///./data/tracklist.db
       - LOG_LEVEL=INFO
-      # Optional: Enable authentication
-      # - ENABLE_AUTH=true
-      # - SESSION_EXPIRY_DAYS=30
     restart: unless-stopped
 
 volumes:
@@ -153,40 +144,12 @@ uvicorn app.main:app --reload --port 8000
 
 ## Configuration
 
-### Environment Variables
+Environment variables:
 
-**Database**
 - `DATABASE_URL`: Database connection string (default: `sqlite:///./data/tracklist.db`)
-- `TRACKLIST_DB_PATH`: Alternative way to specify database path (takes precedence over DATABASE_URL)
-
-**Authentication (Optional)**
-- `ENABLE_AUTH`: Enable authentication by default (default: `false`)
-- `DISABLE_AUTH`: Override to disable auth for development (default: `false`)
-- `SESSION_SECRET_KEY`: Secret key for JWT tokens (auto-generated if not set)
-- `SESSION_EXPIRY_DAYS`: Default session duration in days (default: `30`)
-- `REMEMBER_ME_DAYS`: Extended session duration when "Remember me" is checked (default: `90`)
-
-**Application**
 - `LOG_LEVEL`: Logging level (DEBUG, INFO, WARNING, ERROR)
-- `MUSICBRAINZ_USER_AGENT`: User agent for MusicBrainz API requests
-- `DEFAULT_ALBUM_BONUS`: Default bonus for album scores (default: `0.33`)
 
-Additional configuration options are available in the `.env.example` file for cache management, scheduled tasks, and artwork processing.
-
-### Authentication Setup
-
-Tracklist includes an optional authentication system to protect your instance:
-
-1. **Enable via Environment Variable**: Set `ENABLE_AUTH=true` in your environment
-2. **Enable via Web UI**: Go to Settings → Security Settings → Enable Authentication
-3. **First-Time Setup**: You'll be prompted to create a password on first access
-4. **Password Management**: Change your password anytime in Settings → Security
-
-When authentication is enabled:
-- All pages require login except the login page itself
-- Sessions expire after 30 days (or 90 with "Remember me")
-- Passwords are securely hashed and never exposed to the client
-- Export/import functionality preserves auth settings (but not passwords)
+Additional configuration options are available in the docker-compose.yml file for cache management, scheduled tasks, and artwork processing.
 
 ## Acknowledgments
 
