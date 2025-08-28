@@ -64,6 +64,7 @@ class ArtworkCacheService:
         self.cache_fs = cache_fs or get_cache_filesystem()
         self.cover_art_service = get_cover_art_service()
         self.image_processor = get_image_processor()
+        self._closed = False  # Track if service has been closed
 
         # Use the enhanced downloader with retry and rate limiting
         if HTTPX_AVAILABLE:
@@ -921,9 +922,25 @@ class ArtworkCacheService:
 
     async def close(self):
         """Close HTTP client and cleanup resources"""
-        if self.client:
-            await self.client.aclose()
-        logger.info("ArtworkCacheService closed")
+        if self._closed:
+            return  # Already closed
+            
+        try:
+            if self.client:
+                await self.client.aclose()
+                self.client = None
+            if self.downloader:
+                self.downloader = None
+            self._closed = True
+            logger.info("ArtworkCacheService closed successfully")
+        except Exception as e:
+            logger.error(f"Error closing ArtworkCacheService: {e}")
+            raise
+    
+    def __del__(self):
+        """Cleanup on garbage collection if not properly closed"""
+        if not self._closed and self.client:
+            logger.warning("ArtworkCacheService not properly closed, client may leak resources")
 
 
 # Global instance
