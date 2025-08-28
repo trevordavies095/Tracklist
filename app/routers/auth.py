@@ -180,7 +180,6 @@ async def disable_auth(
 
 @router.post("/api/v1/auth/setup")
 async def complete_setup(
-    request: Request,
     password: str = Form(...),
     confirm_password: str = Form(...),
     response: Response = None,
