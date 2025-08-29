@@ -9,6 +9,7 @@ import logging
 from pathlib import Path
 from typing import Dict, Optional, Tuple
 from datetime import datetime
+from ..utils.validation import validate_path, validate_filename
 
 logger = logging.getLogger(__name__)
 
@@ -95,12 +96,37 @@ class ArtworkCacheFileSystem:
         if size_variant not in self.SIZE_SPECS:
             raise ValueError(f"Invalid size variant: {size_variant}")
 
+        # Validate cache key (should be alphanumeric)
+        if not cache_key.replace("-", "").isalnum():
+            raise ValueError("Invalid cache key format")
+
         # Remove leading dot from extension if present
         if extension.startswith("."):
             extension = extension[1:]
+        
+        # Validate extension
+        valid_extensions = ["jpg", "jpeg", "png", "gif", "webp"]
+        if extension.lower() not in valid_extensions:
+            raise ValueError(f"Invalid file extension: {extension}")
 
         filename = f"{cache_key}.{extension}"
-        return self.base_path / size_variant / filename
+        
+        # Validate filename
+        try:
+            validate_filename(filename)
+        except ValueError as e:
+            raise ValueError(f"Invalid cache filename: {e}")
+        
+        # Build and validate path
+        cache_path = self.base_path / size_variant / filename
+        
+        # Ensure path is within base directory
+        try:
+            cache_path.resolve().relative_to(self.base_path.resolve())
+        except ValueError:
+            raise ValueError("Path traversal attempt detected")
+        
+        return cache_path
 
     def get_web_path(
         self, cache_key: str, size_variant: str, extension: str = "jpg"

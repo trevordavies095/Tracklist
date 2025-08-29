@@ -3,7 +3,7 @@ Album rating API endpoints
 """
 
 from typing import Dict, Any, Optional
-from fastapi import APIRouter, Depends, HTTPException, Query, Path, Request, Form
+from fastapi import APIRouter, Depends, HTTPException, Query, Path, Request, Form, Body
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
@@ -20,6 +20,17 @@ from ..exceptions import (
     TracklistException,
     ServiceNotFoundError,
     ServiceValidationError,
+)
+from ..validation.requests import (
+    AlbumCreateRequest,
+    TrackRatingRequest,
+    AlbumNotesRequest,
+    AlbumBonusRequest,
+)
+from ..utils.validation import (
+    validate_integer_id,
+    validate_musicbrainz_id,
+    sanitize_for_logging,
 )
 
 logger = logging.getLogger(__name__)
@@ -45,7 +56,6 @@ class AlbumCreateRequest(BaseModel):
 @router.post("/albums")
 async def create_album_for_rating(
     request: Request,
-    musicbrainz_id: str = Form(...),
     service: RatingService = Depends(get_rating_service),
     db: Session = Depends(get_db),
 ):
@@ -60,7 +70,62 @@ async def create_album_for_rating(
     tracks are rated and the final score is submitted.
     """
     try:
-        logger.info(f"Creating album for rating: {musicbrainz_id}")
+        # Get MusicBrainz ID from form data
+        musicbrainz_id = None
+        content_type = request.headers.get("content-type", "")
+        
+        if "application/x-www-form-urlencoded" in content_type:
+            form = await request.form()
+            musicbrainz_id = form.get("musicbrainz_id")
+        elif "application/json" in content_type:
+            try:
+                body = await request.json()
+                musicbrainz_id = body.get("musicbrainz_id")
+            except Exception as e:
+                logger.error(f"Error parsing JSON body: {e}")
+                raise HTTPException(
+                    status_code=400,
+                    detail={
+                        "error": "Invalid request",
+                        "message": "Invalid JSON in request body",
+                    },
+                )
+        else:
+            # Try both as fallback
+            try:
+                body = await request.json()
+                musicbrainz_id = body.get("musicbrainz_id")
+            except:
+                try:
+                    form = await request.form()
+                    musicbrainz_id = form.get("musicbrainz_id")
+                except:
+                    pass
+        
+        if not musicbrainz_id:
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "error": "Invalid request",
+                    "message": "MusicBrainz ID is required",
+                },
+            )
+        
+        # Validate MusicBrainz ID
+        try:
+            album_request = AlbumCreateRequest(musicbrainz_id=musicbrainz_id)
+            musicbrainz_id = album_request.musicbrainz_id
+        except Exception as e:
+            logger.warning(f"Invalid MusicBrainz ID: {musicbrainz_id} - {e}")
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "error": "Invalid MusicBrainz ID",
+                    "message": "MusicBrainz ID must be a valid UUID format",
+                },
+            )
+        
+        logger.info(f"Creating album for rating: {sanitize_for_logging(musicbrainz_id)}")
 
         result = await service.create_album_for_rating(musicbrainz_id, db)
 
@@ -109,6 +174,9 @@ async def create_album_for_rating(
                 "message": "Unable to create album for rating. Please try again later.",
             },
         )
+    except HTTPException:
+        # Re-raise HTTPException without logging (these are expected validation errors)
+        raise
     except Exception as e:
         logger.error(f"Unexpected error creating album: {e}", exc_info=True)
         raise HTTPException(
@@ -124,7 +192,6 @@ async def create_album_for_rating(
 async def update_track_rating(
     request: Request,
     track_id: int = Path(..., description="Track ID", gt=0),
-    rating: float = Form(None),
     service: RatingService = Depends(get_rating_service),
     db: Session = Depends(get_db),
 ) -> Dict[str, Any]:
@@ -142,24 +209,70 @@ async def update_track_rating(
     - 1.0: Standout/love it (album highlights)
     """
     try:
+        # Validate track ID
+        validated_track_id = validate_integer_id(track_id)
+        
         # Handle both JSON and form data
-        if rating is None:
-            # Try to parse JSON body
+        rating_value = None
+        
+        # Check content type
+        content_type = request.headers.get("content-type", "")
+        
+        if "application/x-www-form-urlencoded" in content_type:
+            # Handle form data
+            form = await request.form()
+            rating_value = form.get("rating")
+        elif "application/json" in content_type:
+            # Handle JSON data
             try:
                 body = await request.json()
-                rating = body.get("rating")
-                if rating is None:
-                    raise ValueError("Missing rating in request body")
-            except Exception:
+                rating_value = body.get("rating")
+            except Exception as e:
+                logger.error(f"Error parsing JSON body: {e}")
                 raise HTTPException(
                     status_code=400,
                     detail={
                         "error": "Invalid request",
-                        "message": "Rating value is required",
+                        "message": "Invalid JSON in request body",
                     },
                 )
-
-        logger.info(f"Updating track {track_id} rating to {rating}")
+        else:
+            # Try both methods as fallback
+            try:
+                body = await request.json()
+                rating_value = body.get("rating")
+            except:
+                try:
+                    form = await request.form()
+                    rating_value = form.get("rating")
+                except:
+                    pass
+        
+        if rating_value is None:
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "error": "Invalid request",
+                    "message": "Rating value is required",
+                },
+            )
+        
+        # Validate and convert rating
+        try:
+            # Create request object for validation
+            rating_request = TrackRatingRequest(rating=float(rating_value))
+            rating = rating_request.rating
+        except (ValueError, TypeError) as e:
+            logger.warning(f"Invalid rating value: {rating_value} - {e}")
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "error": "Invalid rating",
+                    "message": f"Rating must be one of: 0.0, 0.33, 0.67, 1.0 (got: {rating_value})",
+                },
+            )
+        
+        logger.info(f"Updating track {validated_track_id} rating to {rating}")
 
         result = service.rate_track(track_id, rating, db)
 
@@ -273,26 +386,48 @@ async def update_album_notes(
     Allows adding or updating personal notes for an album.
     Notes are limited to 5000 characters and can be updated
     at any time during or after the rating process.
+    Notes will be HTML-escaped for security.
     """
     try:
-        # Get notes from request body
-        if request.headers.get("content-type") == "application/x-www-form-urlencoded":
+        # Validate album ID
+        validated_album_id = validate_integer_id(album_id)
+        
+        # Handle both JSON and form data
+        notes_value = ""
+        content_type = request.headers.get("content-type", "")
+        
+        if "application/x-www-form-urlencoded" in content_type:
             form = await request.form()
-            notes = form.get("notes", "")
-        else:
+            notes_value = form.get("notes", "")
+        elif "application/json" in content_type:
             try:
                 body = await request.json()
-                notes = body.get("notes", "")
-            except Exception:
-                raise HTTPException(
-                    status_code=400,
-                    detail={
-                        "error": "Invalid request",
-                        "message": "Notes value is required",
-                    },
-                )
+                notes_value = body.get("notes", "")
+            except Exception as e:
+                logger.error(f"Error parsing JSON body: {e}")
+                notes_value = ""
+        else:
+            # Try both as fallback
+            try:
+                body = await request.json()
+                notes_value = body.get("notes", "")
+            except:
+                try:
+                    form = await request.form()
+                    notes_value = form.get("notes", "")
+                except:
+                    notes_value = ""
+        
+        # Create request object for validation
+        try:
+            notes_request = AlbumNotesRequest(notes=notes_value)
+            notes = notes_request.notes
+        except Exception as e:
+            logger.warning(f"Notes validation error: {e}")
+            # Fallback to empty notes if validation fails
+            notes = ""
 
-        logger.info(f"Updating notes for album {album_id}")
+        logger.info(f"Updating notes for album {validated_album_id} ({len(notes)} chars)")
 
         result = service.update_album_notes(album_id, notes, db)
 
