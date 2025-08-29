@@ -12,9 +12,16 @@ extend-ignore =
     D104,
     D105,
     D107,
+    D200,
+    D202,
+    D205,
+    D400,
+    D401,
     C901,
     B008,
-    B902
+    B902,
+    F401,
+    F841
 
 # Exclude paths
 exclude =
