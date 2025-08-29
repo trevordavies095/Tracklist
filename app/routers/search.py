@@ -10,6 +10,8 @@ import logging
 
 from ..musicbrainz_service import get_musicbrainz_service, MusicBrainzService
 from ..exceptions import TracklistException
+from ..validation.requests import SearchRequest
+from ..utils.validation import validate_musicbrainz_id, sanitize_for_logging
 
 logger = logging.getLogger(__name__)
 
@@ -20,28 +22,7 @@ templates = Jinja2Templates(directory="templates")
 @router.get("/search/albums")
 async def search_albums(
     request: Request,
-    q: Optional[str] = Query(
-        None,
-        description="General search query for albums",
-        min_length=1,
-        max_length=200,
-    ),
-    artist: Optional[str] = Query(
-        None, description="Artist name for structured search", max_length=200
-    ),
-    album: Optional[str] = Query(
-        None, description="Album title for structured search", max_length=200
-    ),
-    year: Optional[int] = Query(
-        None, description="Release year for structured search", ge=1900, le=2100
-    ),
-    mbid: Optional[str] = Query(
-        None,
-        description="MusicBrainz Release ID for direct lookup",
-        regex="^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$",
-    ),
-    limit: int = Query(25, description="Maximum number of results", ge=1, le=100),
-    offset: int = Query(0, description="Offset for pagination", ge=0),
+    search_params: SearchRequest = Depends(),
     service: MusicBrainzService = Depends(get_musicbrainz_service),
 ):
     """
@@ -59,6 +40,15 @@ async def search_albums(
     - MusicBrainz ID for detailed lookup
     """
     try:
+        # Extract validated parameters
+        q = search_params.q
+        artist = search_params.artist
+        album = search_params.album
+        year = search_params.year
+        mbid = search_params.mbid
+        limit = search_params.limit
+        offset = search_params.offset
+        
         # Validate that at least one search method is provided
         if not any([q, artist, album, mbid]):
             raise HTTPException(
@@ -71,7 +61,7 @@ async def search_albums(
 
         # Handle direct MusicBrainz ID lookup
         if mbid:
-            logger.info(f"Direct album lookup request: {mbid}")
+            logger.info(f"Direct album lookup request: {sanitize_for_logging(mbid)}")
 
             # Use the existing album details endpoint internally
             album_details = await service.get_album_details(mbid)
@@ -99,8 +89,8 @@ async def search_albums(
 
         # Handle structured search
         elif artist or album:
-            search_params = {"artist": artist, "album": album, "year": year}
-            logger.info(f"Structured album search request: {search_params}")
+            search_log = {"artist": artist, "album": album, "year": year}
+            logger.info(f"Structured album search request: {search_log}")
 
             results = await service.search_albums_structured(
                 artist=artist, album=album, year=year, limit=limit, offset=offset
@@ -116,7 +106,7 @@ async def search_albums(
         # Handle general search
         else:
             logger.info(
-                f"General album search request: '{q}' (limit={limit}, offset={offset})"
+                f"General album search request: '{sanitize_for_logging(q)}' (limit={limit}, offset={offset})"
             )
 
             results = await service.search_albums(q, limit, offset)
@@ -185,7 +175,8 @@ async def search_albums(
 
 @router.get("/albums/{musicbrainz_id}/details")
 async def get_album_details(
-    musicbrainz_id: str, service: MusicBrainzService = Depends(get_musicbrainz_service)
+    musicbrainz_id: str = Path(..., description="MusicBrainz release ID"),
+    service: MusicBrainzService = Depends(get_musicbrainz_service)
 ) -> Dict[str, Any]:
     """
     Get detailed album information by MusicBrainz ID
@@ -200,19 +191,21 @@ async def get_album_details(
     to get the full album details needed for rating.
     """
     try:
-        logger.info(f"Album details request: {musicbrainz_id}")
-
-        # Validate MusicBrainz ID format (36 character UUID)
-        if len(musicbrainz_id) != 36 or musicbrainz_id.count("-") != 4:
+        # Validate and sanitize MusicBrainz ID
+        try:
+            validated_mbid = validate_musicbrainz_id(musicbrainz_id)
+        except ValueError as e:
             raise HTTPException(
                 status_code=400,
                 detail={
                     "error": "Invalid MusicBrainz ID",
-                    "message": "MusicBrainz ID must be a valid UUID format",
+                    "message": str(e),
                 },
             )
+        
+        logger.info(f"Album details request: {sanitize_for_logging(validated_mbid)}")
 
-        album_details = await service.get_album_details(musicbrainz_id)
+        album_details = await service.get_album_details(validated_mbid)
 
         logger.info(
             f"Album details retrieved: {album_details.get('title', 'Unknown')} - {album_details.get('total_tracks', 0)} tracks"

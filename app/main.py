@@ -9,6 +9,7 @@ from .database import create_tables, init_db
 from .exceptions import TracklistException
 from .logging_config import setup_logging
 from .routers import search, albums, templates, reports, settings, system
+from .middleware.rate_limit import RateLimitMiddleware
 
 # Setup logging
 log_level = os.getenv("LOG_LEVEL", "INFO")
@@ -73,6 +74,9 @@ This API currently does not require authentication as it's designed for personal
         },
     ],
 )
+
+# Add rate limiting middleware
+app.add_middleware(RateLimitMiddleware)
 
 # Mount static files
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -543,9 +547,28 @@ async def tracklist_exception_handler(request: Request, exc: TracklistException)
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     """Handle request validation errors"""
-    logger.warning(f"Validation error: {exc.errors()}")
+    # Convert errors to JSON-serializable format
+    errors = []
+    for error in exc.errors():
+        error_dict = {}
+        for key, value in error.items():
+            # Convert bytes to string if present
+            if isinstance(value, bytes):
+                error_dict[key] = value.decode('utf-8', errors='ignore')
+            elif isinstance(value, (list, tuple)):
+                # Handle nested structures
+                error_dict[key] = [
+                    v.decode('utf-8', errors='ignore') if isinstance(v, bytes) else v
+                    for v in value
+                ]
+            else:
+                error_dict[key] = value
+        errors.append(error_dict)
+    
+    logger.warning(f"Validation error: {errors}")
     return JSONResponse(
-        status_code=422, content={"error": "Validation error", "details": exc.errors()}
+        status_code=422, 
+        content={"error": "Validation error", "details": errors}
     )
 
 
