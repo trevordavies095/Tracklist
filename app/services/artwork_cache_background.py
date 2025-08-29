@@ -3,13 +3,14 @@ Background artwork caching service
 Handles non-blocking artwork downloads and processing
 """
 
-import logging
 import asyncio
-from typing import Optional, Dict, Any
+import logging
+from typing import Any, Dict, Optional
+
 from sqlalchemy.orm import Session
 
-from ..models import Album
 from ..database import SessionLocal
+from ..models import Album
 from .artwork_cache_service import ArtworkCacheService
 from .background_tasks import get_background_manager
 

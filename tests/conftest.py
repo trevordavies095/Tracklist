@@ -3,18 +3,19 @@ Pytest configuration and fixtures for the Tracklist test suite.
 This file provides shared fixtures for database setup, test client, and sample data.
 """
 
+import asyncio
 import os
+from datetime import datetime
+from typing import AsyncGenerator, Generator
+from unittest.mock import AsyncMock, patch
+
 import pytest
 import pytest_asyncio
-import asyncio
-from typing import Generator, AsyncGenerator
-from datetime import datetime
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, Session
-from sqlalchemy.pool import StaticPool
-from fastapi.testclient import TestClient
 from faker import Faker
-from unittest.mock import patch, AsyncMock
+from fastapi.testclient import TestClient
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.pool import StaticPool
 
 # Set testing environment variables before importing app
 os.environ["TESTING"] = "true"
@@ -24,10 +25,11 @@ os.environ["AUTO_MIGRATE_ARTWORK"] = "false"
 os.environ["DATABASE_URL"] = "sqlite:///:memory:"
 os.environ["LOG_LEVEL"] = "ERROR"  # Reduce log noise during tests
 
+from app.database import get_db
+
 # Import app modules after setting environment
 from app.main import app
-from app.database import get_db
-from app.models import Base, Album, Artist, Track, UserSettings, ArtworkCache
+from app.models import Album, Artist, ArtworkCache, Base, Track, UserSettings
 
 # Initialize Faker for test data generation
 fake = Faker()
@@ -72,7 +74,7 @@ def db_session(db_engine) -> Generator[Session, None, None]:
         autocommit=False, autoflush=False, bind=db_engine
     )
     session = TestingSessionLocal()
-    
+
     try:
         yield session
     finally:
@@ -86,17 +88,18 @@ def client(db_session) -> TestClient:
     Create a test client with overridden database dependency.
     This ensures tests use the test database instead of production.
     """
+
     def override_get_db():
         try:
             yield db_session
         finally:
             pass
-    
+
     app.dependency_overrides[get_db] = override_get_db
-    
+
     with TestClient(app) as test_client:
         yield test_client
-    
+
     app.dependency_overrides.clear()
 
 
@@ -118,7 +121,9 @@ def sample_album_data() -> dict:
         "musicbrainz_id": fake.uuid4(),
         "release_year": fake.year(),
         "total_tracks": fake.random_int(min=5, max=15),
-        "genre": fake.random_element(["Rock", "Pop", "Jazz", "Electronic", "Classical"]),
+        "genre": fake.random_element(
+            ["Rock", "Pop", "Jazz", "Electronic", "Classical"]
+        ),
     }
 
 
@@ -193,11 +198,11 @@ def album_with_tracks(db_session, created_album) -> Album:
             musicbrainz_id=fake.uuid4(),
         )
         tracks.append(track)
-    
+
     db_session.bulk_save_objects(tracks)
     db_session.commit()
     db_session.refresh(created_album)
-    
+
     return created_album
 
 
@@ -205,21 +210,21 @@ def album_with_tracks(db_session, created_album) -> Album:
 def rated_album(db_session, album_with_tracks) -> Album:
     """Create a fully rated album for testing."""
     album = album_with_tracks
-    
+
     # Rate all tracks
     for track in album.tracks:
         track.track_rating = fake.random_element([0.0, 0.33, 0.67, 1.0])
-    
+
     # Calculate album score
     track_ratings = [t.track_rating for t in album.tracks]
     avg_rating = sum(track_ratings) / len(track_ratings)
     album.rating_score = int((avg_rating * 10 + album.album_bonus) * 10)
     album.is_rated = True
     album.rated_at = datetime.utcnow()
-    
+
     db_session.commit()
     db_session.refresh(album)
-    
+
     return album
 
 
@@ -308,20 +313,20 @@ def sample_albums(db_session, created_artist):
         )
         db_session.add(album)
         db_session.flush()
-        
+
         # Add tracks
         for j in range(3):
             track = Track(
                 album_id=album.id,
                 title=f"Track {j+1}",
-                track_number=j+1,
-                length_ms=(j+1) * 60000,
+                track_number=j + 1,
+                length_ms=(j + 1) * 60000,
                 is_rated=False,
             )
             db_session.add(track)
-        
+
         albums.append(album)
-    
+
     db_session.commit()
     return albums
 
@@ -333,10 +338,10 @@ def cleanup_test_files(request):
     Use this for tests that create temporary files or directories.
     """
     files_to_cleanup = []
-    
+
     def add_file(filepath):
         files_to_cleanup.append(filepath)
-    
+
     request.addfinalizer(lambda: _cleanup_files(files_to_cleanup))
     return add_file
 
@@ -345,7 +350,7 @@ def _cleanup_files(files):
     """Helper function to clean up test files."""
     import os
     import shutil
-    
+
     for filepath in files:
         if os.path.isfile(filepath):
             os.remove(filepath)
@@ -360,18 +365,18 @@ async def async_client(db_session):
     Async test client for testing async endpoints.
     """
     from httpx import AsyncClient
-    
+
     def override_get_db():
         try:
             yield db_session
         finally:
             pass
-    
+
     app.dependency_overrides[get_db] = override_get_db
-    
+
     async with AsyncClient(app=app, base_url="http://test") as ac:
         yield ac
-    
+
     app.dependency_overrides.clear()
 
 
@@ -381,12 +386,8 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "slow: marks tests as slow (deselect with '-m \"not slow\"')"
     )
-    config.addinivalue_line(
-        "markers", "integration: marks tests as integration tests"
-    )
-    config.addinivalue_line(
-        "markers", "unit: marks tests as unit tests"
-    )
+    config.addinivalue_line("markers", "integration: marks tests as integration tests")
+    config.addinivalue_line("markers", "unit: marks tests as unit tests")
     config.addinivalue_line(
         "markers", "security: marks tests as security-related tests"
     )

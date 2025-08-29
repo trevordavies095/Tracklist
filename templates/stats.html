@@ -11,7 +11,7 @@
         <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold text-primary mb-2 md:mb-4">Your Statistics</h1>
         <p class="text-sm sm:text-base md:text-lg text-secondary">Track your album rating progress and discover insights about your music taste</p>
     </div>
-    
+
     <!-- Loading State -->
     <div id="stats-loading" class="space-y-6 px-4 md:px-0">
         <!-- Overview Cards Loading -->
@@ -24,7 +24,7 @@
             </div>
             {% endfor %}
         </div>
-        
+
         <!-- Charts Loading -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-6">
             <div class="bg-surface rounded-lg shadow-sm border border-default p-4 md:p-6">
@@ -37,17 +37,17 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Stats Content (Hidden initially, shown after data loads) -->
     <div id="stats-content" style="display: none;" class="px-4 md:px-0">
         <!-- Hidden element to ensure Tailwind includes these classes -->
         <div class="hidden flex items-center gap-2 mb-2 flex-shrink-0 justify-center"></div>
-        
+
         <!-- Overview Cards -->
         <div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3 lg:gap-4 mb-4 md:mb-8 mobile-section-spacing" id="overview-cards">
             <!-- Cards will be inserted here by JavaScript -->
         </div>
-        
+
         <!-- Top Artist -->
         <div class="mb-8 mobile-section-spacing">
             <div class="mb-4 md:mb-6 mobile-section-header">
@@ -60,7 +60,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Rating Distribution & Average Score -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-6 mb-8 mobile-section-spacing">
             <!-- Rating Distribution Card -->
@@ -70,7 +70,7 @@
                     <!-- Distribution bars will be inserted here -->
                 </div>
             </div>
-            
+
             <!-- Average Score Card -->
             <div class="bg-surface rounded-lg shadow-sm border border-default p-4 md:p-6">
                 <h2 class="text-base md:text-lg font-semibold text-primary mb-3 md:mb-4">Collection Overview</h2>
@@ -79,8 +79,8 @@
                 </div>
             </div>
         </div>
-        
-        
+
+
         <!-- Top Albums -->
         <div class="mb-8 mobile-section-spacing">
             <div class="mb-4 md:mb-6 mobile-section-header">
@@ -93,7 +93,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- No Skips Albums -->
         <div class="mb-8 mobile-section-spacing">
             <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 md:mb-6 mobile-section-header">
@@ -111,7 +111,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Top Albums by Year -->
         <div class="mb-8 mobile-section-spacing">
             <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 md:mb-6 mobile-section-header">
@@ -120,7 +120,7 @@
                     <p class="text-xs sm:text-sm md:text-base text-secondary mt-1">Your highest-rated albums from a specific year</p>
                 </div>
                 <div class="flex items-center space-x-2 mt-2 sm:mt-0">
-                    <select id="yearSelector" onchange="loadTopAlbumsByYear(this.value)" 
+                    <select id="yearSelector" onchange="loadTopAlbumsByYear(this.value)"
                             class="px-3 py-2 border border-default rounded-md text-xs sm:text-sm bg-surface hover:border-default focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                         <option value="">Select Year...</option>
                         <!-- Years will be populated here -->
@@ -139,7 +139,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Highest Rated Artists -->
         <div class="mb-8 mobile-section-spacing">
             <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 md:mb-6 mobile-section-header">
@@ -149,7 +149,7 @@
                 </div>
                 <div class="flex items-center space-x-2 mt-2 sm:mt-0">
                     <label class="text-xs sm:text-sm text-secondary">Min albums:</label>
-                    <input type="number" id="minAlbumsInput" min="1" max="10" value="3" 
+                    <input type="number" id="minAlbumsInput" min="1" max="10" value="3"
                            onchange="loadHighestRatedArtists(this.value)"
                            class="w-16 px-2 py-1 bg-surface text-primary border border-default rounded text-center text-xs sm:text-sm hover:border-accent-blue focus:ring-2 focus:ring-accent-blue focus:border-transparent">
                 </div>
@@ -165,9 +165,9 @@
                 </div>
             </div>
         </div>
-        
+
     </div>
-    
+
     <!-- Empty State (shown when no albums) -->
     <div id="empty-state" style="display: none;" class="text-center py-12 md:py-16 px-4 md:px-0">
         <div class="max-w-md mx-auto">
@@ -215,29 +215,29 @@ async function loadStatistics() {
     // Show content container immediately and hide loading skeleton
     document.getElementById('stats-loading').style.display = 'none';
     document.getElementById('stats-content').style.display = 'block';
-    
+
     try {
         // First, fetch and render overview statistics (fastest query)
         const overviewResponse = await fetch('/api/v1/reports/overview');
         const overview = await overviewResponse.json();
-        
+
         // Check if empty (no albums)
         if (overview.total_albums === 0) {
             document.getElementById('empty-state').style.display = 'block';
             document.getElementById('stats-content').style.display = 'none';
             return;
         }
-        
+
         // Immediately render overview cards with placeholder for no-skips
         renderOverviewCards(overview, null);
         renderRatingDistribution(overview.rating_distribution);
         renderCollectionOverview(overview);
-        
+
         // Show loading placeholders for other sections
         showSectionLoading('no-skips-list');
         showSectionLoading('top-artist-section');
         showSectionLoading('top-albums-list');
-        
+
         // Fetch top artist and render when ready
         fetch('/api/v1/reports/top-artist')
             .then(response => response.json())
@@ -245,7 +245,7 @@ async function loadStatistics() {
                 renderTopArtist(topArtist);
             })
             .catch(error => console.error('Error loading top artist:', error));
-        
+
         // Fetch top albums and render when ready (random selection from top 25)
         fetch('/api/v1/reports/top-albums?limit=5&randomize=true&pool_size=25')
             .then(response => response.json())
@@ -253,8 +253,8 @@ async function loadStatistics() {
                 renderTopAlbums(topAlbums);
             })
             .catch(error => console.error('Error loading top albums:', error));
-        
-        
+
+
         // Fetch no-skips data (this is the slow one) and update when ready
         fetch('/api/v1/reports/no-skips?limit=5')
             .then(response => response.json())
@@ -273,13 +273,13 @@ async function loadStatistics() {
                     </div>
                 `;
             });
-            
+
         // Load available years for top albums by year dropdown
         loadAvailableYears();
-        
+
         // Load highest rated artists with default filter
         loadHighestRatedArtists(3);
-        
+
     } catch (error) {
         console.error('Error loading initial statistics:', error);
         document.getElementById('stats-content').style.display = 'none';
@@ -320,7 +320,7 @@ function updateNoSkipsCard(noSkipsData) {
         // Look for the value paragraph - it has text-lg, text-xl, or text-2xl classes
         const valueElement = noSkipsCard.querySelector('p.text-lg, p.text-xl, p.text-2xl');
         const subtitleElement = noSkipsCard.querySelector('p.text-xs.text-muted'); // The subtitle paragraph
-        
+
         if (valueElement) {
             valueElement.textContent = noSkipsData.total_count;
         }
@@ -361,7 +361,7 @@ function renderOverviewCards(data, noSkipsData) {
             color: 'purple'
         }
     ];
-    
+
     // Define color classes for light and dark modes
     const colorClasses = {
         blue: {
@@ -381,7 +381,7 @@ function renderOverviewCards(data, noSkipsData) {
             text: 'text-accent-purple'
         }
     };
-    
+
     const cardsHtml = cards.map(card => `
         <div class="bg-surface rounded-lg shadow-sm border border-default p-3 md:p-4 lg:p-6">
             <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
@@ -396,7 +396,7 @@ function renderOverviewCards(data, noSkipsData) {
             <p class="text-xs text-muted">${card.subtitle}</p>
         </div>
     `).join('');
-    
+
     document.getElementById('overview-cards').innerHTML = cardsHtml;
 }
 
@@ -411,15 +411,15 @@ function renderNoSkipAlbums(noSkipsData) {
                 ${noSkipsData.percentage}% of rated albums
             </div>
         `;
-        
+
         // Render album grid
         const albumsHtml = noSkipsData.albums.map(album => `
             <div class="group relative">
                 <a href="/albums/${album.id}/completed" class="block">
                     <div class="aspect-square overflow-hidden rounded-lg bg-surface-secondary mb-3">
                         ${album.cover_art_url ? `
-                            <img src="${album.cover_art_url}" 
-                                 alt="${album.name}" 
+                            <img src="${album.cover_art_url}"
+                                 alt="${album.name}"
                                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                  onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                             <div class="w-full h-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center" style="display:none;">
@@ -452,7 +452,7 @@ function renderNoSkipAlbums(noSkipsData) {
                 </div>
             </div>
         `).join('');
-        
+
         document.getElementById('no-skips-list').innerHTML = albumsHtml;
     } else {
         document.getElementById('no-skips-stats').innerHTML = `
@@ -478,12 +478,12 @@ function renderRatingDistribution(distribution) {
         { name: 'Filler', count: distribution.filler, color: 'bg-rating-filler', percent: 0 },
         { name: 'Skip', count: distribution.skip, color: 'bg-rating-skip', percent: 0 }
     ];
-    
+
     // Calculate percentages
     ratings.forEach(rating => {
         rating.percent = total > 0 ? Math.round((rating.count / total) * 100) : 0;
     });
-    
+
     const distributionHtml = ratings.map(rating => `
         <div>
             <div class="flex justify-between items-center mb-1">
@@ -495,7 +495,7 @@ function renderRatingDistribution(distribution) {
             </div>
         </div>
     `).join('');
-    
+
     document.getElementById('rating-distribution').innerHTML = distributionHtml;
 }
 
@@ -503,7 +503,7 @@ function renderCollectionOverview(data) {
     const avgScore = data.average_album_score !== null ? Math.round(data.average_album_score) : null;
     const scoreColor = getScoreColor(avgScore);
     const completionRate = data.total_albums > 0 ? Math.round((data.fully_rated_count / data.total_albums) * 100) : 0;
-    
+
     const overviewHtml = `
         <div class="space-y-4">
             <!-- Average Score Display -->
@@ -518,7 +518,7 @@ function renderCollectionOverview(data) {
                     <div class="text-xs sm:text-sm text-secondary">No rated albums yet</div>
                 </div>
             `}
-            
+
             <!-- Collection Stats -->
             <div class="border-t pt-3 md:pt-4 space-y-3">
                 <div class="flex justify-between items-center">
@@ -528,7 +528,7 @@ function renderCollectionOverview(data) {
                 <div class="w-full bg-surface-secondary rounded-full h-2">
                     <div class="bg-blue-600 h-2 rounded-full transition-all duration-500" style="width: ${completionRate}%"></div>
                 </div>
-                
+
                 <div class="grid grid-cols-3 gap-2 pt-2">
                     <div class="text-center">
                         <div class="text-base md:text-lg font-semibold text-primary">${data.fully_rated_count}</div>
@@ -546,7 +546,7 @@ function renderCollectionOverview(data) {
             </div>
         </div>
     `;
-    
+
     document.getElementById('collection-overview').innerHTML = overviewHtml;
 }
 
@@ -563,9 +563,9 @@ function renderTopArtist(topArtist) {
         `;
         return;
     }
-    
+
     const avgScoreColor = getScoreColor(topArtist.average_score);
-    
+
     let topArtistHtml = `
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <!-- Artist Info Card -->
@@ -585,7 +585,7 @@ function renderTopArtist(topArtist) {
                         <p class="text-sm text-secondary">Most Rated Artist</p>
                     </div>
                 </div>
-                
+
                 <div class="space-y-3 bg-background rounded-lg p-4">
                     <div class="flex justify-between items-center">
                         <span class="text-sm text-secondary">Albums Rated</span>
@@ -596,7 +596,7 @@ function renderTopArtist(topArtist) {
                         <span class="text-lg font-bold ${avgScoreColor}">${topArtist.average_score || '—'}</span>
                     </div>
                 </div>
-                
+
                 ${topArtist.tied_with && topArtist.tied_with.length > 0 ? `
                     <div class="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
                         <p class="text-xs font-medium text-amber-800 mb-2">Tied with:</p>
@@ -613,7 +613,7 @@ function renderTopArtist(topArtist) {
                     </div>
                 ` : ''}
             </div>
-            
+
             <!-- Top Albums from Artist -->
             <div class="lg:col-span-2">
                 <h4 class="text-sm font-semibold text-primary mb-3">Top Albums by ${topArtist.artist_name}</h4>
@@ -624,8 +624,8 @@ function renderTopArtist(topArtist) {
                                 <a href="/albums/${album.id}/completed" class="block">
                                     <div class="aspect-square overflow-hidden rounded-lg bg-surface-secondary mb-2 shadow-sm group-hover:shadow-md transition-shadow">
                                         ${album.cover_art_url ? `
-                                            <img src="${album.cover_art_url}" 
-                                                 alt="${album.name}" 
+                                            <img src="${album.cover_art_url}"
+                                                 alt="${album.name}"
                                                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                                  onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                             <div class="w-full h-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center" style="display:none;">
@@ -660,7 +660,7 @@ function renderTopArtist(topArtist) {
             </div>
         </div>
     `;
-    
+
     document.getElementById('top-artist-section').innerHTML = topArtistHtml;
 }
 
@@ -673,8 +673,8 @@ function renderTopAlbums(albums) {
                         <!-- Album cover -->
                         <div class="aspect-square overflow-hidden rounded-lg bg-surface-secondary mb-3 shadow-md group-hover:shadow-xl transition-shadow duration-300">
                             ${album.cover_art_url ? `
-                                <img src="${album.cover_art_url}" 
-                                     alt="${album.name}" 
+                                <img src="${album.cover_art_url}"
+                                     alt="${album.name}"
                                      class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                      onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                 <div class="w-full h-full bg-gradient-to-br from-indigo-400 to-purple-400 flex items-center justify-center" style="display:none;">
@@ -691,7 +691,7 @@ function renderTopAlbums(albums) {
                             `}
                         </div>
                     </div>
-                    
+
                     <!-- Album info -->
                     <div class="space-y-1">
                         <h3 class="text-xs sm:text-sm font-semibold text-primary truncate group-hover:text-blue-600 transition-colors">
@@ -725,12 +725,12 @@ async function loadAvailableYears() {
     try {
         const response = await fetch('/api/v1/reports/available-years');
         const data = await response.json();
-        
+
         const yearSelector = document.getElementById('yearSelector');
         if (data.years && data.years.length > 0) {
             // Clear existing options except the first one
             yearSelector.innerHTML = '<option value="">Select Year...</option>';
-            
+
             // Add year options
             data.years.forEach(year => {
                 const option = document.createElement('option');
@@ -738,10 +738,10 @@ async function loadAvailableYears() {
                 option.textContent = year;
                 yearSelector.appendChild(option);
             });
-            
+
             // Enable the selector
             yearSelector.disabled = false;
-            
+
             // Default to current year if available
             const currentYear = new Date().getFullYear();
             if (data.years.includes(currentYear)) {
@@ -764,7 +764,7 @@ async function loadAvailableYears() {
 // Load top albums by year when year is selected
 async function loadTopAlbumsByYear(year) {
     const contentDiv = document.getElementById('top-albums-by-year-content');
-    
+
     if (!year) {
         // Show default state when no year is selected
         contentDiv.innerHTML = `
@@ -778,7 +778,7 @@ async function loadTopAlbumsByYear(year) {
         `;
         return;
     }
-    
+
     // Show loading state
     contentDiv.innerHTML = `
         <div class="flex justify-center py-8">
@@ -788,11 +788,11 @@ async function loadTopAlbumsByYear(year) {
             </svg>
         </div>
     `;
-    
+
     try {
         const response = await fetch(`/api/v1/reports/top-albums-by-year?year=${year}&limit=10`);
         const data = await response.json();
-        
+
         if (data.albums && data.albums.length > 0) {
             renderTopAlbumsByYear(data, year);
         } else {
@@ -824,7 +824,7 @@ async function loadTopAlbumsByYear(year) {
 // Render the top albums by year data
 function renderTopAlbumsByYear(data, year) {
     const contentDiv = document.getElementById('top-albums-by-year-content');
-    
+
     const albumsHtml = `
         <div class="mb-4">
             <div class="flex items-center justify-between">
@@ -847,15 +847,15 @@ function renderTopAlbumsByYear(data, year) {
                 </div>
             </div>
         </div>
-        
+
         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-6">
             ${data.albums.map(album => `
                 <div class="group">
                     <a href="/albums/${album.id}/completed" class="block">
                         <div class="aspect-square overflow-hidden rounded-lg bg-surface-secondary mb-3 shadow-md group-hover:shadow-xl transition-shadow duration-300">
                             ${album.cover_art_url ? `
-                                <img src="${album.cover_art_url}" 
-                                     alt="${album.name}" 
+                                <img src="${album.cover_art_url}"
+                                     alt="${album.name}"
                                      class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                      onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                 <div class="w-full h-full bg-gradient-to-br from-blue-400 to-indigo-400 flex items-center justify-center" style="display:none;">
@@ -871,7 +871,7 @@ function renderTopAlbumsByYear(data, year) {
                                 </div>
                             `}
                         </div>
-                        
+
                         <!-- Album info -->
                         <div class="space-y-1">
                             <h4 class="text-xs sm:text-sm font-semibold text-primary truncate group-hover:text-blue-600 transition-colors">
@@ -888,14 +888,14 @@ function renderTopAlbumsByYear(data, year) {
             `).join('')}
         </div>
     `;
-    
+
     contentDiv.innerHTML = albumsHtml;
 }
 
 // Load highest rated artists with minimum album filter
 async function loadHighestRatedArtists(minAlbums) {
     const contentDiv = document.getElementById('highest-rated-artists-content');
-    
+
     // Show loading state
     contentDiv.innerHTML = `
         <div class="flex justify-center py-8">
@@ -905,11 +905,11 @@ async function loadHighestRatedArtists(minAlbums) {
             </svg>
         </div>
     `;
-    
+
     try {
         const response = await fetch(`/api/v1/reports/highest-rated-artists?min_albums=${minAlbums}&limit=5`);
         const data = await response.json();
-        
+
         if (data.artists && data.artists.length > 0) {
             renderHighestRatedArtists(data);
         } else {
@@ -941,7 +941,7 @@ async function loadHighestRatedArtists(minAlbums) {
 // Render the highest rated artists data
 function renderHighestRatedArtists(data) {
     const contentDiv = document.getElementById('highest-rated-artists-content');
-    
+
     const artistsHtml = `
         <div class="mb-4">
             <div class="flex items-center justify-between">
@@ -951,7 +951,7 @@ function renderHighestRatedArtists(data) {
                 </div>
             </div>
         </div>
-        
+
         <div class="space-y-4 md:space-y-6">
             ${data.artists.map((artist, index) => `
                 <div class="flex items-start space-x-3 md:space-x-4 p-3 md:p-4 bg-background rounded-lg">
@@ -961,7 +961,7 @@ function renderHighestRatedArtists(data) {
                             <span class="text-white font-bold text-sm md:text-lg">${index + 1}</span>
                         </div>
                     </div>
-                    
+
                     <!-- Artist Info -->
                     <div class="flex-1 min-w-0">
                         <div class="flex items-start justify-between mb-2">
@@ -979,7 +979,7 @@ function renderHighestRatedArtists(data) {
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- Displayed Albums -->
                         ${artist.displayed_albums && artist.displayed_albums.length > 0 ? `
                             <div>
@@ -992,8 +992,8 @@ function renderHighestRatedArtists(data) {
                                             <a href="/albums/${album.id}/completed" class="block">
                                                 <div class="w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden bg-surface-secondary shadow-sm group-hover:shadow-md transition-shadow">
                                                     ${album.cover_art_url ? `
-                                                        <img src="${album.cover_art_url}" 
-                                                             alt="${album.name}" 
+                                                        <img src="${album.cover_art_url}"
+                                                             alt="${album.name}"
                                                              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                                              onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                                         <div class="w-full h-full bg-gradient-to-br from-gray-400 to-gray-600 flex items-center justify-center" style="display:none;">
@@ -1028,7 +1028,7 @@ function renderHighestRatedArtists(data) {
             `).join('')}
         </div>
     `;
-    
+
     contentDiv.innerHTML = artistsHtml;
 }
 
@@ -1039,11 +1039,11 @@ function openStatsCollageModal() {
     if (existingModal) {
         existingModal.remove();
     }
-    
+
     // Get the selected year from the year selector each time we open
     const yearSelector = document.getElementById('yearSelector');
     const selectedYear = yearSelector ? yearSelector.value : new Date().getFullYear();
-    
+
     // Fetch the album count for the selected year
     fetchStatsAlbumCount(selectedYear).then(count => {
         createStatsCollageModal(selectedYear, count);
@@ -1056,7 +1056,7 @@ async function fetchStatsAlbumCount(year) {
         const countUrl = `/api/v1/albums?limit=100&offset=0&year=${year}`;
         const response = await fetch(countUrl);
         const data = await response.json();
-        
+
         // Filter to only rated albums
         const ratedAlbums = data.albums.filter(album => album.is_rated);
         return ratedAlbums.length;
@@ -1074,20 +1074,20 @@ function closeStatsCollageModal() {
 }
 
 function createStatsCollageModal(year, albumCount) {
-    const allAlbumsOption = albumCount > 0 ? 
-        `<option value="">All Rated Albums (${albumCount})</option>` : 
+    const allAlbumsOption = albumCount > 0 ?
+        `<option value="">All Rated Albums (${albumCount})</option>` :
         `<option value="">All Rated Albums</option>`;
-    
+
     const modalHTML = `
         <div id="stats-collage-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
             <div class="flex items-center justify-center min-h-screen px-4">
                 <!-- Backdrop -->
                 <div class="fixed inset-0 bg-black opacity-50" onclick="closeStatsCollageModal()"></div>
-                
+
                 <!-- Modal Content -->
                 <div class="relative bg-surface rounded-lg shadow-xl max-w-2xl w-full p-6">
                     <h2 class="text-2xl font-bold text-primary mb-4">Generate ${year} Year End Collage</h2>
-                    
+
                     <div class="space-y-4">
                         <!-- Options -->
                         <div>
@@ -1104,26 +1104,26 @@ function createStatsCollageModal(year, albumCount) {
                                 <option value="100">Top 100 (10x10 grid)</option>
                             </select>
                         </div>
-                        
+
                         <div class="space-y-2">
                             <div class="flex items-center space-x-4">
                                 <label class="flex items-center space-x-2">
                                     <input type="checkbox" id="stats-collage-include-title" checked class="rounded border-default bg-surface text-accent-blue focus:ring-accent-blue">
                                     <span class="text-sm text-primary">Include title</span>
                                 </label>
-                                
+
                                 <label class="flex items-center space-x-2">
                                     <input type="checkbox" id="stats-collage-include-ranking" checked class="rounded border-default bg-surface text-accent-blue focus:ring-accent-blue">
                                     <span class="text-sm text-primary">Include ranking list</span>
                                 </label>
-                                
+
                                 <label class="flex items-center space-x-2">
                                     <input type="checkbox" id="stats-collage-include-scores" checked class="rounded border-default bg-surface text-accent-blue focus:ring-accent-blue">
                                     <span class="text-sm text-primary">Show scores in ranking</span>
                                 </label>
                             </div>
                         </div>
-                        
+
                         <!-- Progress -->
                         <div id="stats-collage-progress" class="hidden">
                             <div class="bg-surface-hover rounded-lg p-4">
@@ -1136,7 +1136,7 @@ function createStatsCollageModal(year, albumCount) {
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- Result -->
                         <div id="stats-collage-result" class="hidden">
                             <div class="bg-surface-hover rounded-lg p-4">
@@ -1149,7 +1149,7 @@ function createStatsCollageModal(year, albumCount) {
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Actions -->
                     <div class="mt-6 flex justify-end space-x-3">
                         <button onclick="closeStatsCollageModal()" class="px-4 py-2 text-sm font-medium text-secondary bg-surface-secondary border border-default rounded-md hover:bg-surface-hover transition-colors">
@@ -1163,7 +1163,7 @@ function createStatsCollageModal(year, albumCount) {
             </div>
         </div>
     `;
-    
+
     document.body.insertAdjacentHTML('beforeend', modalHTML);
 }
 
@@ -1171,7 +1171,7 @@ async function generateStatsCollage() {
     // Get the current year from the year selector
     const yearSelector = document.getElementById('yearSelector');
     const year = yearSelector ? yearSelector.value : new Date().getFullYear();
-    
+
     const maxAlbumsSelect = document.getElementById('stats-collage-max-albums');
     const includeTitleCheck = document.getElementById('stats-collage-include-title');
     const includeRankingCheck = document.getElementById('stats-collage-include-ranking');
@@ -1179,44 +1179,44 @@ async function generateStatsCollage() {
     const progressDiv = document.getElementById('stats-collage-progress');
     const resultDiv = document.getElementById('stats-collage-result');
     const generateBtn = document.getElementById('stats-generate-collage-btn');
-    
+
     // Show progress
     progressDiv.classList.remove('hidden');
     resultDiv.classList.add('hidden');
     generateBtn.disabled = true;
     generateBtn.classList.add('opacity-50');
-    
+
     // Build URL with parameters
     let url = `/api/v1/reports/years/${year}/collage?`;
     const params = new URLSearchParams();
-    
+
     if (maxAlbumsSelect.value) {
         params.append('max_albums', maxAlbumsSelect.value);
     }
     params.append('include_title', includeTitleCheck.checked);
     params.append('include_ranking', includeRankingCheck.checked);
     params.append('include_scores', includeScoresCheck.checked);
-    
+
     url += params.toString();
-    
+
     try {
         const response = await fetch(url);
-        
+
         if (!response.ok) {
             throw new Error('Failed to generate collage');
         }
-        
+
         const blob = await response.blob();
         const imageUrl = URL.createObjectURL(blob);
-        
+
         // Show result
         document.getElementById('stats-collage-image').src = imageUrl;
         document.getElementById('stats-collage-download').href = imageUrl;
         document.getElementById('stats-collage-download').download = `${year}-year-end-collage.png`;
-        
+
         progressDiv.classList.add('hidden');
         resultDiv.classList.remove('hidden');
-        
+
     } catch (error) {
         console.error('Error generating collage:', error);
         alert('Failed to generate collage. Please try again.');

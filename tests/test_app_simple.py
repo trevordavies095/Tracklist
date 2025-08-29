@@ -14,10 +14,11 @@ os.environ["LOG_LEVEL"] = "ERROR"
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# Now import app modules
-from app.models import Base, Album, Artist, Track
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+
+# Now import app modules
+from app.models import Album, Artist, Base, Track
 
 
 def test_database_models():
@@ -25,54 +26,51 @@ def test_database_models():
     # Create in-memory database
     engine = create_engine("sqlite:///:memory:")
     Base.metadata.create_all(bind=engine)
-    
+
     # Create session
     Session = sessionmaker(bind=engine)
     session = Session()
-    
+
     # Create an artist
     artist = Artist(name="Test Artist", musicbrainz_id="test-123")
     session.add(artist)
     session.commit()
-    
+
     assert artist.id is not None
     assert artist.name == "Test Artist"
     print("  ✓ Artist created successfully")
-    
+
     # Create an album
     album = Album(
         artist_id=artist.id,
         name="Test Album",
         musicbrainz_id="album-456",
         release_year=2024,
-        is_rated=False
+        is_rated=False,
     )
     session.add(album)
     session.commit()
-    
+
     assert album.id is not None
     assert album.artist_id == artist.id
     assert album.album_bonus == 0.33  # default value
     print("  ✓ Album created successfully")
-    
+
     # Create a track
     track = Track(
-        album_id=album.id,
-        track_number=1,
-        name="Test Track",
-        duration_ms=180000
+        album_id=album.id, track_number=1, name="Test Track", duration_ms=180000
     )
     session.add(track)
     session.commit()
-    
+
     assert track.id is not None
     assert track.album_id == album.id
     print("  ✓ Track created successfully")
-    
+
     # Clean up
     session.close()
     engine.dispose()
-    
+
     print("  ✓ All model tests passed")
 
 
@@ -83,7 +81,7 @@ def test_rating_calculation():
     avg = sum(ratings) / len(ratings)
     album_bonus = 0.33
     score = int((avg * 10 + album_bonus) * 10)
-    
+
     assert score == 76  # Expected score
     print("  ✓ Rating calculation correct")
 
@@ -91,7 +89,7 @@ def test_rating_calculation():
 if __name__ == "__main__":
     print("\nRunning app tests...")
     print("=" * 40)
-    
+
     try:
         test_database_models()
         test_rating_calculation()
@@ -99,4 +97,5 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"\n❌ Test failed: {e}")
         import traceback
+
         traceback.print_exc()

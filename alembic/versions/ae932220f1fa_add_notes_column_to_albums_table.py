@@ -1,17 +1,18 @@
 """Add notes column to albums table
 
 Revision ID: ae932220f1fa
-Revises: 
+Revises:
 Create Date: 2025-08-08 15:23:03.792503
 
 """
-from alembic import op
+
 import sqlalchemy as sa
 from sqlalchemy import inspect
 
+from alembic import op
 
 # revision identifiers, used by Alembic.
-revision = 'ae932220f1fa'
+revision = "ae932220f1fa"
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -22,10 +23,10 @@ def upgrade() -> None:
     # Check if column already exists before adding it
     conn = op.get_bind()
     inspector = inspect(conn)
-    columns = [col['name'] for col in inspector.get_columns('albums')]
-    
-    if 'notes' not in columns:
-        op.add_column('albums', sa.Column('notes', sa.Text(), nullable=True))
+    columns = [col["name"] for col in inspector.get_columns("albums")]
+
+    if "notes" not in columns:
+        op.add_column("albums", sa.Column("notes", sa.Text(), nullable=True))
     else:
         print("Note: 'notes' column already exists in albums table, skipping addition")
     # ### end Alembic commands ###
@@ -36,8 +37,8 @@ def downgrade() -> None:
     # Check if column exists before dropping it
     conn = op.get_bind()
     inspector = inspect(conn)
-    columns = [col['name'] for col in inspector.get_columns('albums')]
-    
-    if 'notes' in columns:
-        op.drop_column('albums', 'notes')
+    columns = [col["name"] for col in inspector.get_columns("albums")]
+
+    if "notes" in columns:
+        op.drop_column("albums", "notes")
     # ### end Alembic commands ###

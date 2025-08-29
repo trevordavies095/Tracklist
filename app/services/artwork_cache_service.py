@@ -3,24 +3,25 @@ Artwork Cache Service
 Centralized service for managing album artwork caching operations
 """
 
-import logging
-import hashlib
 import asyncio
-import aiofiles
-from pathlib import Path
-from typing import Optional, Dict, Any, Tuple, List
+import hashlib
+import logging
 from datetime import datetime, timezone
 from io import BytesIO
-from PIL import Image
-from sqlalchemy.orm import Session
-from sqlalchemy.exc import SQLAlchemyError
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
 
-from ..models import Album, ArtworkCache
+import aiofiles
+from PIL import Image
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import Session
+
 from ..exceptions import TracklistException
+from ..models import Album, ArtworkCache
 from .artwork_cache_utils import ArtworkCacheFileSystem, get_cache_filesystem
-from .cover_art_service import get_cover_art_service
 from .artwork_downloader import ArtworkDownloader, ArtworkDownloadError
-from .image_processor import ImageProcessor, get_image_processor, ImageProcessingError
+from .cover_art_service import get_cover_art_service
+from .image_processor import ImageProcessingError, ImageProcessor, get_image_processor
 
 logger = logging.getLogger(__name__)
 
@@ -924,7 +925,7 @@ class ArtworkCacheService:
         """Close HTTP client and cleanup resources"""
         if self._closed:
             return  # Already closed
-            
+
         try:
             if self.client:
                 await self.client.aclose()
@@ -936,11 +937,13 @@ class ArtworkCacheService:
         except Exception as e:
             logger.error(f"Error closing ArtworkCacheService: {e}")
             raise
-    
+
     def __del__(self):
         """Cleanup on garbage collection if not properly closed"""
         if not self._closed and self.client:
-            logger.warning("ArtworkCacheService not properly closed, client may leak resources")
+            logger.warning(
+                "ArtworkCacheService not properly closed, client may leak resources"
+            )
 
 
 # Global instance

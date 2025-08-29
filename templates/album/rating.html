@@ -13,13 +13,13 @@
                 <!-- Album Artwork -->
                 <div class="flex-shrink-0 mx-auto lg:mx-0">
                     <div class="w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 lg:w-48 lg:h-48 rounded-lg overflow-hidden">
-                        <img src="{{ get_artwork_url(album, 'large') }}" 
-                             alt="{{ album.title }} cover" 
+                        <img src="{{ get_artwork_url(album, 'large') }}"
+                             alt="{{ album.title }} cover"
                              class="w-full h-full object-cover"
                              onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'w-full h-full bg-gradient-to-br from-surface-secondary to-surface-hover rounded-lg flex items-center justify-center\'><svg class=\'w-12 sm:w-16 md:w-20 lg:w-24 h-12 sm:h-16 md:h-20 lg:h-24 text-muted\' fill=\'none\' stroke=\'currentColor\' viewBox=\'0 0 24 24\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3\'></path></svg></div>';">
                     </div>
                 </div>
-                
+
                 <!-- Album Info -->
                 <div class="flex-1 text-center lg:text-left">
                     <div class="flex flex-col sm:flex-row items-start justify-between mb-2">
@@ -36,7 +36,7 @@
                         </h1>
                         <!-- Action Buttons (Desktop) -->
                         <div class="hidden lg:flex items-center space-x-2 mt-2 sm:mt-0 sm:ml-4">
-                            <button onclick="openRetagModal()" 
+                            <button onclick="openRetagModal()"
                                     title="Change Release Version"
                                     class="p-2 text-muted hover:text-accent-purple hover:bg-accent-purple-light rounded-lg transition-all duration-200 group relative">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -44,7 +44,7 @@
                                 </svg>
                                 <span class="absolute -bottom-8 right-0 text-xs bg-surface-hover text-primary px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap border border-default">Change Release</span>
                             </button>
-                            <a href="https://musicbrainz.org/release/{{ album.musicbrainz_id }}" 
+                            <a href="https://musicbrainz.org/release/{{ album.musicbrainz_id }}"
                                target="_blank"
                                title="View on MusicBrainz"
                                class="p-2 text-muted hover:text-accent-blue hover:bg-info-light rounded-lg transition-all duration-200 group relative">
@@ -53,7 +53,7 @@
                                 </svg>
                                 <span class="absolute -bottom-8 right-0 text-xs bg-surface-hover text-primary px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap border border-default">MusicBrainz</span>
                             </a>
-                            <button onclick="confirmDeleteAlbum()" 
+                            <button onclick="confirmDeleteAlbum()"
                                     title="Delete Album"
                                     class="p-2 text-muted hover:text-error hover:bg-error-light rounded-lg transition-all duration-200 group relative">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -64,7 +64,7 @@
                         </div>
                     </div>
                     <p class="text-base sm:text-lg md:text-xl text-secondary mb-4 md:mb-6">by <a href="/artists/{{ album.artist.id }}/albums" class="hover:text-accent-blue hover:underline transition-colors">{{ album.artist.name }}</a></p>
-                    
+
                     <!-- Rating Status -->
                     <div class="bg-warning-light border border-warning rounded-lg p-3 md:p-4">
                         <div class="text-center lg:text-left">
@@ -72,17 +72,17 @@
                             <div class="text-xs sm:text-sm text-warning">Rate each track below to complete</div>
                         </div>
                     </div>
-                    
+
                     <!-- Mobile Action Buttons - Shown only on mobile/tablet -->
                     <div class="lg:hidden grid grid-cols-2 gap-2 mt-4">
-                        <button onclick="openRetagModal()" 
+                        <button onclick="openRetagModal()"
                                 class="flex flex-col items-center justify-center p-3 text-secondary bg-surface border border-default hover:text-accent-purple hover:bg-accent-purple-light rounded-lg transition-all duration-200">
                             <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
                             </svg>
                             <span class="text-xs">Change Release</span>
                         </button>
-                        <a href="https://musicbrainz.org/release/{{ album.musicbrainz_id }}" 
+                        <a href="https://musicbrainz.org/release/{{ album.musicbrainz_id }}"
                            target="_blank"
                            class="flex flex-col items-center justify-center p-3 text-secondary bg-surface border border-default hover:text-accent-blue hover:bg-info-light rounded-lg transition-all duration-200">
                             <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -90,7 +90,7 @@
                             </svg>
                             <span class="text-xs">MusicBrainz</span>
                         </a>
-                        <button onclick="confirmDeleteAlbum()" 
+                        <button onclick="confirmDeleteAlbum()"
                                 class="flex flex-col items-center justify-center p-3 text-secondary bg-surface border border-default hover:text-error hover:bg-error-light rounded-lg transition-all duration-200 col-span-2">
                             <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
@@ -102,11 +102,11 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Progress Tracker -->
     {% set album_id = album.id %}
     {% include 'components/progress_bar.html' %}
-    
+
     <!-- Rating Instructions -->
     <div class="bg-info-light border border-info rounded-lg p-3 md:p-4 mb-4 md:mb-6">
         <div class="flex items-start">
@@ -125,7 +125,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Track List -->
     <div class="bg-surface rounded-lg shadow-sm border border-default">
         <div class="p-4 md:p-6">
@@ -135,12 +135,12 @@
                 <span class="text-xs text-muted">Total Duration: {{ (album.total_duration_ms / 60000) | round(0) | int }} min</span>
                 {% endif %}
             </div>
-            
+
             <div class="space-y-3 md:space-y-4">
                 {% for track in tracks %}
-                <div class="track-row{% if track.rating is not none %} rated{% endif %} p-3 md:p-4 rounded-lg border border-subtle" 
+                <div class="track-row{% if track.rating is not none %} rated{% endif %} p-3 md:p-4 rounded-lg border border-subtle"
                      id="track-{{ track.id }}-row">
-                    
+
                     <!-- Track Info -->
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between space-y-3 sm:space-y-0 sm:space-x-4">
                         <div class="flex-1 min-w-0">
@@ -156,7 +156,7 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- Rating Buttons -->
                         <div class="flex-shrink-0">
                             {% set track_id = track.id %}
@@ -164,13 +164,13 @@
                             {% include 'components/rating_buttons.html' %}
                         </div>
                     </div>
-                    
+
                 </div>
                 {% endfor %}
             </div>
         </div>
     </div>
-    
+
     <!-- Notes Section -->
     <div class="bg-surface rounded-lg shadow-sm border border-default mt-6">
         <div class="p-6">
@@ -178,8 +178,8 @@
                 <h2 class="text-xl font-semibold text-primary">Album Notes</h2>
                 <span id="notesCharCount" class="text-sm text-muted">0 / 5000</span>
             </div>
-            
-            <textarea 
+
+            <textarea
                 id="albumNotes"
                 name="notes"
                 placeholder="Add your thoughts, reflections, or memorable moments about this album..."
@@ -187,14 +187,14 @@
                 rows="4"
                 class="w-full px-4 py-3 bg-surface border border-default rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-primary placeholder-muted"
                 oninput="updateNotesCharCount(); autoSaveNotes();">{{ album.notes or '' }}</textarea>
-            
+
             <div class="flex items-center justify-between mt-3">
                 <div id="notesSaveStatus" class="text-sm text-muted"></div>
                 <p class="text-xs text-muted">Notes are automatically saved as you type</p>
             </div>
         </div>
     </div>
-    
+
     <!-- Keyboard Shortcuts Help -->
     <div class="mt-8 bg-surface-secondary rounded-lg p-4">
         <details class="cursor-pointer">
@@ -217,16 +217,16 @@
 document.addEventListener('DOMContentLoaded', function() {
     let currentTrackIndex = 0;
     const trackRows = document.querySelectorAll('.track-row');
-    
+
     document.addEventListener('keydown', function(e) {
         // Only handle if we're not in an input field
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-        
+
         const currentTrack = trackRows[currentTrackIndex];
         if (!currentTrack) return;
-        
+
         const buttons = currentTrack.querySelectorAll('.rating-button');
-        
+
         switch(e.key) {
             case '1':
                 e.preventDefault();
@@ -263,7 +263,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 break;
         }
     });
-    
+
     // Highlight current track
     function updateTrackHighlight() {
         trackRows.forEach((row, index) => {
@@ -274,9 +274,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-    
+
     updateTrackHighlight();
-    
+
     // Update highlight when track index changes
     document.addEventListener('keydown', function(e) {
         if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
@@ -295,12 +295,12 @@ const retagModalHTML = `
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
             </svg>
         </button>
-        
+
         <div class="mb-4">
             <h3 class="text-lg font-bold text-gray-900">Change Release Version</h3>
             <p class="text-sm text-gray-600 mt-2">Select a different release from the same release group. Only releases with {{ album.total_tracks }} tracks are shown.</p>
         </div>
-        
+
         <div id="retagLoading" class="text-center py-8">
             <div class="inline-flex items-center">
                 <svg class="animate-spin h-5 w-5 mr-3 text-blue-600" viewBox="0 0 24 24">
@@ -310,30 +310,30 @@ const retagModalHTML = `
                 <span class="text-gray-600">Loading releases...</span>
             </div>
         </div>
-        
+
         <div id="retagContent" class="hidden">
             <div id="releasesList" class="max-h-96 overflow-y-auto space-y-2 mb-4">
                 <!-- Releases will be populated here -->
             </div>
-            
+
             <div class="flex justify-end space-x-3">
-                <button onclick="closeRetagModal()" 
+                <button onclick="closeRetagModal()"
                         class="px-4 py-2 bg-surface-secondary text-primary rounded-md hover:bg-surface-hover transition-colors">
                     Cancel
                 </button>
-                <button id="confirmRetagBtn" onclick="confirmRetag()" 
+                <button id="confirmRetagBtn" onclick="confirmRetag()"
                         disabled
                         class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors">
                     Confirm Change
                 </button>
             </div>
         </div>
-        
+
         <div id="retagError" class="hidden">
             <div class="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 rounded-md p-4 mb-4">
                 <p class="text-red-700 dark:text-red-400" id="retagErrorMessage"></p>
             </div>
-            <button onclick="closeRetagModal()" 
+            <button onclick="closeRetagModal()"
                     class="w-full px-4 py-2 bg-surface-secondary text-primary rounded-md hover:bg-surface-hover transition-colors">
                 Close
             </button>
@@ -350,14 +350,14 @@ let selectedMbid = null;
 function openRetagModal() {
     const modal = document.getElementById('retagModal');
     modal.classList.remove('hidden');
-    
+
     // Reset state
     selectedMbid = null;
     document.getElementById('confirmRetagBtn').disabled = true;
     document.getElementById('retagLoading').classList.remove('hidden');
     document.getElementById('retagContent').classList.add('hidden');
     document.getElementById('retagError').classList.add('hidden');
-    
+
     // Fetch releases from the same release group
     fetchReleaseGroupReleases();
 }
@@ -369,15 +369,15 @@ function closeRetagModal() {
 async function fetchReleaseGroupReleases() {
     try {
         const response = await fetch(`/api/v1/albums/{{ album.id }}/release-group-releases`);
-        
+
         if (!response.ok) {
             throw new Error('Failed to fetch releases');
         }
-        
+
         const data = await response.json();
-        
+
         document.getElementById('retagLoading').classList.add('hidden');
-        
+
         if (data.releases && data.releases.length > 0) {
             displayReleases(data.releases);
             document.getElementById('retagContent').classList.remove('hidden');
@@ -386,7 +386,7 @@ async function fetchReleaseGroupReleases() {
         } else {
             showRetagError('No alternative releases found with the same track count.');
         }
-        
+
     } catch (error) {
         console.error('Error fetching releases:', error);
         showRetagError('Failed to load releases. Please try again.');
@@ -396,11 +396,11 @@ async function fetchReleaseGroupReleases() {
 function displayReleases(releases) {
     const container = document.getElementById('releasesList');
     const currentMbid = "{{ album.musicbrainz_id }}";
-    
+
     const releasesHTML = releases.map(release => `
         <label class="block p-4 border rounded-lg cursor-pointer hover:bg-surface-secondary transition-colors ${release.musicbrainz_id === currentMbid ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30' : 'border-gray-200'}">
-            <input type="radio" 
-                   name="releaseSelection" 
+            <input type="radio"
+                   name="releaseSelection"
                    value="${release.musicbrainz_id}"
                    ${release.musicbrainz_id === currentMbid ? 'checked' : ''}
                    onchange="selectRelease('${release.musicbrainz_id}')"
@@ -410,8 +410,8 @@ function displayReleases(releases) {
                     <!-- Album Artwork (Lazy Loaded) -->
                     <div class="flex-shrink-0">
                         <div class="modal-artwork w-16 h-16 rounded-md overflow-hidden" data-mbid="${release.musicbrainz_id}">
-                            <img class="w-full h-full object-cover hidden" 
-                                 alt="${release.title} cover" 
+                            <img class="w-full h-full object-cover hidden"
+                                 alt="${release.title} cover"
                                  onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                             <div class="artwork-placeholder w-16 h-16 bg-gradient-to-br from-gray-200 to-gray-300 rounded-md flex items-center justify-center">
                                 <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -420,7 +420,7 @@ function displayReleases(releases) {
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Release Info -->
                     <div class="flex-1 min-w-0">
                         <div class="font-medium text-gray-900">
@@ -439,7 +439,7 @@ function displayReleases(releases) {
                         ` : ''}
                     </div>
                 </div>
-                
+
                 <!-- Selection Indicator -->
                 <div class="ml-4 flex-shrink-0">
                     ${release.musicbrainz_id === currentMbid ? `
@@ -455,23 +455,23 @@ function displayReleases(releases) {
             </div>
         </label>
     `).join('');
-    
+
     container.innerHTML = releasesHTML;
 }
 
 function selectRelease(mbid) {
     selectedMbid = mbid;
     const currentMbid = "{{ album.musicbrainz_id }}";
-    
+
     // Enable confirm button only if a different release is selected
     document.getElementById('confirmRetagBtn').disabled = (mbid === currentMbid);
-    
+
     // Update visual selection
     const labels = document.querySelectorAll('#releasesList label');
     labels.forEach(label => {
         const input = label.querySelector('input');
         const svgContainer = label.querySelector('.ml-4');
-        
+
         if (input.value === mbid) {
             // Selected state
             label.classList.add('border-blue-500', 'bg-blue-50', 'dark:bg-blue-950/30');
@@ -496,7 +496,7 @@ function selectRelease(mbid) {
 
 async function confirmRetag() {
     if (!selectedMbid) return;
-    
+
     const confirmBtn = document.getElementById('confirmRetagBtn');
     confirmBtn.disabled = true;
     confirmBtn.innerHTML = `
@@ -506,7 +506,7 @@ async function confirmRetag() {
         </svg>
         Updating...
     `;
-    
+
     try {
         const response = await fetch(`/api/v1/albums/{{ album.id }}/retag`, {
             method: 'PUT',
@@ -517,14 +517,14 @@ async function confirmRetag() {
                 new_musicbrainz_id: selectedMbid
             })
         });
-        
+
         if (!response.ok) {
             throw new Error('Failed to update album');
         }
-        
+
         // Reload the page to show updated information
         window.location.reload();
-        
+
     } catch (error) {
         console.error('Error updating album:', error);
         showRetagError('Failed to update album. Please try again.');
@@ -551,18 +551,18 @@ window.onclick = function(event) {
 // Lazy load artwork for retag modal
 async function loadModalArtworkLazily() {
     const artworkContainers = document.querySelectorAll('.modal-artwork[data-mbid]');
-    
+
     // Load artwork with a slight delay between each request to avoid overwhelming the server
     for (let i = 0; i < artworkContainers.length; i++) {
         const container = artworkContainers[i];
         const mbid = container.dataset.mbid;
         const img = container.querySelector('img');
         const placeholder = container.querySelector('.artwork-placeholder');
-        
+
         try {
             // Slight delay to stagger requests (shorter for modal since usually fewer items)
             if (i > 0) await new Promise(resolve => setTimeout(resolve, 50));
-            
+
             const response = await fetch(`/api/v1/releases/${mbid}/artwork-url`);
             if (response.ok) {
                 const data = await response.json();
@@ -579,7 +579,7 @@ async function loadModalArtworkLazily() {
                             placeholder.style.display = 'none';
                         }, 10); // Small delay to ensure transition applies
                     };
-                    
+
                     img.onerror = function() {
                         // Keep placeholder if image fails to load - no transition needed
                         this.classList.add('hidden');
@@ -587,7 +587,7 @@ async function loadModalArtworkLazily() {
                         this.style.opacity = '';
                         placeholder.style.display = 'flex';
                     };
-                    
+
                     // Start loading the image
                     img.src = data.url;
                 } else {
@@ -633,7 +633,7 @@ function updateNotesCharCount() {
     const charCount = notes.length;
     const charCountElement = document.getElementById('notesCharCount');
     charCountElement.textContent = `${charCount} / 5000`;
-    
+
     // Change color when approaching limit
     if (charCount >= 4800) {
         charCountElement.classList.add('text-red-600');
@@ -652,11 +652,11 @@ function autoSaveNotes() {
     if (notesTimeout) {
         clearTimeout(notesTimeout);
     }
-    
+
     // Show typing indicator
     const statusElement = document.getElementById('notesSaveStatus');
     statusElement.innerHTML = '<span class="text-gray-400">Typing...</span>';
-    
+
     // Set new timeout for auto-save (debounced to 1 second after typing stops)
     notesTimeout = setTimeout(() => {
         saveNotes();
@@ -665,11 +665,11 @@ function autoSaveNotes() {
 
 async function saveNotes() {
     if (isSavingNotes) return;
-    
+
     isSavingNotes = true;
     const statusElement = document.getElementById('notesSaveStatus');
     const notes = document.getElementById('albumNotes').value;
-    
+
     // Show saving indicator
     statusElement.innerHTML = `
         <span class="flex items-center text-blue-600">
@@ -680,7 +680,7 @@ async function saveNotes() {
             Saving...
         </span>
     `;
-    
+
     try {
         const response = await fetch(`/api/v1/albums/{{ album.id }}/notes`, {
             method: 'PUT',
@@ -689,7 +689,7 @@ async function saveNotes() {
             },
             body: JSON.stringify({ notes: notes })
         });
-        
+
         if (response.ok) {
             // Show success message
             statusElement.innerHTML = `
@@ -700,7 +700,7 @@ async function saveNotes() {
                     Saved
                 </span>
             `;
-            
+
             // Clear success message after 3 seconds
             setTimeout(() => {
                 statusElement.innerHTML = '';
@@ -718,7 +718,7 @@ async function saveNotes() {
                 Failed to save
             </span>
         `;
-        
+
         // Clear error message after 5 seconds
         setTimeout(() => {
             statusElement.innerHTML = '';
@@ -738,7 +738,7 @@ function confirmDeleteAlbum() {
     const albumId = {{ album.id }};
     const albumTitle = "{{ album.title }}";
     const artistName = "{{ album.artist.name }}";
-    
+
     // Create and show delete confirmation modal
     const modal = document.createElement('div');
     modal.id = 'delete-modal';
@@ -757,18 +757,18 @@ function confirmDeleteAlbum() {
                         <p class="text-sm text-gray-500">This action cannot be undone.</p>
                     </div>
                 </div>
-                
+
                 <div class="mb-6">
                     <p class="text-gray-700">Are you sure you want to permanently delete <strong>"${albumTitle}"</strong> by ${artistName}?</p>
                     <p class="text-sm text-gray-500 mt-2">This will remove the album, all track ratings, and scores from your library.</p>
                 </div>
-                
+
                 <div class="flex flex-col sm:flex-row gap-3">
-                    <button onclick="closeDeleteModal()" 
+                    <button onclick="closeDeleteModal()"
                             class="flex-1 bg-gray-300 hover:bg-surface-hover text-primary py-2 px-4 rounded-md text-sm font-medium transition-colors">
                         Cancel
                     </button>
-                    <button onclick="executeDelete(${albumId})" 
+                    <button onclick="executeDelete(${albumId})"
                             class="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-md text-sm font-medium transition-colors">
                         Delete Permanently
                     </button>
@@ -776,9 +776,9 @@ function confirmDeleteAlbum() {
             </div>
         </div>
     `;
-    
+
     document.body.appendChild(modal);
-    
+
     // Close modal when clicking outside
     modal.onclick = function(event) {
         if (event.target === modal) {
@@ -797,7 +797,7 @@ function closeDeleteModal() {
 async function executeDelete(albumId) {
     const deleteBtn = event.target;
     const originalText = deleteBtn.innerHTML;
-    
+
     // Show loading state
     deleteBtn.innerHTML = `
         <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline" fill="none" viewBox="0 0 24 24">
@@ -807,7 +807,7 @@ async function executeDelete(albumId) {
         Deleting...
     `;
     deleteBtn.disabled = true;
-    
+
     try {
         const response = await fetch(`/api/v1/albums/${albumId}`, {
             method: 'DELETE',
@@ -815,14 +815,14 @@ async function executeDelete(albumId) {
                 'Content-Type': 'application/json',
             }
         });
-        
+
         if (response.ok) {
             // Redirect to My Albums page after successful deletion
             window.location.href = '/albums';
         } else {
             const error = await response.json();
             alert(`Failed to delete album: ${error.message || 'Unknown error'}`);
-            
+
             // Restore button
             deleteBtn.innerHTML = originalText;
             deleteBtn.disabled = false;
@@ -830,7 +830,7 @@ async function executeDelete(albumId) {
     } catch (error) {
         console.error('Delete error:', error);
         alert('Network error deleting album');
-        
+
         // Restore button
         deleteBtn.innerHTML = originalText;
         deleteBtn.disabled = false;

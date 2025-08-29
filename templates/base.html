@@ -4,24 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Tracklist - Music Album Rating System{% endblock %}</title>
-    
+
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="/static/img/favicon.ico">
-    
+
     <!-- Apple Touch Icon & Web App Meta Tags -->
     <link rel="apple-touch-icon" href="/static/img/logo-512.png">
     <link rel="apple-touch-icon" sizes="512x512" href="/static/img/logo-512.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Tracklist">
-    
+
     <!-- PWA Theme Color - dynamically updated based on theme -->
     <meta name="theme-color" content="#ffffff" id="theme-color-meta">
     <meta name="msapplication-navbutton-color" content="#ffffff" id="ms-navbutton-color">
-    
+
     <!-- CSS Variables for Theming -->
     <link rel="stylesheet" href="/static/css/variables.css">
-    
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -48,13 +48,13 @@
             }
         }
     </script>
-    
+
     <!-- HTMX -->
     <script src="https://unpkg.com/htmx.org@2.0.3"></script>
-    
+
     <!-- Alpine.js -->
     <script defer src="https://unpkg.com/alpinejs@3.14.1/dist/cdn.min.js"></script>
-    
+
     <!-- Theme Manager -->
     <script>
         // Theme management with database sync
@@ -62,11 +62,11 @@
             // Get saved theme from localStorage as initial fallback
             const localTheme = localStorage.getItem('theme');
             const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            
+
             // Apply initial theme to prevent flash (will be corrected if database differs)
             let theme = localTheme || (systemPrefersDark ? 'dark' : 'light');
             applyTheme(theme);
-            
+
             // Fetch theme from database and sync
             fetch('/api/v1/settings')
                 .then(response => response.json())
@@ -74,10 +74,10 @@
                     if (data.theme) {
                         // Database theme takes priority
                         theme = data.theme;
-                        
+
                         // Sync localStorage with database
                         localStorage.setItem('theme', theme);
-                        
+
                         // Apply the database theme
                         applyTheme(theme);
                     }
@@ -86,12 +86,12 @@
                     // If API fails, keep using localStorage/system preference
                     console.log('Could not fetch theme from server, using local preference');
                 });
-            
+
             function applyTheme(selectedTheme) {
                 // Apply theme to document
                 document.documentElement.setAttribute('data-theme', selectedTheme);
                 document.documentElement.classList.toggle('dark', selectedTheme === 'dark');
-                
+
                 // Update theme-color meta tags for PWA
                 const themeColorMeta = document.getElementById('theme-color-meta');
                 const msNavButtonColor = document.getElementById('ms-navbutton-color');
@@ -105,21 +105,21 @@
             }
         })();
     </script>
-    
+
     <!-- Custom JavaScript Components -->
     <script src="/static/js/components.js"></script>
-    
+
     <!-- Artwork Helper Functions -->
     <script src="/static/js/artwork-helper.js"></script>
-    
+
     <!-- Lazy Loading -->
     <link rel="stylesheet" href="/static/css/lazy-load.css">
     <script src="/static/js/lazy-load.js" defer></script>
     <script src="/static/js/lazy-load-progress.js" defer></script>
-    
+
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/static/css/styles.css">
-    
+
     {% block head %}{% endblock %}
 </head>
 <body class="h-full flex flex-col bg-background text-primary transition-colors duration-200">
@@ -140,7 +140,7 @@
                         <img src="/static/img/logo.png" alt="Tracklist" class="h-10 w-auto dark:invert dark:brightness-90">
                     </a>
                 </div>
-                
+
                 <!-- Navigation Links -->
                 <div class="hidden md:block">
                     <div class="ml-10 flex items-center space-x-4">
@@ -164,12 +164,12 @@
                         </a>
                     </div>
                 </div>
-                
+
                 <!-- Mobile menu button and navigation -->
                 <div class="md:hidden">
                     <!-- JavaScript-based mobile menu -->
                     <div x-data="{ open: false }" class="relative">
-                        <button @click="open = !open" 
+                        <button @click="open = !open"
                                 type="button"
                                 class="inline-flex items-center justify-center p-2 rounded-md text-secondary hover:text-primary hover:bg-surface-hover focus:outline-none focus:bg-surface-hover focus:text-primary transition-colors"
                                 :aria-expanded="open"
@@ -183,9 +183,9 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
                             </svg>
                         </button>
-                        
+
                         <!-- Mobile Menu Dropdown -->
-                        <div x-show="open" 
+                        <div x-show="open"
                              style="display: none; z-index: 9999;"
                              @click.away="open = false"
                              x-transition:enter="transition ease-out duration-200"
@@ -204,7 +204,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Fallback CSS-only mobile menu (when JavaScript fails) -->
                     <noscript>
                         <style>
@@ -229,23 +229,23 @@
             </div>
         </nav>
     </header>
-    
+
     <!-- Main Content Area -->
     <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <!-- Flash Messages (HTMX-based notifications) -->
         <div id="flash-messages" class="mb-6 hidden">
             <!-- Messages will be inserted here via HTMX/Alpine.js -->
         </div>
-        
+
         <!-- Page Content -->
         {% block content %}{% endblock %}
     </main>
-    
+
     <!-- Notification Container -->
     <div id="notification-container" class="fixed top-20 right-4 z-50 space-y-2">
         <!-- Notifications will be inserted here dynamically -->
     </div>
-    
+
     <!-- Footer -->
     <footer class="bg-surface border-t border-border py-8 transition-colors duration-200">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -260,7 +260,7 @@
             </div>
         </div>
     </footer>
-    
+
     <!-- Loading Indicator -->
     <div id="loading-indicator" class="htmx-indicator fixed top-4 right-4 z-50">
         <div class="bg-accent-blue text-white px-4 py-2 rounded-md shadow-lg flex items-center space-x-2">
@@ -271,9 +271,9 @@
             <span class="text-sm">Loading...</span>
         </div>
     </div>
-    
+
     {% block scripts %}{% endblock %}
-    
+
     <!-- Theme Toggle Component -->
     <script>
         // Global theme apply function
@@ -281,11 +281,11 @@
             if (withTransition) {
                 document.documentElement.classList.add('theme-transitioning');
             }
-            
+
             // Apply theme to document
             document.documentElement.setAttribute('data-theme', selectedTheme);
             document.documentElement.classList.toggle('dark', selectedTheme === 'dark');
-            
+
             // Update theme-color meta tags for PWA
             const themeColorMeta = document.getElementById('theme-color-meta');
             const msNavButtonColor = document.getElementById('ms-navbutton-color');
@@ -296,23 +296,23 @@
                 themeColorMeta.setAttribute('content', themeColor);
                 msNavButtonColor.setAttribute('content', themeColor);
             }
-            
+
             if (withTransition) {
                 setTimeout(() => {
                     document.documentElement.classList.remove('theme-transitioning');
                 }, 50);
             }
         };
-        
+
         document.addEventListener('alpine:init', () => {
             Alpine.data('themeToggle', () => ({
                 theme: localStorage.getItem('theme') || 'light',
-                
+
                 init() {
                     // Theme is already applied by the initial script
                     // Just sync the component state
                     this.theme = document.documentElement.getAttribute('data-theme') || 'light';
-                    
+
                     // Listen for system preference changes
                     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
                         if (!localStorage.getItem('theme')) {
@@ -321,21 +321,21 @@
                         }
                     });
                 },
-                
+
                 toggle() {
                     this.theme = this.theme === 'light' ? 'dark' : 'light';
                     this.applyTheme();
                     this.savePreference();
                 },
-                
+
                 applyTheme() {
                     window.applyThemeGlobal(this.theme, true);
                 },
-                
+
                 async savePreference() {
                     // Save to localStorage
                     localStorage.setItem('theme', this.theme);
-                    
+
                     // Save to backend if user is logged in
                     try {
                         const response = await fetch('/api/v1/settings/theme', {
@@ -345,7 +345,7 @@
                             },
                             body: JSON.stringify({ theme: this.theme })
                         });
-                        
+
                         if (response.ok) {
                             showNotification('Theme preference saved', 'success');
                         }
@@ -356,7 +356,7 @@
             }))
         });
     </script>
-    
+
     <!-- Global Notification System -->
     <script>
     // Cross-browser compatible UUID generation
@@ -376,11 +376,11 @@
     if (!sessionStorage.getItem('sessionId')) {
         sessionStorage.setItem('sessionId', generateUUID());
     }
-    
+
     function showNotification(message, type = 'info') {
         const container = document.getElementById('notification-container');
         const id = 'notification-' + Date.now();
-        
+
         // Define colors based on type
         const colors = {
             'success': 'bg-success-light border-success text-success',
@@ -388,19 +388,19 @@
             'warning': 'bg-warning-light border-warning text-warning',
             'info': 'bg-info-light border-info text-info'
         };
-        
+
         const icons = {
             'success': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>',
             'error': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>',
             'warning': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>',
             'info': '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>'
         };
-        
+
         const notification = document.createElement('div');
         notification.id = id;
         notification.className = `${colors[type]} border rounded-lg shadow-lg p-4 flex items-center space-x-3 transform transition-all duration-300 translate-x-0 opacity-100 max-w-md`;
         notification.style.animation = 'slideIn 0.3s ease-out';
-        
+
         notification.innerHTML = `
             <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 ${icons[type]}
@@ -414,15 +414,15 @@
                 </svg>
             </button>
         `;
-        
+
         container.appendChild(notification);
-        
+
         // Auto-remove after 5 seconds
         setTimeout(() => {
             closeNotification(id);
         }, 5000);
     }
-    
+
     function closeNotification(id) {
         const notification = document.getElementById(id);
         if (notification) {
@@ -433,10 +433,10 @@
         }
     }
     </script>
-    
+
     <!-- Extra JavaScript block for child templates -->
     {% block extra_js %}{% endblock %}
-    
+
     <style>
     @keyframes slideIn {
         from {
@@ -448,7 +448,7 @@
             opacity: 1;
         }
     }
-    
+
     @keyframes slideOut {
         from {
             transform: translateX(0);

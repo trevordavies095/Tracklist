@@ -18,7 +18,7 @@ services:
       - CACHE_RETENTION_DAYS=365
       - CACHE_MAX_SIZE_MB=5000
       - CACHE_CLEANUP_DRY_RUN=false
-      # Memory cache clear configuration  
+      # Memory cache clear configuration
       - MEMORY_CACHE_CLEAR_ENABLED=true
       - MEMORY_CACHE_CLEAR_SCHEDULE=weekly
       - MEMORY_CACHE_CLEAR_DAY=sunday

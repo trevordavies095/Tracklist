@@ -2,18 +2,19 @@
 Reporting API endpoints for user statistics and analytics
 """
 
+import asyncio
+import io
+import logging
 from typing import Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import Response, StreamingResponse
 from sqlalchemy.orm import Session
-import logging
-import asyncio
-import io
 
 from ..database import get_db
-from ..reporting_service import get_reporting_service, ReportingService
-from ..services.collage_service import get_collage_service, CollageService
 from ..exceptions import TracklistException
+from ..reporting_service import ReportingService, get_reporting_service
+from ..services.collage_service import CollageService, get_collage_service
 
 logger = logging.getLogger(__name__)
 

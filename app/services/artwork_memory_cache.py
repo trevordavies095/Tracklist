@@ -3,13 +3,13 @@ High-performance memory cache for artwork URLs
 Provides ultra-fast access to frequently used artwork URLs
 """
 
-import time
-import threading
+import logging
 import sys
-from typing import Dict, Any, Optional, Tuple
+import threading
+import time
 from collections import OrderedDict
 from datetime import datetime, timezone
-import logging
+from typing import Any, Dict, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 

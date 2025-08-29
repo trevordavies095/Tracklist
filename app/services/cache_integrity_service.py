@@ -3,22 +3,23 @@ Cache Integrity Verification Service
 Verifies and repairs artwork cache integrity
 """
 
-import os
 import hashlib
-import logging
 import json
-from pathlib import Path
-from typing import Dict, Any, List, Optional, Set, Tuple
+import logging
+import os
 from datetime import datetime, timezone
-from PIL import Image
-from sqlalchemy.orm import Session
-from sqlalchemy import and_, or_
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Set, Tuple
 
-from ..models import Album, ArtworkCache
+from PIL import Image
+from sqlalchemy import and_, or_
+from sqlalchemy.orm import Session
+
 from ..database import SessionLocal
+from ..models import Album, ArtworkCache
+from .artwork_cache_service import ArtworkCacheService
 from .artwork_cache_utils import ArtworkCacheFileSystem, get_cache_filesystem
 from .image_processor import ImageProcessor, get_image_processor
-from .artwork_cache_service import ArtworkCacheService
 
 logger = logging.getLogger(__name__)
 

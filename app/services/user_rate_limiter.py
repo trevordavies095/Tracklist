@@ -3,12 +3,12 @@ User-specific rate limiter for application features
 Prevents abuse of resource-intensive operations
 """
 
-import time
 import logging
-from typing import Dict, Optional
+import threading
+import time
 from collections import defaultdict
 from datetime import datetime, timedelta
-import threading
+from typing import Dict, Optional
 
 logger = logging.getLogger(__name__)
 

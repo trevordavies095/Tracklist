@@ -9,7 +9,7 @@
         {% if search_context.type == 'direct_lookup' %}
             <span class="text-blue-800 dark:text-blue-400">Direct album lookup via MusicBrainz ID</span>
         {% elif search_context.type == 'structured' %}
-            <span class="text-blue-800 dark:text-blue-400">Showing results for: 
+            <span class="text-blue-800 dark:text-blue-400">Showing results for:
                 {% if search_context.artist %}<strong>Artist:</strong> {{ search_context.artist }}{% endif %}
                 {% if search_context.artist and search_context.album %}, {% endif %}
                 {% if search_context.album %}<strong>Album:</strong> {{ search_context.album }}{% endif %}
@@ -20,7 +20,7 @@
         {% endif %}
     </div>
     {% endif %}
-    
+
     <!-- Results Header -->
     <div class="flex justify-between items-center">
         <h3 class="text-lg font-semibold text-primary">
@@ -32,22 +32,22 @@
         </div>
         {% endif %}
     </div>
-    
+
     <!-- Album Results -->
     <div class="grid grid-cols-1 gap-4">
         {% for album in albums %}
-        <div class="bg-surface border border-default rounded-lg p-6 hover:shadow-md transition-shadow duration-200" 
+        <div class="bg-surface border border-default rounded-lg p-6 hover:shadow-md transition-shadow duration-200"
              x-data="{ adding: false, added: false }"
              data-album-id="{{ album.musicbrainz_id }}"
              data-album-title="{{ album.title }}"
              data-album-artist="{{ album.artist }}">
-            
+
             <div class="flex flex-col md:flex-row md:items-start space-y-4 md:space-y-0 md:space-x-6">
                 <!-- Album Artwork (Lazy Loaded) -->
                 <div class="flex-shrink-0">
                     <div class="album-artwork w-20 h-20 md:w-24 md:h-24 rounded-lg overflow-hidden" data-mbid="{{ album.musicbrainz_id }}">
-                        <img class="w-full h-full object-cover hidden" 
-                             alt="{{ album.title }} cover" 
+                        <img class="w-full h-full object-cover hidden"
+                             alt="{{ album.title }} cover"
                              loading="lazy"
                              onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                         <div class="artwork-placeholder w-20 h-20 md:w-24 md:h-24 bg-gradient-to-br from-surface-secondary to-surface-hover rounded-lg flex items-center justify-center">
@@ -57,7 +57,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Album Details -->
                 <div class="flex-1 min-w-0">
                     <h4 class="text-lg font-semibold text-primary mb-1">
@@ -69,7 +69,7 @@
                         {% endif %}
                     </h4>
                     <p class="text-md text-secondary mb-2">{{ album.artist }} • {{ album.track_count if album.track_count else '?' }} tracks</p>
-                    
+
                     <!-- Format and Country in a compact line like the retag modal -->
                     {% if album.media or album.format or album.country %}
                     <p class="text-sm text-muted mb-3">
@@ -88,14 +88,14 @@
                         {% if album.country %}Country: {{ album.country }}{% endif %}
                     </p>
                     {% endif %}
-                    
+
                     <!-- Additional metadata in a more compact format -->
                     {% if album.label %}
                     <div class="text-sm text-muted mb-4">
                         <span>Label: {{ album.label[:30] }}{% if album.label|length > 30 %}...{% endif %}</span>
                     </div>
                     {% endif %}
-                    
+
                     <!-- Tags/Genres -->
                     {% if album.tags and album.tags|length > 0 %}
                     <div class="mb-4">
@@ -111,7 +111,7 @@
                         </div>
                     </div>
                     {% endif %}
-                    
+
                     <!-- Actions -->
                     <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
                         <button @click="adding = true"
@@ -143,8 +143,8 @@
                                 Added
                             </span>
                         </button>
-                        
-                        <a href="https://musicbrainz.org/release/{{ album.musicbrainz_id }}" 
+
+                        <a href="https://musicbrainz.org/release/{{ album.musicbrainz_id }}"
                            target="_blank"
                            class="inline-flex items-center px-4 py-2 border border-default text-sm font-medium rounded-md text-primary bg-surface hover:bg-surface-hover transition-colors">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -158,29 +158,29 @@
         </div>
         {% endfor %}
     </div>
-    
+
     <!-- Pagination -->
     {% if has_more or offset > 0 %}
     <div class="flex justify-between items-center pt-6 border-t border-default">
         <div class="text-sm text-muted">
             {% if offset > 0 %}
             <button hx-get="/api/v1/search/albums?{% if query %}q={{ query }}&{% endif %}{% if artist %}artist={{ artist }}&{% endif %}{% if album %}album={{ album }}&{% endif %}{% if year %}year={{ year }}&{% endif %}{% if mbid %}mbid={{ mbid }}&{% endif %}offset={{ offset - limit }}&limit={{ limit }}"
-                    hx-target="#search-results" 
+                    hx-target="#search-results"
                     hx-indicator="#search-loading"
                     class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 dark:text-blue-400 font-medium">
                 ← Previous
             </button>
             {% endif %}
         </div>
-        
+
         <div class="text-sm text-muted">
             Page {{ (offset // limit) + 1 }}
         </div>
-        
+
         <div class="text-sm text-muted">
             {% if has_more %}
             <button hx-get="/api/v1/search/albums?{% if query %}q={{ query }}&{% endif %}{% if artist %}artist={{ artist }}&{% endif %}{% if album %}album={{ album }}&{% endif %}{% if year %}year={{ year }}&{% endif %}{% if mbid %}mbid={{ mbid }}&{% endif %}offset={{ offset + limit }}&limit={{ limit }}"
-                    hx-target="#search-results" 
+                    hx-target="#search-results"
                     hx-indicator="#search-loading"
                     class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 dark:text-blue-400 font-medium">
                 Next →
@@ -200,7 +200,7 @@
     </svg>
     <h3 class="text-lg font-medium text-primary mb-2">No albums found</h3>
     <p class="text-secondary mb-6">Try different search terms or check the spelling</p>
-    
+
     <div class="max-w-md mx-auto">
         <h4 class="font-medium text-primary mb-2">Try searching for:</h4>
         <div class="text-sm text-secondary space-y-1">

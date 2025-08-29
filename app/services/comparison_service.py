@@ -5,17 +5,18 @@ Provides comprehensive track-by-track comparison with statistics and insights
 
 import logging
 import statistics
-from typing import Dict, Any, Optional, List, Tuple
-from sqlalchemy.orm import Session, joinedload
-from sqlalchemy import and_
+from typing import Any, Dict, List, Optional, Tuple
 
-from ..models import Album, Track, Artist
+from sqlalchemy import and_
+from sqlalchemy.orm import Session, joinedload
+
+from ..cache import SimpleCache
 from ..exceptions import (
-    TracklistException,
     ServiceNotFoundError,
     ServiceValidationError,
+    TracklistException,
 )
-from ..cache import SimpleCache
+from ..models import Album, Artist, Track
 
 logger = logging.getLogger(__name__)
 

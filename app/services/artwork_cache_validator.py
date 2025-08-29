@@ -4,13 +4,14 @@ Validates and corrects artwork_cached flags on startup
 """
 
 import logging
-from typing import Dict, Any, List
 from pathlib import Path
-from sqlalchemy.orm import Session
-from sqlalchemy import and_
+from typing import Any, Dict, List
 
-from ..models import Album, ArtworkCache
+from sqlalchemy import and_
+from sqlalchemy.orm import Session
+
 from ..database import SessionLocal
+from ..models import Album, ArtworkCache
 
 logger = logging.getLogger(__name__)
 
@@ -181,8 +182,8 @@ class ArtworkCacheValidator:
         cache_fs = get_cache_filesystem()
 
         # Generate the cache key for this album
-        from .artwork_cache_service import get_artwork_cache_service
         from ..models import Album
+        from .artwork_cache_service import get_artwork_cache_service
 
         album = db.query(Album).filter(Album.id == album_id).first()
         if album:

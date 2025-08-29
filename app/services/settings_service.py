@@ -3,13 +3,14 @@ Settings Service - Central access point for application settings
 Checks database first, falls back to environment variables
 """
 
-import os
 import logging
+import os
 from typing import Any, Optional
+
 from sqlalchemy.orm import Session
 
-from ..models import UserSettings
 from ..database import get_db
+from ..models import UserSettings
 
 logger = logging.getLogger(__name__)
 

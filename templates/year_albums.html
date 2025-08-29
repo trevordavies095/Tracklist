@@ -13,9 +13,9 @@
                 </svg>
             </a>
             <h1 class="text-3xl font-bold text-primary">{{ year }}</h1>
-            
+
             <!-- Collage Button -->
-            <button id="generate-collage-btn" 
+            <button id="generate-collage-btn"
                     onclick="openCollageModal()"
                     title="Generate Year End Collage"
                     class="hidden ml-3 p-2 text-muted hover:text-accent-blue hover:bg-info-light rounded-lg transition-all duration-200 group relative self-center">
@@ -29,7 +29,7 @@
         </div>
         <p class="text-secondary">All albums from {{ year }} in your library</p>
     </div>
-    
+
     <!-- Albums Container -->
     <div id="albums-container">
         <!-- Loading State -->
@@ -47,7 +47,7 @@
             {% endfor %}
         </div>
     </div>
-    
+
     <!-- Empty State -->
     <div id="empty-state" class="hidden text-center py-12">
         <div class="max-w-sm mx-auto">
@@ -56,7 +56,7 @@
             </svg>
             <h3 class="text-lg font-medium text-primary mb-2">No albums from {{ year }}</h3>
             <p class="text-secondary mb-6">You haven't rated any albums from {{ year }} yet</p>
-            <a href="/search" 
+            <a href="/search"
                class="inline-flex items-center px-4 py-2 bg-accent-blue hover:opacity-90 text-white text-sm font-medium rounded-md transition-colors">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
@@ -65,7 +65,7 @@
             </a>
         </div>
     </div>
-    
+
     <!-- Pagination -->
     <div id="pagination-container" class="mt-8">
         <!-- Pagination will be loaded via JavaScript -->
@@ -81,9 +81,9 @@ function getScoreColorClass(score) {
     if (score === null || score === undefined) {
         return '';
     }
-    
+
     const numScore = Number(score);
-    
+
     if (numScore === 100) {
         return 'score-dark-green';
     } else if (numScore >= 67) {
@@ -102,19 +102,19 @@ let currentViewMode = 'grid';
 async function loadYearAlbums(offset = 0) {
     // Use backend sorting: in-progress first, then rated by score desc
     const url = `/api/v1/albums?limit=20&offset=${offset}&year=${year}&sort=rating_desc_status`;
-    
+
     try {
         const response = await fetch(url);
         if (response.ok) {
             const data = await response.json();
-            
+
             if (data.albums && data.albums.length === 0 && offset === 0) {
                 document.getElementById('empty-state').classList.remove('hidden');
                 document.getElementById('albums-container').innerHTML = '';
                 document.getElementById('pagination-container').innerHTML = '';
             } else {
                 document.getElementById('empty-state').classList.add('hidden');
-                
+
                 if (offset === 0) {
                     renderAlbums(data);
                 } else {
@@ -135,13 +135,13 @@ async function loadYearAlbums(offset = 0) {
 function renderAlbums(data) {
     const container = document.getElementById('albums-container');
     const albums = data.albums || [];
-    
+
     // Hide loading state
     const loadingElement = document.getElementById('albums-loading');
     if (loadingElement) {
         loadingElement.style.display = 'none';
     }
-    
+
     // Grid view
     const albumCards = albums.map(album => {
         const url = album.is_rated ? `/albums/${album.id}/completed` : `/albums/${album.id}/rate`;
@@ -152,8 +152,8 @@ function renderAlbums(data) {
                     <!-- Album Art -->
                     ${album.cover_art_url ? `
                         <div class="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
-                            <img src="${album.cover_art_url}" 
-                                 alt="${album.title} cover" 
+                            <img src="${album.cover_art_url}"
+                                 alt="${album.title} cover"
                                  class="w-full h-full object-cover"
                                  onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                             <div class="w-12 h-12 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg flex items-center justify-center" style="display:none;">
@@ -169,7 +169,7 @@ function renderAlbums(data) {
                             </svg>
                         </div>
                     `}
-                    
+
                     <!-- Album Info -->
                     <div class="flex-1 min-w-0">
                         <h3 class="font-semibold text-primary truncate" title="${album.title}">${album.title}</h3>
@@ -177,7 +177,7 @@ function renderAlbums(data) {
                         ${album.year ? `<p class="text-xs text-muted">${album.year}</p>` : ''}
                     </div>
                 </div>
-                
+
                 <!-- Status and Score -->
                 <div>
                     ${album.is_rated ? `
@@ -197,21 +197,21 @@ function renderAlbums(data) {
         </a>
     `;
     }).join('');
-    
+
     container.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">${albumCards}</div>`;
 }
 
 function appendAlbumsToGrid(data) {
     const container = document.getElementById('albums-container');
     const existingContainer = container.querySelector('.grid');
-    
+
     if (!existingContainer) {
         renderAlbums(data);
         return;
     }
-    
+
     const albums = data.albums || [];
-    
+
     // Grid view - append new cards
     const newAlbumCards = albums.map(album => {
         const url = album.is_rated ? `/albums/${album.id}/completed` : `/albums/${album.id}/rate`;
@@ -222,8 +222,8 @@ function appendAlbumsToGrid(data) {
                     <!-- Album Art -->
                     ${album.cover_art_url ? `
                         <div class="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
-                            <img src="${album.cover_art_url}" 
-                                 alt="${album.title} cover" 
+                            <img src="${album.cover_art_url}"
+                                 alt="${album.title} cover"
                                  class="w-full h-full object-cover"
                                  onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                             <div class="w-12 h-12 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg flex items-center justify-center" style="display:none;">
@@ -239,7 +239,7 @@ function appendAlbumsToGrid(data) {
                             </svg>
                         </div>
                     `}
-                    
+
                     <!-- Album Info -->
                     <div class="flex-1 min-w-0">
                         <h3 class="font-semibold text-primary truncate" title="${album.title}">${album.title}</h3>
@@ -247,7 +247,7 @@ function appendAlbumsToGrid(data) {
                         ${album.year ? `<p class="text-xs text-muted">${album.year}</p>` : ''}
                     </div>
                 </div>
-                
+
                 <!-- Status and Score -->
                 <div>
                     ${album.is_rated ? `
@@ -267,18 +267,18 @@ function appendAlbumsToGrid(data) {
         </a>
     `;
     }).join('');
-    
+
     existingContainer.innerHTML += newAlbumCards;
 }
 
 function updatePaginationButton(data) {
     const paginationContainer = document.getElementById('pagination-container');
-    
+
     if (data.has_more) {
         const nextOffset = data.offset + data.limit;
         paginationContainer.innerHTML = `
             <div class="flex justify-center">
-                <button onclick="loadYearAlbums(${nextOffset})" 
+                <button onclick="loadYearAlbums(${nextOffset})"
                         class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md text-sm font-medium transition-colors">
                     Load More Albums
                 </button>
@@ -295,17 +295,17 @@ let ratedAlbumsCount = 0;
 // Modified loadYearAlbums to track rated albums
 async function loadYearAlbumsWithButton(offset = 0) {
     const url = `/api/v1/albums?limit=20&offset=${offset}&year=${year}&sort=rating_desc_status`;
-    
+
     try {
         const response = await fetch(url);
         if (response.ok) {
             const data = await response.json();
-            
+
             // Count ALL rated albums for this year (not just first page)
             if (offset === 0) {
                 // The current 'data' already has info about this year, but only first page
                 // We need to get ALL albums to count properly
-                
+
                 // Check if current response has all albums or if there are more pages
                 if (data.has_more || (data.total && data.total > 20)) {
                     // Need to fetch all albums to get accurate rated count
@@ -314,7 +314,7 @@ async function loadYearAlbumsWithButton(offset = 0) {
                     const countResponse = await fetch(countUrl);
                     if (countResponse.ok) {
                         const countData = await countResponse.json();
-                        
+
                         // Count only rated albums from the full dataset
                         if (countData.albums && Array.isArray(countData.albums)) {
                             ratedAlbumsCount = countData.albums.filter(a => a.is_rated === true).length;
@@ -331,21 +331,21 @@ async function loadYearAlbumsWithButton(offset = 0) {
                     ratedAlbumsCount = data.albums ? data.albums.filter(a => a.is_rated).length : 0;
                     console.log(`Year ${year}: All albums in first page - ${ratedAlbumsCount} rated`);
                 }
-                
+
                 // Show/hide collage button based on rated albums
                 const collageBtn = document.getElementById('generate-collage-btn');
                 if (ratedAlbumsCount > 0) {
                     collageBtn.classList.remove('hidden');
                 }
             }
-            
+
             if (data.albums && data.albums.length === 0 && offset === 0) {
                 document.getElementById('empty-state').classList.remove('hidden');
                 document.getElementById('albums-container').innerHTML = '';
                 document.getElementById('pagination-container').innerHTML = '';
             } else {
                 document.getElementById('empty-state').classList.add('hidden');
-                
+
                 if (offset === 0) {
                     renderAlbums(data);
                 } else {
@@ -380,20 +380,20 @@ function closeCollageModal() {
 
 function createCollageModal() {
     // Use template literal with actual count
-    const allAlbumsOption = ratedAlbumsCount > 0 ? 
-        `<option value="">All Rated Albums (${ratedAlbumsCount})</option>` : 
+    const allAlbumsOption = ratedAlbumsCount > 0 ?
+        `<option value="">All Rated Albums (${ratedAlbumsCount})</option>` :
         `<option value="">All Rated Albums</option>`;
-    
+
     const modalHTML = `
         <div id="collage-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
             <div class="flex items-center justify-center min-h-screen px-4">
                 <!-- Backdrop -->
                 <div class="fixed inset-0 bg-black opacity-50" onclick="closeCollageModal()"></div>
-                
+
                 <!-- Modal Content -->
                 <div class="relative bg-surface rounded-lg shadow-xl max-w-2xl w-full p-6">
                     <h2 class="text-2xl font-bold text-primary mb-4">Generate Year End Collage</h2>
-                    
+
                     <div class="space-y-4">
                         <!-- Options -->
                         <div>
@@ -409,26 +409,26 @@ function createCollageModal() {
                                 <option value="100">Top 100 (10x10 grid)</option>
                             </select>
                         </div>
-                        
+
                         <div class="space-y-2">
                             <div class="flex items-center space-x-4">
                                 <label class="flex items-center">
                                     <input type="checkbox" id="collage-include-title" checked class="mr-2 rounded border-default bg-surface text-accent-blue focus:ring-accent-blue focus:ring-offset-0">
                                     <span class="text-sm text-primary">Include title</span>
                                 </label>
-                                
+
                                 <label class="flex items-center">
                                     <input type="checkbox" id="collage-include-ranking" checked class="mr-2 rounded border-default bg-surface text-accent-blue focus:ring-accent-blue focus:ring-offset-0">
                                     <span class="text-sm text-primary">Include ranking list</span>
                                 </label>
-                                
+
                                 <label class="flex items-center">
                                     <input type="checkbox" id="collage-include-scores" checked class="mr-2 rounded border-default bg-surface text-accent-blue focus:ring-accent-blue focus:ring-offset-0">
                                     <span class="text-sm text-primary">Show scores</span>
                                 </label>
                             </div>
                         </div>
-                        
+
                         <!-- Preview Container -->
                         <div id="collage-preview" class="hidden">
                             <h3 class="text-lg font-medium text-primary mb-2">Preview</h3>
@@ -436,30 +436,30 @@ function createCollageModal() {
                                 <img id="collage-preview-img" src="" alt="Collage preview" class="max-w-full h-auto">
                             </div>
                         </div>
-                        
+
                         <!-- Loading State -->
                         <div id="collage-loading" class="hidden text-center py-8">
                             <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-accent-blue"></div>
                             <p class="mt-2 text-secondary">Generating collage...</p>
                         </div>
-                        
+
                         <!-- Error State -->
                         <div id="collage-error" class="hidden bg-error-light border border-error text-error px-4 py-3 rounded">
                             <p id="collage-error-message"></p>
                         </div>
                     </div>
-                    
+
                     <!-- Actions -->
                     <div class="mt-6 flex justify-end space-x-3">
-                        <button onclick="closeCollageModal()" 
+                        <button onclick="closeCollageModal()"
                                 class="px-4 py-2 bg-surface-secondary text-primary rounded-md border border-default hover:bg-surface-hover transition-colors">
                             Cancel
                         </button>
-                        <button id="generate-btn" onclick="generateCollage()" 
+                        <button id="generate-btn" onclick="generateCollage()"
                                 class="bg-accent-blue hover:opacity-90 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
                             Generate Collage
                         </button>
-                        <a id="download-btn" href="#" download="tracklist_${year}_yearend.png" 
+                        <a id="download-btn" href="#" download="tracklist_${year}_yearend.png"
                            class="hidden bg-success hover:opacity-90 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
                             Download
                         </a>
@@ -468,7 +468,7 @@ function createCollageModal() {
             </div>
         </div>
     `;
-    
+
     document.body.insertAdjacentHTML('beforeend', modalHTML);
 }
 
@@ -477,7 +477,7 @@ async function generateCollage() {
     const includeTitle = document.getElementById('collage-include-title').checked;
     const includeRanking = document.getElementById('collage-include-ranking').checked;
     const includeScores = document.getElementById('collage-include-scores').checked;
-    
+
     // Build URL with parameters
     let url = `/api/v1/reports/years/${year}/collage?`;
     url += `include_title=${includeTitle}`;
@@ -486,31 +486,31 @@ async function generateCollage() {
     if (maxAlbums) {
         url += `&max_albums=${maxAlbums}`;
     }
-    
+
     // Show loading state
     document.getElementById('collage-loading').classList.remove('hidden');
     document.getElementById('collage-preview').classList.add('hidden');
     document.getElementById('collage-error').classList.add('hidden');
     document.getElementById('generate-btn').disabled = true;
     document.getElementById('download-btn').classList.add('hidden');
-    
+
     try {
         const response = await fetch(url);
-        
+
         if (response.ok) {
             // Get the image blob
             const blob = await response.blob();
             const imageUrl = URL.createObjectURL(blob);
-            
+
             // Show preview
             document.getElementById('collage-preview-img').src = imageUrl;
             document.getElementById('collage-preview').classList.remove('hidden');
-            
+
             // Update download button
             const downloadBtn = document.getElementById('download-btn');
             downloadBtn.href = imageUrl;
             downloadBtn.classList.remove('hidden');
-            
+
             // Hide generate button
             document.getElementById('generate-btn').classList.add('hidden');
         } else {

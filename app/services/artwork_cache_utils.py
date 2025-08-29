@@ -3,13 +3,14 @@ Artwork cache file system utilities
 Handles directory initialization, path generation, and file management
 """
 
-import os
 import hashlib
 import logging
+import os
+from datetime import datetime
 from pathlib import Path
 from typing import Dict, Optional, Tuple
-from datetime import datetime
-from ..utils.validation import validate_path, validate_filename
+
+from ..utils.validation import validate_filename, validate_path
 
 logger = logging.getLogger(__name__)
 
@@ -103,29 +104,29 @@ class ArtworkCacheFileSystem:
         # Remove leading dot from extension if present
         if extension.startswith("."):
             extension = extension[1:]
-        
+
         # Validate extension
         valid_extensions = ["jpg", "jpeg", "png", "gif", "webp"]
         if extension.lower() not in valid_extensions:
             raise ValueError(f"Invalid file extension: {extension}")
 
         filename = f"{cache_key}.{extension}"
-        
+
         # Validate filename
         try:
             validate_filename(filename)
         except ValueError as e:
             raise ValueError(f"Invalid cache filename: {e}")
-        
+
         # Build and validate path
         cache_path = self.base_path / size_variant / filename
-        
+
         # Ensure path is within base directory
         try:
             cache_path.resolve().relative_to(self.base_path.resolve())
         except ValueError:
             raise ValueError("Path traversal attempt detected")
-        
+
         return cache_path
 
     def get_web_path(

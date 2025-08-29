@@ -3,14 +3,15 @@ Rating service for album and track rating operations
 Handles album creation, track rating, and score calculation
 """
 
-from typing import Dict, List, Optional, Any
-from sqlalchemy.orm import Session
 import logging
 from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional
 
-from .models import Artist, Album, Track, UserSettings
+from sqlalchemy.orm import Session
+
+from .exceptions import ServiceNotFoundError, ServiceValidationError, TracklistException
+from .models import Album, Artist, Track, UserSettings
 from .musicbrainz_service import get_musicbrainz_service
-from .exceptions import TracklistException, ServiceNotFoundError, ServiceValidationError
 
 logger = logging.getLogger(__name__)
 

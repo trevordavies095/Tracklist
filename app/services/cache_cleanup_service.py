@@ -3,20 +3,20 @@ Cache cleanup service for managing disk space
 Automatically removes old unused cache entries based on configurable retention policies
 """
 
-import os
-import logging
 import json
+import logging
+import os
+from collections import defaultdict
+from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Dict, Any, List, Optional, Tuple
-from dataclasses import dataclass
-from collections import defaultdict
+from typing import Any, Dict, List, Optional, Tuple
 
-from sqlalchemy.orm import Session
 from sqlalchemy import and_, or_
+from sqlalchemy.orm import Session
 
-from ..models import ArtworkCache, Album
 from ..database import SessionLocal
+from ..models import Album, ArtworkCache
 from .artwork_cache_utils import get_cache_filesystem
 
 logger = logging.getLogger(__name__)

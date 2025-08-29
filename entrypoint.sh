@@ -18,11 +18,11 @@ echo "Running database migrations..."
 if [ -f "./data/tracklist.db" ]; then
     # Check if alembic_version table exists
     HAS_ALEMBIC_TABLE=$(sqlite3 ./data/tracklist.db "SELECT name FROM sqlite_master WHERE type='table' AND name='alembic_version';" 2>/dev/null || echo "")
-    
+
     if [ ! -z "$HAS_ALEMBIC_TABLE" ]; then
         # Get current revision from database
         CURRENT_REV=$(sqlite3 ./data/tracklist.db "SELECT version_num FROM alembic_version;" 2>/dev/null || echo "")
-        
+
         # Check if the revision exists in our migrations
         if [ ! -z "$CURRENT_REV" ] && [ ! -f "./alembic/versions/${CURRENT_REV}_*.py" ]; then
             echo "Warning: Database has unknown migration revision: $CURRENT_REV"

@@ -2,16 +2,17 @@
 Search API endpoints for MusicBrainz integration
 """
 
-from typing import Dict, Any, Optional
-from fastapi import APIRouter, Query, HTTPException, Depends, Request, Path
-from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse
 import logging
+from typing import Any, Dict, Optional
 
-from ..musicbrainz_service import get_musicbrainz_service, MusicBrainzService
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
+
 from ..exceptions import TracklistException
+from ..musicbrainz_service import MusicBrainzService, get_musicbrainz_service
+from ..utils.validation import sanitize_for_logging, validate_musicbrainz_id
 from ..validation.requests import SearchRequest
-from ..utils.validation import validate_musicbrainz_id, sanitize_for_logging
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +49,7 @@ async def search_albums(
         mbid = search_params.mbid
         limit = search_params.limit
         offset = search_params.offset
-        
+
         # Validate that at least one search method is provided
         if not any([q, artist, album, mbid]):
             raise HTTPException(
@@ -176,7 +177,7 @@ async def search_albums(
 @router.get("/albums/{musicbrainz_id}/details")
 async def get_album_details(
     musicbrainz_id: str = Path(..., description="MusicBrainz release ID"),
-    service: MusicBrainzService = Depends(get_musicbrainz_service)
+    service: MusicBrainzService = Depends(get_musicbrainz_service),
 ) -> Dict[str, Any]:
     """
     Get detailed album information by MusicBrainz ID
@@ -202,7 +203,7 @@ async def get_album_details(
                     "message": str(e),
                 },
             )
-        
+
         logger.info(f"Album details request: {sanitize_for_logging(validated_mbid)}")
 
         album_details = await service.get_album_details(validated_mbid)

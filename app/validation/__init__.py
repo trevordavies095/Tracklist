@@ -3,17 +3,17 @@ Validation modules for the Tracklist application
 """
 
 from .requests import (
-    SearchRequest,
-    AlbumCreateRequest,
-    TrackRatingRequest,
-    AlbumNotesRequest,
     AlbumBonusRequest,
+    AlbumCreateRequest,
+    AlbumNotesRequest,
     ComparisonRequest,
     ExportRequest,
+    FilterParams,
     ImportRequest,
     PaginationParams,
-    FilterParams,
+    SearchRequest,
     SortParams,
+    TrackRatingRequest,
 )
 
 __all__ = [

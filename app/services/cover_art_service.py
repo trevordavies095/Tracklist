@@ -3,7 +3,8 @@ Cover Art Archive API service for fetching album artwork
 """
 
 import logging
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
+
 from ..exceptions import TracklistException
 
 logger = logging.getLogger(__name__)
@@ -104,7 +105,7 @@ class CoverArtService:
         """Close the HTTP client"""
         if self._closed:
             return  # Already closed
-            
+
         try:
             if self.client:
                 await self.client.aclose()
@@ -114,11 +115,13 @@ class CoverArtService:
         except Exception as e:
             logger.error(f"Error closing CoverArtService: {e}")
             raise
-    
+
     def __del__(self):
         """Cleanup on garbage collection if not properly closed"""
         if not self._closed and self.client:
-            logger.warning("CoverArtService not properly closed, client may leak resources")
+            logger.warning(
+                "CoverArtService not properly closed, client may leak resources"
+            )
 
 
 # Global instance

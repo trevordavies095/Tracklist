@@ -3,12 +3,12 @@ Simple in-memory cache for MusicBrainz API responses
 Reduces API calls and improves performance
 """
 
-import time
-import json
 import hashlib
-from typing import Dict, Any, Optional
+import json
 import logging
+import time
 from datetime import datetime, timedelta
+from typing import Any, Dict, Optional
 
 logger = logging.getLogger(__name__)
 

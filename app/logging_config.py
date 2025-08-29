@@ -1,8 +1,8 @@
 import logging
-import sys
 import os
+import sys
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any, Dict
 
 
 def setup_logging(level: str = "INFO", log_file: str = None) -> Dict[str, Any]:

@@ -4,14 +4,14 @@ Handles daily cache cleanup and other scheduled operations
 """
 
 import asyncio
-import logging
-from datetime import datetime, time, timezone, timedelta
-from typing import Dict, Any, Optional, Callable
 import json
+import logging
+from datetime import datetime, time, timedelta, timezone
 from pathlib import Path
+from typing import Any, Callable, Dict, Optional
 
 from .background_tasks import get_background_manager
-from .cache_cleanup_service import get_cleanup_service, CleanupConfig
+from .cache_cleanup_service import CleanupConfig, get_cleanup_service
 
 logger = logging.getLogger(__name__)
 
@@ -31,9 +31,10 @@ class ScheduledTaskManager:
 
     def _load_config(self) -> Dict[str, Any]:
         """Load scheduled tasks configuration from database or environment variables"""
-        from .settings_service import get_settings_service
-        from ..database import get_db
         import os
+
+        from ..database import get_db
+        from .settings_service import get_settings_service
 
         # Try to get database session
         try:

@@ -109,16 +109,16 @@ from unittest.mock import Mock, patch, AsyncMock
 
 class TestFeatureName:
     """Test class grouping related tests."""
-    
+
     @pytest.mark.unit  # or integration, slow, security
     def test_specific_behavior(self, fixture_name):
         """Test description explaining the scenario."""
         # Arrange
         expected_value = "something"
-        
+
         # Act
         result = function_under_test()
-        
+
         # Assert
         assert result == expected_value
 ```
@@ -135,9 +135,9 @@ def test_calculate_album_score(self):
     """Test album score calculation with various ratings."""
     calculator = RatingCalculator()
     ratings = [1.0, 0.67, 0.33]
-    
+
     score = calculator.calculate_album_score(ratings, album_bonus=0.33)
-    
+
     assert score == 67  # Expected calculation result
 ```
 
@@ -152,9 +152,9 @@ def test_create_and_rate_album(self, db_session, client):
     # Create album via API
     response = client.post("/api/v1/albums", data={"musicbrainz_id": "test-id"})
     assert response.status_code == 200
-    
+
     album_id = response.json()["id"]
-    
+
     # Rate tracks
     for track_id in response.json()["tracks"]:
         response = client.put(f"/api/v1/tracks/{track_id}/rating", json={"rating": 1.0})
@@ -170,9 +170,9 @@ For testing async functions:
 async def test_async_operation(self):
     """Test asynchronous service operations."""
     service = AsyncService()
-    
+
     result = await service.fetch_data()
-    
+
     assert result is not None
 ```
 
@@ -183,9 +183,9 @@ def test_with_external_service(self):
     """Test function that calls external API."""
     with patch('app.services.external_api') as mock_api:
         mock_api.fetch_data.return_value = {"status": "success"}
-        
+
         result = function_using_api()
-        
+
         assert result["status"] == "success"
         mock_api.fetch_data.assert_called_once()
 ```
@@ -199,7 +199,7 @@ def test_database_operation(self, db_session):
     album = Album(name="Test Album", artist_id=1)
     db_session.add(album)
     db_session.commit()
-    
+
     # Test retrieval
     retrieved = db_session.query(Album).filter_by(name="Test Album").first()
     assert retrieved is not None
@@ -212,7 +212,7 @@ def test_database_operation(self, db_session):
 def test_api_endpoint(self, client, created_album):
     """Test API endpoint behavior."""
     response = client.get(f"/api/v1/albums/{created_album.id}")
-    
+
     assert response.status_code == 200
     data = response.json()
     assert data["id"] == created_album.id
@@ -397,33 +397,33 @@ from app.module import ClassUnderTest
 
 class TestClassName:
     """Test [description of what's being tested]."""
-    
+
     @pytest.fixture
     def setup_data(self):
         """Provide test data for this test class."""
         return {"key": "value"}
-    
+
     @pytest.mark.unit
     def test_expected_behavior(self, setup_data):
         """Test that [specific behavior] works correctly."""
         # Arrange
         instance = ClassUnderTest()
-        
+
         # Act
         result = instance.method(setup_data)
-        
+
         # Assert
         assert result is not None
         assert result["key"] == "expected_value"
-    
+
     @pytest.mark.unit
     def test_error_condition(self):
         """Test that [error condition] is handled properly."""
         instance = ClassUnderTest()
-        
+
         with pytest.raises(ExpectedException) as exc_info:
             instance.method_that_should_fail()
-        
+
         assert "expected error message" in str(exc_info.value)
 ```
 

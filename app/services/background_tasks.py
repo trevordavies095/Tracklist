@@ -5,10 +5,10 @@ Handles artwork caching and other async tasks
 
 import asyncio
 import logging
-from typing import Optional, Dict, Any, Callable
-from datetime import datetime, timezone
-from collections import deque
 import traceback
+from collections import deque
+from datetime import datetime, timezone
+from typing import Any, Callable, Dict, Optional
 
 logger = logging.getLogger(__name__)
 

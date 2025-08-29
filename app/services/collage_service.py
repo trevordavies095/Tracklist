@@ -2,14 +2,15 @@
 Collage Service for generating album collages in Topsters format
 """
 
-import logging
-from typing import List, Tuple, Optional, Dict, Any
-from PIL import Image, ImageDraw, ImageFont
-from io import BytesIO
-import os
-from pathlib import Path
-from sqlalchemy.orm import Session
 import asyncio
+import logging
+import os
+from io import BytesIO
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
+
+from PIL import Image, ImageDraw, ImageFont
+from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 

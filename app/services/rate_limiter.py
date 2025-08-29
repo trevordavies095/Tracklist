@@ -4,11 +4,11 @@ Ensures compliance with API rate limits
 """
 
 import asyncio
-import time
 import logging
-from typing import Dict, Optional
+import time
 from collections import defaultdict
 from datetime import datetime, timedelta
+from typing import Dict, Optional
 
 logger = logging.getLogger(__name__)
 

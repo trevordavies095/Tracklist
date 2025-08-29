@@ -16,7 +16,7 @@ python_classes = Test*
 python_functions = test_*
 asyncio_mode = strict
 asyncio_default_fixture_loop_scope = function
-addopts = 
+addopts =
     --verbose
     --strict-markers
     --tb=short
@@ -73,7 +73,7 @@ def client(db_session):
     """FastAPI test client with database override."""
     def override_get_db():
         yield db_session
-    
+
     app.dependency_overrides[get_db] = override_get_db
     with TestClient(app) as test_client:
         yield test_client
@@ -101,7 +101,7 @@ class TestAlbumModel:
         )
         db_session.add(album)
         db_session.commit()
-        
+
         assert album.id is not None
         assert album.created_at is not None
 ```
@@ -123,9 +123,9 @@ class TestRatingService:
         """Test track rating logic."""
         service = RatingService()
         track = created_album.tracks[0]
-        
+
         result = service.rate_track(track.id, 0.67, db_session)
-        
+
         assert result["track"]["rating"] == 0.67
         assert result["track"]["is_rated"] is True
 ```
@@ -151,12 +151,12 @@ class TestAlbumAPI:
                 return_value={"id": 1, "title": "Album"}
             )
             mock.return_value = mock_service
-            
+
             response = client.post(
                 "/api/v1/albums",
                 data={"musicbrainz_id": "test-id"}
             )
-            
+
             assert response.status_code == 200
             assert response.json()["id"] == 1
 ```
@@ -178,13 +178,13 @@ For async operations:
 async def test_async_musicbrainz_fetch(self):
     """Test async MusicBrainz API call."""
     service = MusicBrainzService()
-    
+
     with patch('httpx.AsyncClient.get') as mock_get:
         mock_get.return_value = AsyncMock(
             status_code=200,
             json=lambda: {"title": "Album"}
         )
-        
+
         result = await service.get_album_details("mbid")
         assert result["title"] == "Album"
 ```
@@ -234,10 +234,10 @@ with patch('app.models.datetime') as mock_datetime:
 def test_invalid_rating_raises_error(self, db_session):
     """Test that invalid rating value raises ValidationError."""
     service = RatingService()
-    
+
     with pytest.raises(ServiceValidationError) as exc_info:
         service.rate_track(1, 0.5, db_session)  # 0.5 is invalid
-    
+
     assert "Invalid rating value" in str(exc_info.value)
     assert exc_info.value.status_code == 400
 ```
@@ -248,7 +248,7 @@ def test_invalid_rating_raises_error(self, db_session):
 def test_404_for_nonexistent_album(self, client):
     """Test 404 response for non-existent album."""
     response = client.get("/api/v1/albums/99999")
-    
+
     assert response.status_code == 404
     assert "not found" in response.json()["detail"].lower()
 ```
@@ -260,10 +260,10 @@ def test_unique_constraint_violation(self, db_session):
     """Test handling of unique constraint violations."""
     album1 = Album(musicbrainz_id="duplicate-id", name="Album 1")
     album2 = Album(musicbrainz_id="duplicate-id", name="Album 2")
-    
+
     db_session.add(album1)
     db_session.commit()
-    
+
     db_session.add(album2)
     with pytest.raises(IntegrityError):
         db_session.commit()
@@ -281,12 +281,12 @@ def test_large_dataset_processing(self, db_session):
     albums = [Album(name=f"Album {i}") for i in range(1000)]
     db_session.bulk_save_objects(albums)
     db_session.commit()
-    
+
     # Test performance-critical operation
     start = time.time()
     result = service.process_all_albums(db_session)
     duration = time.time() - start
-    
+
     assert duration < 5.0  # Should complete in under 5 seconds
 ```
 
@@ -296,14 +296,14 @@ def test_large_dataset_processing(self, db_session):
 def test_concurrent_requests(self, client):
     """Test handling concurrent API requests."""
     import concurrent.futures
-    
+
     def make_request():
         return client.get("/api/v1/albums")
-    
+
     with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
         futures = [executor.submit(make_request) for _ in range(100)]
         results = [f.result() for f in futures]
-    
+
     assert all(r.status_code == 200 for r in results)
 ```
 
@@ -323,7 +323,7 @@ class AlbumFactory:
             "is_rated": False,
         }
         defaults.update(kwargs)
-        
+
         album = Album(**defaults)
         db_session.add(album)
         db_session.commit()
@@ -352,13 +352,13 @@ def test_transaction_rollback_on_error(self, db_session):
     """Test that transactions roll back on error."""
     album = Album(name="Test")
     db_session.add(album)
-    
+
     # Force an error
     with pytest.raises(Exception):
         with db_session.begin_nested():
             album.name = None  # Violates NOT NULL
             db_session.flush()
-    
+
     # Verify rollback
     db_session.rollback()
     assert db_session.query(Album).count() == 0
@@ -371,10 +371,10 @@ def test_cascade_delete(self, db_session, created_album):
     """Test that deleting album deletes tracks."""
     album_id = created_album.id
     track_ids = [t.id for t in created_album.tracks]
-    
+
     db_session.delete(created_album)
     db_session.commit()
-    
+
     assert db_session.query(Album).get(album_id) is None
     for track_id in track_ids:
         assert db_session.query(Track).get(track_id) is None

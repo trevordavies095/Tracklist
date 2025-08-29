@@ -3,19 +3,20 @@ User Settings API routes
 Handles user preferences including theme settings, database export/import
 """
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
-from fastapi.responses import Response
-from sqlalchemy.orm import Session
-from pydantic import BaseModel, Field, validator
-from typing import Optional, Literal, Tuple
+import json
 import logging
 import os
-import json
 from datetime import datetime
+from typing import Literal, Optional, Tuple
+
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from fastapi.responses import Response
+from pydantic import BaseModel, Field, validator
+from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..models import UserSettings
-from ..services.export_service import get_export_service, ExportService
+from ..services.export_service import ExportService, get_export_service
 
 logger = logging.getLogger(__name__)
 

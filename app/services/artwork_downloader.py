@@ -3,15 +3,16 @@ Enhanced artwork downloader with validation, retry logic, and rate limiting
 """
 
 import asyncio
-import logging
 import hashlib
-from typing import Optional, Tuple, Dict, Any
+import logging
 from io import BytesIO
+from typing import Any, Dict, Optional, Tuple
+
 import httpx
 from PIL import Image
 
-from .rate_limiter import get_domain_rate_limiter
 from ..exceptions import TracklistException
+from .rate_limiter import get_domain_rate_limiter
 
 logger = logging.getLogger(__name__)
 

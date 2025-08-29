@@ -13,7 +13,7 @@ Compare Albums - Tracklist
     <!-- Comparison Header -->
     <div class="mb-8">
         <h1 class="text-3xl font-bold text-primary mb-4">Album Comparison</h1>
-        
+
         <!-- Album Selection Controls -->
         <div class="bg-surface rounded-lg shadow-sm border border-default p-4 mb-6">
             <div class="flex flex-col lg:flex-row lg:items-center space-y-4 lg:space-y-0 lg:space-x-4">
@@ -21,8 +21,8 @@ Compare Albums - Tracklist
                 <div class="flex-1">
                     <label for="album1-search" class="block text-sm font-medium text-secondary mb-1">First Album</label>
                     <div class="relative">
-                        <input type="text" 
-                               id="album1-search" 
+                        <input type="text"
+                               id="album1-search"
                                placeholder="Search for first album..."
                                class="w-full rounded-md border-default bg-surface text-primary shadow-sm focus:border-accent-blue focus:ring-accent-blue pr-10"
                                autocomplete="off"
@@ -36,34 +36,34 @@ Compare Albums - Tracklist
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                             </svg>
                         </div>
-                        <button type="button" 
-                                id="album1-clear" 
+                        <button type="button"
+                                id="album1-clear"
                                 class="absolute inset-y-0 right-8 flex items-center pr-3 text-muted hover:text-secondary hidden"
                                 onclick="clearAlbumSelection(1)">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                             </svg>
                         </button>
-                        <div id="album1-results" 
+                        <div id="album1-results"
                              class="absolute z-10 w-full bg-surface border border-default rounded-md shadow-lg hidden max-h-64 overflow-y-auto mt-1"
                              role="listbox"
                              aria-label="Album search results"></div>
                     </div>
                     <div id="album1-help" class="text-xs text-muted mt-1">Start typing to search your rated albums</div>
                 </div>
-                
+
                 <div class="text-center text-muted font-medium pt-6 lg:pt-0">
                     <div class="bg-surface-secondary rounded-full w-12 h-12 flex items-center justify-center mx-auto">
                         <span class="text-lg font-bold">VS</span>
                     </div>
                 </div>
-                
+
                 <!-- Second Album Search -->
                 <div class="flex-1">
                     <label for="album2-search" class="block text-sm font-medium text-secondary mb-1">Second Album</label>
                     <div class="relative">
-                        <input type="text" 
-                               id="album2-search" 
+                        <input type="text"
+                               id="album2-search"
                                placeholder="Search for second album..."
                                class="w-full rounded-md border-default bg-surface text-primary shadow-sm focus:border-accent-blue focus:ring-accent-blue pr-10"
                                autocomplete="off"
@@ -77,24 +77,24 @@ Compare Albums - Tracklist
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                             </svg>
                         </div>
-                        <button type="button" 
-                                id="album2-clear" 
+                        <button type="button"
+                                id="album2-clear"
                                 class="absolute inset-y-0 right-8 flex items-center pr-3 text-muted hover:text-secondary hidden"
                                 onclick="clearAlbumSelection(2)">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                             </svg>
                         </button>
-                        <div id="album2-results" 
+                        <div id="album2-results"
                              class="absolute z-10 w-full bg-surface border border-default rounded-md shadow-lg hidden max-h-64 overflow-y-auto mt-1"
                              role="listbox"
                              aria-label="Album search results"></div>
                     </div>
                     <div id="album2-help" class="text-xs text-muted mt-1">Start typing to search your rated albums</div>
                 </div>
-                
+
                 <div class="pt-6 lg:pt-0">
-                    <button onclick="compareAlbums()" 
+                    <button onclick="compareAlbums()"
                             id="compare-button"
                             disabled
                             class="w-full lg:w-auto px-6 py-2 bg-accent-blue text-white font-medium rounded-md shadow-sm hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-accent-blue focus:ring-offset-2 disabled:bg-surface-hover disabled:text-muted disabled:cursor-not-allowed transition-colors">
@@ -112,8 +112,8 @@ Compare Albums - Tracklist
         <div class="bg-surface rounded-lg shadow-sm border border-default p-6">
             <div class="flex items-start space-x-4 mb-4">
                 <div class="flex-shrink-0">
-                    <img src="{{ comparison.albums.album1.cover_art_url or '/static/img/album-placeholder.svg' }}" 
-                         alt="{{ comparison.albums.album1.name }} cover" 
+                    <img src="{{ comparison.albums.album1.cover_art_url or '/static/img/album-placeholder.svg' }}"
+                         alt="{{ comparison.albums.album1.name }} cover"
                          class="w-24 h-24 rounded-lg object-cover border border-default">
                 </div>
                 <div class="flex-1 min-w-0">
@@ -136,11 +136,11 @@ Compare Albums - Tracklist
                     {% endif %}
                 </div>
             </div>
-            
+
             <div class="space-y-3">
                 <div class="flex justify-between items-center">
                     <span class="text-sm font-medium text-secondary">Album Score</span>
-                    <span class="text-2xl font-bold 
+                    <span class="text-2xl font-bold
                         {% if comparison.albums.album1.rating_score == 100 %}text-success
                         {% elif comparison.albums.album1.rating_score >= 67 %}text-success-secondary
                         {% elif comparison.albums.album1.rating_score >= 33 %}text-warning
@@ -156,13 +156,13 @@ Compare Albums - Tracklist
                 </div>
             </div>
         </div>
-        
+
         <!-- Album 2 Card -->
         <div class="bg-surface rounded-lg shadow-sm border border-default p-6">
             <div class="flex items-start space-x-4 mb-4">
                 <div class="flex-shrink-0">
-                    <img src="{{ comparison.albums.album2.cover_art_url or '/static/img/album-placeholder.svg' }}" 
-                         alt="{{ comparison.albums.album2.name }} cover" 
+                    <img src="{{ comparison.albums.album2.cover_art_url or '/static/img/album-placeholder.svg' }}"
+                         alt="{{ comparison.albums.album2.name }} cover"
                          class="w-24 h-24 rounded-lg object-cover border border-default">
                 </div>
                 <div class="flex-1 min-w-0">
@@ -185,11 +185,11 @@ Compare Albums - Tracklist
                     {% endif %}
                 </div>
             </div>
-            
+
             <div class="space-y-3">
                 <div class="flex justify-between items-center">
                     <span class="text-sm font-medium text-secondary">Album Score</span>
-                    <span class="text-2xl font-bold 
+                    <span class="text-2xl font-bold
                         {% if comparison.albums.album2.rating_score == 100 %}text-success
                         {% elif comparison.albums.album2.rating_score >= 67 %}text-success-secondary
                         {% elif comparison.albums.album2.rating_score >= 33 %}text-warning
@@ -210,7 +210,7 @@ Compare Albums - Tracklist
     <!-- Comparison Statistics -->
     <div class="bg-surface rounded-lg shadow-sm border border-default p-6 mb-8">
         <h2 class="text-xl font-semibold text-primary mb-6">Comparison Summary</h2>
-        
+
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             <!-- Winner -->
             <div class="text-center">
@@ -226,7 +226,7 @@ Compare Albums - Tracklist
                 <div class="text-sm text-muted">+{{ comparison.statistics.winner.score_difference|abs }} points</div>
                 {% endif %}
             </div>
-            
+
             <!-- Track Wins -->
             <div class="text-center">
                 <div class="text-sm font-medium text-muted mb-1">Track Wins</div>
@@ -237,7 +237,7 @@ Compare Albums - Tracklist
                     {{ comparison.statistics.track_wins.ties }} ties
                 </div>
             </div>
-            
+
             <!-- Rating Spread -->
             {% if comparison.statistics.rating_differences %}
             <div class="text-center">
@@ -249,7 +249,7 @@ Compare Albums - Tracklist
             </div>
             {% endif %}
         </div>
-        
+
         <!-- Insights -->
         <div class="border-t border-default pt-4">
             <h3 class="font-medium text-primary mb-2">{{ comparison.insights.summary }}</h3>
@@ -271,7 +271,7 @@ Compare Albums - Tracklist
     <!-- Track-by-Track Comparison -->
     <div class="bg-surface rounded-lg shadow-sm border border-default p-6">
         <h2 class="text-xl font-semibold text-primary mb-6">Track Comparison</h2>
-        
+
         <!-- Desktop: Table View -->
         <div class="hidden lg:block overflow-x-auto">
             <table class="w-full">
@@ -289,7 +289,7 @@ Compare Albums - Tracklist
                     {% for track in comparison.track_comparison %}
                     <tr class="border-b border-default hover:bg-surface-secondary comparison-row" data-difference="{{ track.rating_difference or 0 }}">
                         <td class="py-3 px-2 text-sm text-muted">{{ track.track_number }}</td>
-                        
+
                         <!-- Album 1 Track -->
                         <td class="py-3 px-4">
                             {% if track.album1_track %}
@@ -298,7 +298,7 @@ Compare Albums - Tracklist
                             <div class="text-sm text-muted italic">No track</div>
                             {% endif %}
                         </td>
-                        
+
                         <!-- Album 1 Rating -->
                         <td class="py-3 px-2 text-center">
                             {% if track.album1_track and track.album1_track.rating is not none %}
@@ -309,7 +309,7 @@ Compare Albums - Tracklist
                             <span class="text-muted">-</span>
                             {% endif %}
                         </td>
-                        
+
                         <!-- Rating Difference -->
                         <td class="py-3 px-4 text-center">
                             {% if track.rating_difference is not none %}
@@ -327,7 +327,7 @@ Compare Albums - Tracklist
                                     {% set diff_class = 'text-muted' %}
                                     {% set arrow = '=' %}
                                 {% endif %}
-                                
+
                             <div class="flex items-center justify-center">
                                 <span class="{{ diff_class }} text-lg font-medium">{{ arrow }}</span>
                             </div>
@@ -335,7 +335,7 @@ Compare Albums - Tracklist
                             <span class="text-muted">-</span>
                             {% endif %}
                         </td>
-                        
+
                         <!-- Album 2 Rating -->
                         <td class="py-3 px-2 text-center">
                             {% if track.album2_track and track.album2_track.rating is not none %}
@@ -346,7 +346,7 @@ Compare Albums - Tracklist
                             <span class="text-muted">-</span>
                             {% endif %}
                         </td>
-                        
+
                         <!-- Album 2 Track -->
                         <td class="py-3 px-4">
                             {% if track.album2_track %}
@@ -360,7 +360,7 @@ Compare Albums - Tracklist
                 </tbody>
             </table>
         </div>
-        
+
         <!-- Mobile: Card View -->
         <div class="lg:hidden space-y-4">
             {% for track in comparison.track_comparison %}
@@ -391,7 +391,7 @@ Compare Albums - Tracklist
                     </span>
                     {% endif %}
                 </div>
-                
+
                 <div class="space-y-3">
                     <!-- Album 1 Track -->
                     <div class="flex items-center justify-between">
@@ -413,7 +413,7 @@ Compare Albums - Tracklist
                             {% endif %}
                         </div>
                     </div>
-                    
+
                     <!-- Album 2 Track -->
                     <div class="flex items-center justify-between">
                         <div class="flex-1 min-w-0">
@@ -439,23 +439,23 @@ Compare Albums - Tracklist
             {% endfor %}
         </div>
     </div>
-    
+
     <!-- Scoring Explanation -->
     <div class="bg-info-light rounded-lg shadow-sm border border-default p-6 mt-8">
         <h2 class="text-xl font-semibold mb-4 text-info">How Scoring Works</h2>
-        
+
         <div class="space-y-4 text-sm text-secondary">
             <div>
                 <h3 class="font-semibold text-primary mb-2">Overall Winner & Score Difference</h3>
                 <p>The overall winner is determined by each album's total score (0-100), which is calculated from the average of all track ratings plus any album bonus points. The score difference shows how many points separate the two albums.</p>
             </div>
-            
+
             <div>
                 <h3 class="font-semibold text-primary mb-2">Track Wins</h3>
                 <p>Track wins only count head-to-head comparisons. When albums have different numbers of tracks, only tracks at the same position are compared. For example, if Album A has 8 tracks and Album B has 14 tracks, only tracks 1-8 are compared directly. Tracks 9-14 of Album B are not counted as "wins" since there's nothing to compare them against.</p>
                 <p class="mt-2">A track "wins" when its rating is higher than the corresponding track on the other album by more than 0.05 points (the tie threshold).</p>
             </div>
-            
+
             <div>
                 <h3 class="font-semibold text-primary mb-2">Rating Differences</h3>
                 <ul class="space-y-1 ml-4">
@@ -465,14 +465,14 @@ Compare Albums - Tracklist
                     <li><span class="font-medium">=:</span> Same or nearly identical rating</li>
                 </ul>
             </div>
-            
+
             <div>
                 <h3 class="font-semibold text-primary mb-2">Why Different Track Counts Don't Affect Fairness</h3>
                 <p>Albums are judged on their overall quality, not quantity. The album score reflects the average quality of all tracks, so having more tracks doesn't automatically give an advantage. In fact, more tracks can be a disadvantage if some are weaker, as they'll bring down the average.</p>
             </div>
         </div>
     </div>
-    
+
     {% else %}
     <!-- No Comparison State -->
     <div class="text-center py-12">
@@ -580,13 +580,13 @@ Compare Albums - Tracklist
     .result-item {
         padding: 0.75rem;
     }
-    
+
     .result-item .flex {
         flex-direction: column;
         align-items: flex-start;
         space-y: 0.5rem;
     }
-    
+
     .result-item .flex-shrink-0:last-child {
         align-self: flex-end;
         margin-top: -1.5rem;

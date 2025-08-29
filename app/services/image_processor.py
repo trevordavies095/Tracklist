@@ -3,12 +3,13 @@ Image processing module for artwork variants
 Handles resizing, cropping, optimization, and format conversion
 """
 
-import logging
-from pathlib import Path
-from typing import Tuple, Optional, Dict, Any, List
-from io import BytesIO
-from PIL import Image, ImageOps, ImageFilter
 import hashlib
+import logging
+from io import BytesIO
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
+
+from PIL import Image, ImageFilter, ImageOps
 
 logger = logging.getLogger(__name__)
 

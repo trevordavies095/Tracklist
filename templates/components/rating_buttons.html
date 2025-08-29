@@ -4,7 +4,7 @@
 <div class="rating-buttons flex flex-wrap gap-1.5 sm:gap-2" x-data="ratingButtons({{ track_id }}, {{ current_rating if current_rating is not none else 'null' }})">
     <!-- Skip (0.0) - Red -->
     <div class="tooltip-trigger relative">
-        <button 
+        <button
             @click="setRating(0.0)"
             :class="{ 'selected': currentRating === 0.0 }"
             class="rating-button rating-button-skip px-3 py-2.5 sm:py-2 rounded-md text-xs sm:text-sm font-medium min-w-[70px] sm:min-w-[80px] min-h-[44px] sm:min-h-0"
@@ -27,10 +27,10 @@
             Skip always - worst songs you'd never want to hear
         </div>
     </div>
-    
+
     <!-- Filler (0.33) - Orange/Yellow -->
     <div class="tooltip-trigger relative">
-        <button 
+        <button
             @click="setRating(0.33)"
             :class="{ 'selected': currentRating === 0.33 }"
             class="rating-button rating-button-filler px-3 py-2.5 sm:py-2 rounded-md text-xs sm:text-sm font-medium min-w-[70px] sm:min-w-[80px] min-h-[44px] sm:min-h-0"
@@ -53,10 +53,10 @@
             Filler/tolerable - don't enjoy but won't skip
         </div>
     </div>
-    
+
     <!-- Good (0.67) - Light Green -->
     <div class="tooltip-trigger relative">
-        <button 
+        <button
             @click="setRating(0.67)"
             :class="{ 'selected': currentRating === 0.67 }"
             class="rating-button rating-button-good px-3 py-2.5 sm:py-2 rounded-md text-xs sm:text-sm font-medium min-w-[70px] sm:min-w-[80px] min-h-[44px] sm:min-h-0"
@@ -79,10 +79,10 @@
             Good/playlist-worthy - like the track
         </div>
     </div>
-    
+
     <!-- Standout (1.0) - Dark Green -->
     <div class="tooltip-trigger relative">
-        <button 
+        <button
             @click="setRating(1.0)"
             :class="{ 'selected': currentRating === 1.0 }"
             class="rating-button rating-button-standout px-3 py-2.5 sm:py-2 rounded-md text-xs sm:text-sm font-medium min-w-[70px] sm:min-w-[80px] min-h-[44px] sm:min-h-0"
@@ -105,10 +105,9 @@
             Standout/love it - album highlights
         </div>
     </div>
-    
+
     <!-- Auto-save Feedback -->
     <div id="track-{{ track_id }}-feedback" class="ml-4 flex items-center text-sm">
         <!-- HTMX will populate this with response feedback -->
     </div>
 </div>
-

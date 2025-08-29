@@ -3,16 +3,17 @@ Reporting service for generating user statistics and reports
 Provides endpoints for retrieving album statistics and analytics
 """
 
-from typing import Dict, Any, Optional, List
-from sqlalchemy.orm import Session
-from sqlalchemy import func, and_
 import logging
 import random
 from datetime import datetime
+from typing import Any, Dict, List, Optional
 
-from .models import Album, Track, Artist
-from .exceptions import TracklistException
+from sqlalchemy import and_, func
+from sqlalchemy.orm import Session
+
 from .cache import SimpleCache
+from .exceptions import TracklistException
+from .models import Album, Artist, Track
 
 logger = logging.getLogger(__name__)
 
@@ -613,7 +614,7 @@ class ReportingService:
         """
         try:
             # Query to get artists with their rated album counts and scores
-            from sqlalchemy import func, desc
+            from sqlalchemy import desc, func
 
             # Get all fully rated albums with their artists
             artist_stats = (
@@ -810,7 +811,7 @@ class ReportingService:
         """
         try:
             # Query to get artists with their album counts and average scores
-            from sqlalchemy import func, desc
+            from sqlalchemy import desc, func
 
             artist_stats = (
                 db.query(

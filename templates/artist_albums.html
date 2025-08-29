@@ -16,7 +16,7 @@
         </div>
         <p class="text-secondary">All albums by this artist in your library</p>
     </div>
-    
+
     <!-- Albums Container -->
     <div id="albums-container">
         <!-- Loading State -->
@@ -34,7 +34,7 @@
             {% endfor %}
         </div>
     </div>
-    
+
     <!-- Empty State -->
     <div id="empty-state" class="hidden text-center py-12">
         <div class="max-w-sm mx-auto">
@@ -43,7 +43,7 @@
             </svg>
             <h3 class="text-lg font-medium text-primary mb-2">No albums by {{ artist.name }}</h3>
             <p class="text-secondary mb-6">You haven't rated any albums by this artist yet</p>
-            <a href="/search" 
+            <a href="/search"
                class="inline-flex items-center px-4 py-2 bg-accent-blue hover:opacity-90 text-white text-sm font-medium rounded-md transition-colors">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
@@ -52,7 +52,7 @@
             </a>
         </div>
     </div>
-    
+
     <!-- Pagination -->
     <div id="pagination-container" class="mt-8">
         <!-- Pagination will be loaded via JavaScript -->
@@ -68,9 +68,9 @@ function getScoreColorClass(score) {
     if (score === null || score === undefined) {
         return '';
     }
-    
+
     const numScore = Number(score);
-    
+
     if (numScore === 100) {
         return 'score-dark-green';
     } else if (numScore >= 67) {
@@ -88,12 +88,12 @@ let currentViewMode = 'grid';
 // Load albums for this artist
 async function loadArtistAlbums(offset = 0) {
     const url = `/api/v1/albums?limit=20&offset=${offset}&artist_id=${artistId}&sort=year_asc`;
-    
+
     try {
         const response = await fetch(url);
         if (response.ok) {
             const data = await response.json();
-            
+
             if (data.albums && data.albums.length === 0 && offset === 0) {
                 document.getElementById('empty-state').classList.remove('hidden');
                 document.getElementById('albums-container').innerHTML = '';
@@ -120,13 +120,13 @@ async function loadArtistAlbums(offset = 0) {
 function renderAlbums(data) {
     const container = document.getElementById('albums-container');
     const albums = data.albums || [];
-    
+
     // Hide loading state
     const loadingElement = document.getElementById('albums-loading');
     if (loadingElement) {
         loadingElement.style.display = 'none';
     }
-    
+
     // Grid view
     const albumCards = albums.map(album => {
         const url = album.is_rated ? `/albums/${album.id}/completed` : `/albums/${album.id}/rate`;
@@ -137,8 +137,8 @@ function renderAlbums(data) {
                     <!-- Album Art -->
                     ${album.cover_art_url ? `
                         <div class="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
-                            <img src="${album.cover_art_url}" 
-                                 alt="${album.title} cover" 
+                            <img src="${album.cover_art_url}"
+                                 alt="${album.title} cover"
                                  class="w-full h-full object-cover"
                                  onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                             <div class="w-12 h-12 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg flex items-center justify-center" style="display:none;">
@@ -154,7 +154,7 @@ function renderAlbums(data) {
                             </svg>
                         </div>
                     `}
-                    
+
                     <!-- Album Info -->
                     <div class="flex-1 min-w-0">
                         <h3 class="font-semibold text-primary truncate" title="${album.title}">${album.title}</h3>
@@ -162,7 +162,7 @@ function renderAlbums(data) {
                         ${album.year ? `<p class="text-xs text-muted">${album.year}</p>` : ''}
                     </div>
                 </div>
-                
+
                 <!-- Status and Score -->
                 <div>
                     ${album.is_rated ? `
@@ -182,21 +182,21 @@ function renderAlbums(data) {
         </a>
     `;
     }).join('');
-    
+
     container.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">${albumCards}</div>`;
 }
 
 function appendAlbumsToGrid(data) {
     const container = document.getElementById('albums-container');
     const existingContainer = container.querySelector('.grid');
-    
+
     if (!existingContainer) {
         renderAlbums(data);
         return;
     }
-    
+
     const albums = data.albums || [];
-    
+
     // Grid view - append new cards
     const newAlbumCards = albums.map(album => {
         const url = album.is_rated ? `/albums/${album.id}/completed` : `/albums/${album.id}/rate`;
@@ -207,8 +207,8 @@ function appendAlbumsToGrid(data) {
                     <!-- Album Art -->
                     ${album.cover_art_url ? `
                         <div class="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
-                            <img src="${album.cover_art_url}" 
-                                 alt="${album.title} cover" 
+                            <img src="${album.cover_art_url}"
+                                 alt="${album.title} cover"
                                  class="w-full h-full object-cover"
                                  onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                             <div class="w-12 h-12 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg flex items-center justify-center" style="display:none;">
@@ -224,7 +224,7 @@ function appendAlbumsToGrid(data) {
                             </svg>
                         </div>
                     `}
-                    
+
                     <!-- Album Info -->
                     <div class="flex-1 min-w-0">
                         <h3 class="font-semibold text-primary truncate" title="${album.title}">${album.title}</h3>
@@ -232,7 +232,7 @@ function appendAlbumsToGrid(data) {
                         ${album.year ? `<p class="text-xs text-muted">${album.year}</p>` : ''}
                     </div>
                 </div>
-                
+
                 <!-- Status and Score -->
                 <div>
                     ${album.is_rated ? `
@@ -252,18 +252,18 @@ function appendAlbumsToGrid(data) {
         </a>
     `;
     }).join('');
-    
+
     existingContainer.innerHTML += newAlbumCards;
 }
 
 function updatePaginationButton(data) {
     const paginationContainer = document.getElementById('pagination-container');
-    
+
     if (data.has_more) {
         const nextOffset = data.offset + data.limit;
         paginationContainer.innerHTML = `
             <div class="flex justify-center">
-                <button onclick="loadArtistAlbums(${nextOffset})" 
+                <button onclick="loadArtistAlbums(${nextOffset})"
                         class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md text-sm font-medium transition-colors">
                     Load More Albums
                 </button>

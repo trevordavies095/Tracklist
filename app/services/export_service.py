@@ -5,7 +5,8 @@ Export service for exporting complete database to JSON format for backup/restore
 import json
 import logging
 from datetime import datetime, timezone
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
+
 from sqlalchemy.orm import Session
 
 from ..models import Album, Artist, Track, UserSettings

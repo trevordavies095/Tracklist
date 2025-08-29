@@ -3,12 +3,12 @@ MusicBrainz service layer with caching and data transformation
 Provides high-level interface for album search and retrieval
 """
 
-from typing import Dict, List, Optional, Any
 import logging
+from typing import Any, Dict, List, Optional
 
-from .musicbrainz_client import MusicBrainzClient, MusicBrainzAPIError
 from .cache import get_cache
 from .exceptions import TracklistException
+from .musicbrainz_client import MusicBrainzAPIError, MusicBrainzClient
 
 logger = logging.getLogger(__name__)
 

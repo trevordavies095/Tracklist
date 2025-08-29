@@ -1,10 +1,10 @@
 <!-- Progress Bar Component -->
 <!-- Usage: Set album_id and progress variables before including this template -->
 
-<div class="progress-container bg-surface rounded-lg shadow-sm border border-default p-6 mb-6" 
+<div class="progress-container bg-surface rounded-lg shadow-sm border border-default p-6 mb-6"
      x-data='progressTracker({{ album_id }}, {{ progress | tojson if progress else "{}" }})'
      @rating-updated.window="updateProgress($event.detail)">
-    
+
     <!-- Progress Header -->
     <div class="flex justify-between items-center mb-4">
         <h3 class="text-lg font-semibold text-primary">Rating Progress</h3>
@@ -12,7 +12,7 @@
             <span x-text="ratedTracks"></span> of <span x-text="totalTracks"></span> tracks rated
         </div>
     </div>
-    
+
     <!-- Progress Bar -->
     <div class="relative mb-4">
         <!-- Background -->
@@ -22,13 +22,13 @@
                  :style="`width: ${completionPercentage}%`">
             </div>
         </div>
-        
+
         <!-- Percentage Label -->
         <div class="absolute inset-0 flex items-center justify-center">
             <span class="text-xs font-medium text-primary" x-text="`${Math.round(completionPercentage)}%`"></span>
         </div>
     </div>
-    
+
     <!-- Progress Details -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <!-- Completion Status -->
@@ -42,7 +42,7 @@
                 Ready to submit!
             </div>
         </div>
-        
+
         <!-- Projected Score -->
         <div class="bg-surface-secondary rounded-lg p-4">
             <div class="text-sm font-medium text-primary mb-1">Projected Score</div>
@@ -60,7 +60,7 @@
                 Start rating tracks
             </div>
         </div>
-        
+
         <!-- Album Bonus -->
         <div class="bg-surface-secondary rounded-lg p-4">
             <div class="text-sm font-medium text-primary mb-1">Album Bonus</div>
@@ -70,10 +70,10 @@
             <div class="text-xs text-muted mt-1">Added to final score</div>
         </div>
     </div>
-    
+
     <!-- Submit Button -->
     <div class="mt-6 flex justify-center" x-show="completionPercentage === 100 && !isSubmitted">
-        <button 
+        <button
             @click="submitAlbum()"
             :disabled="submitting"
             class="submit-button bg-green-600 hover:bg-green-700 disabled:bg-surface-hover text-white font-semibold py-3 px-8 rounded-lg transition-all duration-200 transform hover:scale-105 active:scale-95 disabled:transform-none"
@@ -96,12 +96,12 @@
             </span>
         </button>
     </div>
-    
+
     <!-- Submission Result -->
     <div id="submission-result" class="mt-4">
         <!-- HTMX will populate this with submission response -->
     </div>
-    
+
     <!-- Already Submitted State -->
     <div class="mt-6 text-center" x-show="isSubmitted">
         <div class="inline-flex items-center px-4 py-2 bg-green-100 dark:bg-green-950/30 border border-green-200 dark:border-green-900/50 rounded-lg text-green-800 dark:text-green-400">
@@ -115,4 +115,3 @@
         </div>
     </div>
 </div>
-

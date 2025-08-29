@@ -4,11 +4,12 @@ Respects the MusicBrainz API limit of 1 call per second
 """
 
 import asyncio
-import time
-from typing import Dict, List, Optional, Any
-import httpx
 import logging
+import time
+from typing import Any, Dict, List, Optional
 from urllib.parse import urlencode
+
+import httpx
 
 from .exceptions import TracklistException
 
@@ -60,9 +61,9 @@ class MusicBrainzClient:
         """Async context manager entry"""
         if not self.client or self._closed:
             self.client = httpx.AsyncClient(
-                headers={"User-Agent": self.USER_AGENT}, 
+                headers={"User-Agent": self.USER_AGENT},
                 timeout=httpx.Timeout(30.0),
-                limits=httpx.Limits(max_keepalive_connections=5)
+                limits=httpx.Limits(max_keepalive_connections=5),
             )
             self._closed = False
         return self
@@ -287,7 +288,7 @@ class MusicBrainzClient:
         """
         params = {"inc": "tags"}
         return await self._make_request(f"release-group/{release_group_id}", params)
-    
+
     async def close(self):
         """Close the HTTP client if open"""
         if self.client and not self._closed:

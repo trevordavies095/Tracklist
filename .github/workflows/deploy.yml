@@ -1,0 +1,212 @@
+name: Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+      version:
+        description: 'Version tag to deploy (e.g., v1.0.0)'
+        required: true
+        type: string
+
+  release:
+    types: [published]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  validate:
+    name: Validate Deployment
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      environment: ${{ steps.environment.outputs.environment }}
+    steps:
+      - name: Determine version
+        id: version
+        run: |
+          if [[ "${{ github.event_name }}" == "release" ]]; then
+            echo "version=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
+          else
+            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Determine environment
+        id: environment
+        run: |
+          if [[ "${{ github.event_name }}" == "release" ]]; then
+            if [[ "${{ github.event.release.prerelease }}" == "true" ]]; then
+              echo "environment=staging" >> $GITHUB_OUTPUT
+            else
+              echo "environment=production" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "environment=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Validate version format
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          if ! [[ "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[a-z0-9]+)?$ ]]; then
+            echo "Invalid version format: $VERSION"
+            echo "Expected format: v1.0.0 or v1.0.0-beta1"
+            exit 1
+          fi
+
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: validate
+    if: needs.validate.outputs.environment == 'staging'
+    environment:
+      name: staging
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull Docker image
+        run: |
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.validate.outputs.version }}
+
+      - name: Deploy to staging
+        id: deploy
+        run: |
+          echo "Deploying version ${{ needs.validate.outputs.version }} to staging environment"
+          # Add your staging deployment commands here
+          # Example: kubectl set image deployment/tracklist tracklist=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.validate.outputs.version }}
+          echo "url=https://staging.tracklist.example.com" >> $GITHUB_OUTPUT
+
+      - name: Verify deployment
+        run: |
+          echo "Verifying staging deployment..."
+          # Add health check commands here
+          # Example: curl -f https://staging.tracklist.example.com/health || exit 1
+
+      - name: Run smoke tests
+        run: |
+          echo "Running smoke tests on staging..."
+          # Add smoke test commands here
+
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: validate
+    if: needs.validate.outputs.environment == 'production'
+    environment:
+      name: production
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull Docker image
+        run: |
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.validate.outputs.version }}
+
+      - name: Create backup
+        run: |
+          echo "Creating backup before production deployment..."
+          # Add backup commands here
+          # Example: pg_dump production_db > backup_$(date +%Y%m%d_%H%M%S).sql
+
+      - name: Deploy to production
+        id: deploy
+        run: |
+          echo "Deploying version ${{ needs.validate.outputs.version }} to production environment"
+          # Add your production deployment commands here
+          # Example: kubectl set image deployment/tracklist tracklist=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.validate.outputs.version }}
+          echo "url=https://tracklist.example.com" >> $GITHUB_OUTPUT
+
+      - name: Verify deployment
+        run: |
+          echo "Verifying production deployment..."
+          # Add health check commands here
+          # Example: curl -f https://tracklist.example.com/health || exit 1
+
+      - name: Run smoke tests
+        run: |
+          echo "Running smoke tests on production..."
+          # Add smoke test commands here
+
+      - name: Monitor deployment
+        run: |
+          echo "Monitoring deployment for 5 minutes..."
+          # Add monitoring commands here
+          # Example: for i in {1..30}; do curl -f https://tracklist.example.com/health && sleep 10 || exit 1; done
+
+  rollback:
+    name: Rollback Deployment
+    runs-on: ubuntu-latest
+    needs: [validate, deploy-staging, deploy-production]
+    if: failure() && (needs.deploy-staging.result == 'failure' || needs.deploy-production.result == 'failure')
+    environment:
+      name: ${{ needs.validate.outputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Determine previous version
+        id: previous
+        run: |
+          # Get the previous version from deployment history
+          # This is a placeholder - implement based on your infrastructure
+          echo "previous_version=v1.0.0" >> $GITHUB_OUTPUT
+
+      - name: Rollback deployment
+        run: |
+          echo "Rolling back ${{ needs.validate.outputs.environment }} to ${{ steps.previous.outputs.previous_version }}"
+          # Add rollback commands here
+          # Example: kubectl rollout undo deployment/tracklist
+
+      - name: Notify rollback
+        run: |
+          echo "Deployment rollback completed for ${{ needs.validate.outputs.environment }}"
+          # Add notification commands (Slack, email, etc.)
+
+  notify:
+    name: Notify Deployment Status
+    runs-on: ubuntu-latest
+    needs: [validate, deploy-staging, deploy-production]
+    if: always()
+    steps:
+      - name: Determine status
+        id: status
+        run: |
+          if [[ "${{ needs.deploy-staging.result }}" == "success" ]] || [[ "${{ needs.deploy-production.result }}" == "success" ]]; then
+            echo "status=success" >> $GITHUB_OUTPUT
+            echo "message=✅ Deployment successful" >> $GITHUB_OUTPUT
+          elif [[ "${{ needs.deploy-staging.result }}" == "failure" ]] || [[ "${{ needs.deploy-production.result }}" == "failure" ]]; then
+            echo "status=failure" >> $GITHUB_OUTPUT
+            echo "message=❌ Deployment failed" >> $GITHUB_OUTPUT
+          else
+            echo "status=skipped" >> $GITHUB_OUTPUT
+            echo "message=⏭️ Deployment skipped" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Send notification
+        run: |
+          echo "${{ steps.status.outputs.message }}"
+          echo "Environment: ${{ needs.validate.outputs.environment }}"
+          echo "Version: ${{ needs.validate.outputs.version }}"
+          # Add notification service integration here
+          # Example: Send to Slack, Discord, email, etc.

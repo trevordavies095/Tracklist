@@ -4,13 +4,14 @@ Provides helper functions for templates including artwork URL resolution
 """
 
 import logging
-from typing import Optional, Dict, Any
 from datetime import datetime, timezone
+from typing import Any, Dict, Optional
+
 from sqlalchemy.orm import Session
 
+from .database import SessionLocal
 from .models import Album, ArtworkCache
 from .services.artwork_cache_service import get_artwork_cache_service
-from .database import SessionLocal
 
 logger = logging.getLogger(__name__)
 

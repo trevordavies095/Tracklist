@@ -13,7 +13,7 @@
             <p class="text-secondary">Manage your album ratings and track your music journey</p>
         </div>
         <div class="mt-4 sm:mt-0 flex gap-3">
-            <button onclick="updateCoverArt()" 
+            <button onclick="updateCoverArt()"
                     id="update-cover-art-btn"
                     class="inline-flex items-center px-4 py-2 bg-success hover:opacity-90 text-white text-sm font-medium rounded-md transition-colors">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -21,7 +21,7 @@
                 </svg>
                 Update Cover Art
             </button>
-            <a href="/search" 
+            <a href="/search"
                class="inline-flex items-center px-3 py-2 sm:px-4 bg-accent-blue hover:opacity-90 text-white text-xs sm:text-sm font-medium rounded-md transition-colors">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
@@ -30,7 +30,7 @@
             </a>
         </div>
     </div>
-    
+
     <!-- Filters and Search -->
     <div class="bg-surface rounded-lg shadow-sm border border-default p-4 mb-6">
         <div class="flex flex-col space-y-4">
@@ -42,15 +42,15 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                         </svg>
                     </div>
-                    <input type="text" 
-                           id="search-input" 
-                           placeholder="Search albums by title or artist..." 
+                    <input type="text"
+                           id="search-input"
+                           placeholder="Search albums by title or artist..."
                            class="block w-full pl-10 pr-10 py-2 border border-default rounded-md leading-5 bg-surface placeholder-muted focus:outline-none focus:placeholder-secondary focus:ring-1 focus:ring-accent-blue focus:border-accent-blue text-sm text-primary"
                            oninput="handleSearchInput()"
                            onkeypress="handleSearchKeypress(event)">
                     <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
-                        <button id="clear-search" 
-                                onclick="clearSearch()" 
+                        <button id="clear-search"
+                                onclick="clearSearch()"
                                 class="h-4 w-4 text-muted hover:text-secondary hidden">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -58,9 +58,9 @@
                         </button>
                     </div>
                 </div>
-                
-                <button id="search-button" 
-                        onclick="performSearch()" 
+
+                <button id="search-button"
+                        onclick="performSearch()"
                         class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-accent-blue hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent-blue transition-colors">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
@@ -68,7 +68,7 @@
                     Search
                 </button>
             </div>
-            
+
             <!-- Filter Tabs and Controls -->
             <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
                 <!-- Filter Tabs -->
@@ -89,13 +89,13 @@
                         In Progress
                     </button>
                 </div>
-                
+
                 <!-- Sort and View Controls -->
                 <div class="flex items-center space-x-4">
                     <!-- Sort Dropdown -->
                     <div class="flex items-center space-x-2">
                         <span class="text-sm text-primary">Sort:</span>
-                        <select id="sort-select" onchange="handleSortChange()" 
+                        <select id="sort-select" onchange="handleSortChange()"
                                 class="border border-default rounded-md px-3 py-1 text-sm bg-surface text-primary focus:outline-none focus:ring-2 focus:ring-accent-blue focus:border-accent-blue">
                             <option value="created_desc" {% if default_sort == 'created_desc' %}selected{% endif %}>Date Added (Newest)</option>
                             <option value="created_asc" {% if default_sort == 'created_asc' %}selected{% endif %}>Date Added (Oldest)</option>
@@ -110,15 +110,15 @@
                             <option value="rated_desc" {% if default_sort == 'rated_desc' %}selected{% endif %}>Recently Rated</option>
                         </select>
                     </div>
-                    
+
                 </div>
             </div>
         </div>
     </div>
-    
+
     <!-- Albums Grid/List -->
     <div id="albums-container">
-        
+
         <!-- Loading State -->
         <div id="albums-loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {% for i in range(6) %}
@@ -134,7 +134,7 @@
             {% endfor %}
         </div>
     </div>
-    
+
     <!-- Empty State -->
     <div id="empty-state" class="hidden text-center py-12">
         <div class="max-w-sm mx-auto">
@@ -143,7 +143,7 @@
             </svg>
             <h3 class="text-lg font-medium text-primary mb-2">No albums yet</h3>
             <p class="text-secondary mb-6">Start building your music library by searching for albums to rate</p>
-            <a href="/search" 
+            <a href="/search"
                class="inline-flex items-center px-4 py-2 bg-accent-blue hover:opacity-90 text-white text-sm font-medium rounded-md transition-colors">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
@@ -152,7 +152,7 @@
             </a>
         </div>
     </div>
-    
+
     <!-- Pagination -->
     <div id="pagination-container" class="mt-8">
         <!-- Pagination will be loaded via HTMX -->
@@ -165,16 +165,16 @@
 // Score color utility function
 function getScoreColorClass(score) {
     console.log('getScoreColorClass called with:', score, typeof score);
-    
+
     if (score === null || score === undefined) {
         console.log('Score is null/undefined, returning empty string');
         return '';
     }
-    
+
     // Convert to number to ensure proper comparison
     const numScore = Number(score);
     console.log('Converted score to number:', numScore);
-    
+
     if (numScore === 100) {
         console.log('Returning dark green for score 100');
         return 'score-dark-green'; // Perfect score
@@ -193,27 +193,27 @@ function getScoreColorClass(score) {
 // Load albums with filtering
 async function loadAlbums(filter) {
     let url = '/api/v1/albums?limit=20&offset=0';
-    
+
     if (filter === 'completed') {
         url += '&rated=true';
     } else if (filter === 'drafts' || filter === 'in-progress') {
         url += '&rated=false';
     }
     // 'all' uses default (no filter)
-    
+
     // Add sort parameter
     url += `&sort=${currentSort}`;
-    
+
     // Add search parameter
     if (currentSearch) {
         url += `&search=${encodeURIComponent(currentSearch)}`;
     }
-    
+
     try {
         const response = await fetch(url);
         if (response.ok) {
             const data = await response.json();
-            
+
             if (data.albums && data.albums.length === 0) {
                 document.getElementById('empty-state').classList.remove('hidden');
                 document.getElementById('albums-container').innerHTML = '';
@@ -247,19 +247,19 @@ function renderAlbums(data) {
     const container = document.getElementById('albums-container');
     const albums = data.albums || [];
     const isMobile = window.innerWidth <= 640;
-    
+
     // Debug: Log the first album to see its structure
     if (albums.length > 0) {
         console.log('First album data:', albums[0]);
         console.log('Artist ID:', albums[0].artist_id);
     }
-    
+
     // Hide loading state
     const loadingElement = document.getElementById('albums-loading');
     if (loadingElement) {
         loadingElement.style.display = 'none';
     }
-    
+
     // Grid view only
     const albumCards = albums.map(album => {
         // Mobile layout (compact horizontal card - clickable)
@@ -271,8 +271,8 @@ function renderAlbums(data) {
                             <!-- Compact Album Art -->
                             ${album.cover_art_url ? `
                                 <div class="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
-                                    <img src="${album.cover_art_url}" 
-                                         alt="${album.title} cover" 
+                                    <img src="${album.cover_art_url}"
+                                         alt="${album.title} cover"
                                          class="w-full h-full object-cover"
                                          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                     <div class="w-12 h-12 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg flex items-center justify-center" style="display:none;">
@@ -288,13 +288,13 @@ function renderAlbums(data) {
                                     </svg>
                                 </div>
                             `}
-                            
+
                             <!-- Album Info -->
                             <div class="flex-1 min-w-0 ml-3">
                                 <h3 class="font-semibold text-primary text-sm truncate" title="${album.title}">${album.title}</h3>
                                 <p class="text-xs text-secondary truncate mb-1" title="${album.artist}">${album.artist}</p>
                                 ${album.year ? `<p class="text-xs text-muted">${album.year}</p>` : ''}
-                                
+
                                 <!-- Status -->
                                 <div class="flex items-center">
                                     ${album.is_rated ? `
@@ -305,7 +305,7 @@ function renderAlbums(data) {
                                     `}
                                 </div>
                             </div>
-                            
+
                             <!-- Arrow indicator -->
                             <svg class="w-4 h-4 text-muted flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
@@ -314,7 +314,7 @@ function renderAlbums(data) {
                     </a>
                 `;
             }
-            
+
             // Desktop layout (clickable card style)
             const url = album.is_rated ? `/albums/${album.id}/completed` : `/albums/${album.id}/rate`;
             return `
@@ -324,8 +324,8 @@ function renderAlbums(data) {
                             <!-- Album Art -->
                             ${album.cover_art_url ? `
                                 <div class="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
-                                    <img src="${album.cover_art_url}" 
-                                         alt="${album.title} cover" 
+                                    <img src="${album.cover_art_url}"
+                                         alt="${album.title} cover"
                                          class="w-full h-full object-cover"
                                          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                     <div class="w-12 h-12 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg flex items-center justify-center" style="display:none;">
@@ -341,7 +341,7 @@ function renderAlbums(data) {
                                     </svg>
                                 </div>
                             `}
-                            
+
                             <!-- Album Info -->
                             <div class="flex-1 min-w-0">
                                 <h3 class="font-semibold text-primary truncate" title="${album.title}">${album.title}</h3>
@@ -349,7 +349,7 @@ function renderAlbums(data) {
                                 ${album.year ? `<p class="text-xs text-muted">${album.year}</p>` : ''}
                             </div>
                         </div>
-                        
+
                         <!-- Status and Score -->
                         <div>
                             ${album.is_rated ? `
@@ -369,40 +369,40 @@ function renderAlbums(data) {
                 </a>
             `;
     }).join('');
-    
+
     container.innerHTML = `<div class="${isMobile ? 'space-y-2' : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'}">${albumCards}</div>`;
 }
 
 async function loadMoreAlbums(offset) {
     console.log('Loading more albums from offset:', offset);
-    
+
     // Get current filter
     const activeFilter = getCurrentFilter();
     let url = `/api/v1/albums?limit=20&offset=${offset}`;
-    
+
     if (activeFilter === 'completed') {
         url += '&rated=true';
     } else if (activeFilter === 'drafts' || activeFilter === 'in-progress') {
         url += '&rated=false';
     }
-    
+
     // Add sort parameter
     url += `&sort=${currentSort}`;
-    
+
     // Add search parameter
     if (currentSearch) {
         url += `&search=${encodeURIComponent(currentSearch)}`;
     }
-    
+
     try {
         const response = await fetch(url);
         if (response.ok) {
             const data = await response.json();
-            
+
             if (data.albums && data.albums.length > 0) {
                 // Append new albums to existing grid
                 appendAlbumsToGrid(data);
-                
+
                 // Update pagination button
                 updatePaginationButton(data);
             } else {
@@ -437,15 +437,15 @@ function appendAlbumsToGrid(data) {
     const container = document.getElementById('albums-container');
     const existingContainer = container.querySelector('.grid, .space-y-2');
     const isMobile = window.innerWidth <= 640;
-    
+
     if (!existingContainer) {
         // No existing container, render normally
         renderAlbums(data);
         return;
     }
-    
+
     const albums = data.albums || [];
-    
+
     // Grid view only - append new cards
     const newAlbumCards = albums.map(album => {
         // Mobile layout (compact horizontal card - clickable)
@@ -457,8 +457,8 @@ function appendAlbumsToGrid(data) {
                             <!-- Compact Album Art -->
                             ${album.cover_art_url ? `
                                 <div class="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
-                                    <img src="${album.cover_art_url}" 
-                                         alt="${album.title} cover" 
+                                    <img src="${album.cover_art_url}"
+                                         alt="${album.title} cover"
                                          class="w-full h-full object-cover"
                                          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                     <div class="w-12 h-12 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg flex items-center justify-center" style="display:none;">
@@ -474,13 +474,13 @@ function appendAlbumsToGrid(data) {
                                     </svg>
                                 </div>
                             `}
-                            
+
                             <!-- Album Info -->
                             <div class="flex-1 min-w-0 ml-3">
                                 <h3 class="font-semibold text-primary text-sm truncate" title="${album.title}">${album.title}</h3>
                                 <p class="text-xs text-secondary truncate mb-1" title="${album.artist}">${album.artist}</p>
                                 ${album.year ? `<p class="text-xs text-muted">${album.year}</p>` : ''}
-                                
+
                                 <!-- Status -->
                                 <div class="flex items-center">
                                     ${album.is_rated ? `
@@ -491,7 +491,7 @@ function appendAlbumsToGrid(data) {
                                     `}
                                 </div>
                             </div>
-                            
+
                             <!-- Arrow indicator -->
                             <svg class="w-4 h-4 text-muted flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
@@ -500,7 +500,7 @@ function appendAlbumsToGrid(data) {
                     </a>
                 `;
             }
-            
+
             // Desktop layout (clickable card style)
             const url = album.is_rated ? `/albums/${album.id}/completed` : `/albums/${album.id}/rate`;
             return `
@@ -510,8 +510,8 @@ function appendAlbumsToGrid(data) {
                             <!-- Album Art -->
                             ${album.cover_art_url ? `
                                 <div class="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
-                                    <img src="${album.cover_art_url}" 
-                                         alt="${album.title} cover" 
+                                    <img src="${album.cover_art_url}"
+                                         alt="${album.title} cover"
                                          class="w-full h-full object-cover"
                                          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                     <div class="w-12 h-12 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg flex items-center justify-center" style="display:none;">
@@ -527,7 +527,7 @@ function appendAlbumsToGrid(data) {
                                     </svg>
                                 </div>
                             `}
-                            
+
                             <!-- Album Info -->
                             <div class="flex-1 min-w-0">
                                 <h3 class="font-semibold text-primary truncate" title="${album.title}">${album.title}</h3>
@@ -549,18 +549,18 @@ function appendAlbumsToGrid(data) {
                 </a>
             `;
     }).join('');
-    
+
     existingContainer.innerHTML += newAlbumCards;
 }
 
 function updatePaginationButton(data) {
     const paginationContainer = document.getElementById('pagination-container');
-    
+
     if (data.has_more) {
         const nextOffset = data.offset + data.limit;
         paginationContainer.innerHTML = `
             <div class="flex justify-center">
-                <button onclick="loadMoreAlbums(${nextOffset})" 
+                <button onclick="loadMoreAlbums(${nextOffset})"
                         class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md text-sm font-medium transition-colors">
                     Load More Albums
                 </button>
@@ -580,19 +580,19 @@ let searchTimeout = null; // Debounce search input
 function handleSearchInput() {
     const searchInput = document.getElementById('search-input');
     const clearButton = document.getElementById('clear-search');
-    
+
     // Show/hide clear button
     if (searchInput.value.trim()) {
         clearButton.classList.remove('hidden');
     } else {
         clearButton.classList.add('hidden');
     }
-    
+
     // Debounce search - wait 500ms after user stops typing
     if (searchTimeout) {
         clearTimeout(searchTimeout);
     }
-    
+
     searchTimeout = setTimeout(() => {
         performSearch();
     }, 500);
@@ -612,7 +612,7 @@ function handleSearchKeypress(event) {
 function performSearch() {
     const searchInput = document.getElementById('search-input');
     currentSearch = searchInput.value.trim();
-    
+
     // Reload albums with search query
     const activeFilter = getCurrentFilter();
     loadAlbums(activeFilter);
@@ -621,11 +621,11 @@ function performSearch() {
 function clearSearch() {
     const searchInput = document.getElementById('search-input');
     const clearButton = document.getElementById('clear-search');
-    
+
     searchInput.value = '';
     clearButton.classList.add('hidden');
     currentSearch = '';
-    
+
     // Reload albums without search
     const activeFilter = getCurrentFilter();
     loadAlbums(activeFilter);
@@ -635,7 +635,7 @@ function clearSearch() {
 function handleSortChange() {
     const sortSelect = document.getElementById('sort-select');
     currentSort = sortSelect.value;
-    
+
     // Reload albums with new sort
     const activeFilter = getCurrentFilter();
     loadAlbums(activeFilter);
@@ -645,17 +645,17 @@ function handleSortChange() {
 /*
 async function showAlbumDetails(albumId) {
     console.log('Showing details for album ID:', albumId);
-    
+
     try {
         // Fetch album details using standard fetch API
         const response = await fetch(`/api/v1/albums/${albumId}`);
         console.log('Response status:', response.status);
-        
+
         if (response.ok) {
             const album = await response.json();
             console.log('Parsed album:', album);
             currentAlbum = album;
-            
+
             // Update modal content
             document.getElementById('modal-title').textContent = album.title;
             document.getElementById('modal-content').innerHTML = `
@@ -688,11 +688,11 @@ async function showAlbumDetails(albumId) {
                     ` : ''}
                 </div>
             `;
-            
+
             // Update action buttons
             const rateBtn = document.getElementById('modal-rate-btn');
             const viewBtn = document.getElementById('modal-view-btn');
-            
+
             if (album.is_rated) {
                 rateBtn.classList.add('hidden');
                 viewBtn.classList.remove('hidden');
@@ -702,7 +702,7 @@ async function showAlbumDetails(albumId) {
                 viewBtn.classList.add('hidden');
                 rateBtn.onclick = () => window.location.href = `/albums/${album.id}/rate`;
             }
-            
+
             // Show modal
             openModal();
         } else {
@@ -727,7 +727,7 @@ function closeModal(event) {
     if (event && event.target !== event.currentTarget && event.type === 'click') {
         return;
     }
-    
+
     const modal = document.getElementById('album-modal');
     modal.classList.add('hidden');
     currentAlbum = null;
@@ -735,10 +735,10 @@ function closeModal(event) {
 
 function confirmDeleteAlbum() {
     if (!currentAlbum) return;
-    
+
     // Update delete modal content
     document.getElementById('delete-album-name').textContent = `"${currentAlbum.title}" by ${currentAlbum.artist.name}`;
-    
+
     // Show delete confirmation modal
     const deleteModal = document.getElementById('delete-modal');
     deleteModal.classList.remove('hidden');
@@ -749,17 +749,17 @@ function closeDeleteModal(event) {
     if (event && event.target !== event.currentTarget && event.type === 'click') {
         return;
     }
-    
+
     const deleteModal = document.getElementById('delete-modal');
     deleteModal.classList.add('hidden');
 }
 
 async function executeDelete() {
     if (!currentAlbum) return;
-    
+
     const deleteBtn = document.getElementById('confirm-delete-btn');
     const originalText = deleteBtn.innerHTML;
-    
+
     // Show loading state
     deleteBtn.innerHTML = `
         <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline" fill="none" viewBox="0 0 24 24">
@@ -769,7 +769,7 @@ async function executeDelete() {
         Deleting...
     `;
     deleteBtn.disabled = true;
-    
+
     try {
         // Execute delete using fetch API
         const response = await fetch(`/api/v1/albums/${currentAlbum.id}`, {
@@ -778,17 +778,17 @@ async function executeDelete() {
                 'Content-Type': 'application/json',
             }
         });
-        
+
         deleteBtn.innerHTML = originalText;
         deleteBtn.disabled = false;
-        
+
         if (response.ok) {
             const result = await response.json();
-            
+
             // Close modals
             closeDeleteModal();
             closeModal();
-            
+
             // Show success message
             const toast = document.createElement('div');
             toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
@@ -801,20 +801,20 @@ async function executeDelete() {
                 </div>
             `;
             document.body.appendChild(toast);
-            
+
             // Remove toast after 3 seconds
             setTimeout(() => {
                 toast.remove();
             }, 3000);
-            
+
             // Reload albums list
             loadAlbums('all');
-            
+
         } else {
             const error = await response.json();
             alert(`Failed to delete album: ${error.message || 'Unknown error'}`);
         }
-        
+
     } catch (error) {
         deleteBtn.innerHTML = originalText;
         deleteBtn.disabled = false;
@@ -827,7 +827,7 @@ async function executeDelete() {
 async function updateCoverArt() {
     const button = document.getElementById('update-cover-art-btn');
     const originalContent = button.innerHTML;
-    
+
     // Show loading state
     button.innerHTML = `
         <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline" fill="none" viewBox="0 0 24 24">
@@ -837,7 +837,7 @@ async function updateCoverArt() {
         Updating Cover Art...
     `;
     button.disabled = true;
-    
+
     try {
         const response = await fetch('/api/v1/albums/update-cover-art', {
             method: 'POST',
@@ -845,10 +845,10 @@ async function updateCoverArt() {
                 'Content-Type': 'application/json',
             }
         });
-        
+
         if (response.ok) {
             const result = await response.json();
-            
+
             // Show success message
             const toast = document.createElement('div');
             toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
@@ -861,20 +861,20 @@ async function updateCoverArt() {
                 </div>
             `;
             document.body.appendChild(toast);
-            
+
             // Remove toast after 3 seconds
             setTimeout(() => {
                 toast.remove();
             }, 3000);
-            
+
             // Reload albums to show updated cover art
             loadAlbums('all');
-            
+
         } else {
             const error = await response.json();
             alert(`Failed to update cover art: ${error.message || 'Unknown error'}`);
         }
-        
+
     } catch (error) {
         console.error('Update cover art error:', error);
         alert('Network error updating cover art');

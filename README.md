@@ -4,6 +4,9 @@
 
 # Tracklist
 
+[![CI](https://github.com/trevordavies095/Tracklist/actions/workflows/ci.yml/badge.svg)](https://github.com/trevordavies095/Tracklist/actions/workflows/ci.yml)
+[![Coverage](https://img.shields.io/badge/coverage-70%25-yellow.svg)](https://github.com/trevordavies095/Tracklist/actions/workflows/ci.yml)
+[![Docker Build](https://github.com/trevordavies095/Tracklist/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/trevordavies095/Tracklist/actions/workflows/docker-publish.yml)
 ![Python](https://img.shields.io/badge/python-3.9+-blue.svg)
 ![Docker](https://img.shields.io/badge/docker-ready-brightgreen.svg)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-00ADD8.svg)

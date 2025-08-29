@@ -19,14 +19,14 @@ async function getArtworkUrl(album, size = 'medium', fallback = null) {
     if (!album || !album.id) {
         return fallback || '/static/img/album-placeholder.svg';
     }
-    
+
     // Check memory cache first
     const cacheKey = `${album.id}_${size}`;
     const cached = artworkCache.get(cacheKey);
     if (cached && (Date.now() - cached.time) < CACHE_TTL) {
         return cached.url;
     }
-    
+
     try {
         // Check if we should use the cache API endpoint
         const response = await fetch(`/api/albums/${album.id}/artwork-url?size=${size}`, {
@@ -35,7 +35,7 @@ async function getArtworkUrl(album, size = 'medium', fallback = null) {
                 'Accept': 'application/json'
             }
         });
-        
+
         if (response.ok) {
             const data = await response.json();
             if (data.url) {
@@ -50,19 +50,19 @@ async function getArtworkUrl(album, size = 'medium', fallback = null) {
     } catch (error) {
         console.debug('Failed to fetch cached artwork URL:', error);
     }
-    
+
     // Fallback to original URL or placeholder
     if (album.cover_art_url) {
         return album.cover_art_url;
     }
-    
+
     return fallback || '/static/img/album-placeholder.svg';
 }
 
 /**
  * Synchronous version that returns immediately with best available URL
  * @param {Object} album - Album object
- * @param {string} size - Size variant  
+ * @param {string} size - Size variant
  * @param {string} fallback - Fallback URL
  * @returns {string} - Best available artwork URL
  */
@@ -71,14 +71,14 @@ function getArtworkUrlSync(album, size = 'medium', fallback = null) {
     if (!album || !album.id) {
         return fallback || '/static/img/album-placeholder.svg';
     }
-    
+
     // Check memory cache
     const cacheKey = `${album.id}_${size}`;
     const cached = artworkCache.get(cacheKey);
     if (cached && (Date.now() - cached.time) < CACHE_TTL) {
         return cached.url;
     }
-    
+
     // For now, just return the cover art URL or fallback
     // The async version can be called to update the cache in background
     if (album.cover_art_url) {
@@ -86,7 +86,7 @@ function getArtworkUrlSync(album, size = 'medium', fallback = null) {
         getArtworkUrl(album, size, fallback).catch(() => {});
         return album.cover_art_url;
     }
-    
+
     return fallback || '/static/img/album-placeholder.svg';
 }
 
@@ -105,22 +105,22 @@ function getArtworkHtml(album, size = 'medium', classes = '') {
         'large': 'w-48 h-48',
         'original': 'w-full h-full'
     };
-    
+
     const sizeClass = sizeClasses[size] || sizeClasses['medium'];
     const url = getArtworkUrlSync(album, size);
     const placeholderSvg = `
         <svg class="w-full h-full text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3">
             </path>
         </svg>
     `;
-    
+
     if (url && url !== '/static/img/album-placeholder.svg') {
         return `
             <div class="${sizeClass} rounded-lg overflow-hidden ${classes}">
-                <img src="${url}" 
-                     alt="${album.title || 'Album'} cover" 
+                <img src="${url}"
+                     alt="${album.title || 'Album'} cover"
                      class="w-full h-full object-cover"
                      onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\\'${sizeClass} bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg flex items-center justify-center\\'>${placeholderSvg.replace(/"/g, '\\"')}</div>';">
             </div>
@@ -141,12 +141,12 @@ function getArtworkHtml(album, size = 'medium', classes = '') {
  */
 async function preloadArtworkUrls(albums, size = 'medium') {
     if (!albums || !albums.length) return;
-    
+
     // Batch preload artwork URLs
-    const promises = albums.map(album => 
+    const promises = albums.map(album =>
         getArtworkUrl(album, size).catch(() => null)
     );
-    
+
     await Promise.all(promises);
 }
 

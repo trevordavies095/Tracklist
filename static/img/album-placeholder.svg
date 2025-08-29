@@ -9,9 +9,9 @@
   <g transform="translate(100, 100)">
     <circle cx="0" cy="0" r="40" fill="none" stroke="#9ca3af" stroke-width="3"/>
     <circle cx="0" cy="0" r="12" fill="#9ca3af"/>
-    <path d="M -35 0 Q -35 -20 -15 -30 L 15 -15 Q 35 -5 35 0" 
+    <path d="M -35 0 Q -35 -20 -15 -30 L 15 -15 Q 35 -5 35 0"
           fill="none" stroke="#9ca3af" stroke-width="3" stroke-linecap="round"/>
-    <path d="M -35 0 Q -35 20 -15 30 L 15 15 Q 35 5 35 0" 
+    <path d="M -35 0 Q -35 20 -15 30 L 15 15 Q 35 5 35 0"
           fill="none" stroke="#9ca3af" stroke-width="3" stroke-linecap="round"/>
   </g>
 </svg>

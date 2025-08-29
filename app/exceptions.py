@@ -1,5 +1,6 @@
-from fastapi import HTTPException
 from typing import Any, Dict, Optional
+
+from fastapi import HTTPException
 
 
 class TracklistException(Exception):

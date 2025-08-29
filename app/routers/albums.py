@@ -2,35 +2,36 @@
 Album rating API endpoints
 """
 
-from typing import Dict, Any, Optional
-from fastapi import APIRouter, Depends, HTTPException, Query, Path, Request, Form, Body
-from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse
-from sqlalchemy.orm import Session
-from sqlalchemy import or_
-from pydantic import BaseModel, Field
-import logging
-import json
 import asyncio
+import json
+import logging
+from typing import Any, Dict, Optional
 
-from ..database import get_db, get_db_info, SessionLocal
-from ..rating_service import get_rating_service, RatingService
-from ..services.comparison_service import get_comparison_service, ComparisonService
+from fastapi import APIRouter, Body, Depends, Form, HTTPException, Path, Query, Request
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
+from pydantic import BaseModel, Field
+from sqlalchemy import or_
+from sqlalchemy.orm import Session
+
+from ..database import SessionLocal, get_db, get_db_info
 from ..exceptions import (
-    TracklistException,
     ServiceNotFoundError,
     ServiceValidationError,
+    TracklistException,
 )
-from ..validation.requests import (
-    AlbumCreateRequest,
-    TrackRatingRequest,
-    AlbumNotesRequest,
-    AlbumBonusRequest,
-)
+from ..rating_service import RatingService, get_rating_service
+from ..services.comparison_service import ComparisonService, get_comparison_service
 from ..utils.validation import (
+    sanitize_for_logging,
     validate_integer_id,
     validate_musicbrainz_id,
-    sanitize_for_logging,
+)
+from ..validation.requests import (
+    AlbumBonusRequest,
+    AlbumCreateRequest,
+    AlbumNotesRequest,
+    TrackRatingRequest,
 )
 
 logger = logging.getLogger(__name__)
@@ -73,7 +74,7 @@ async def create_album_for_rating(
         # Get MusicBrainz ID from form data
         musicbrainz_id = None
         content_type = request.headers.get("content-type", "")
-        
+
         if "application/x-www-form-urlencoded" in content_type:
             form = await request.form()
             musicbrainz_id = form.get("musicbrainz_id")
@@ -101,7 +102,7 @@ async def create_album_for_rating(
                     musicbrainz_id = form.get("musicbrainz_id")
                 except:
                     pass
-        
+
         if not musicbrainz_id:
             raise HTTPException(
                 status_code=400,
@@ -110,7 +111,7 @@ async def create_album_for_rating(
                     "message": "MusicBrainz ID is required",
                 },
             )
-        
+
         # Validate MusicBrainz ID
         try:
             album_request = AlbumCreateRequest(musicbrainz_id=musicbrainz_id)
@@ -124,8 +125,10 @@ async def create_album_for_rating(
                     "message": "MusicBrainz ID must be a valid UUID format",
                 },
             )
-        
-        logger.info(f"Creating album for rating: {sanitize_for_logging(musicbrainz_id)}")
+
+        logger.info(
+            f"Creating album for rating: {sanitize_for_logging(musicbrainz_id)}"
+        )
 
         result = await service.create_album_for_rating(musicbrainz_id, db)
 
@@ -211,13 +214,13 @@ async def update_track_rating(
     try:
         # Validate track ID
         validated_track_id = validate_integer_id(track_id)
-        
+
         # Handle both JSON and form data
         rating_value = None
-        
+
         # Check content type
         content_type = request.headers.get("content-type", "")
-        
+
         if "application/x-www-form-urlencoded" in content_type:
             # Handle form data
             form = await request.form()
@@ -247,7 +250,7 @@ async def update_track_rating(
                     rating_value = form.get("rating")
                 except:
                     pass
-        
+
         if rating_value is None:
             raise HTTPException(
                 status_code=400,
@@ -256,7 +259,7 @@ async def update_track_rating(
                     "message": "Rating value is required",
                 },
             )
-        
+
         # Validate and convert rating
         try:
             # Create request object for validation
@@ -271,7 +274,7 @@ async def update_track_rating(
                     "message": f"Rating must be one of: 0.0, 0.33, 0.67, 1.0 (got: {rating_value})",
                 },
             )
-        
+
         logger.info(f"Updating track {validated_track_id} rating to {rating}")
 
         result = service.rate_track(track_id, rating, db)
@@ -391,11 +394,11 @@ async def update_album_notes(
     try:
         # Validate album ID
         validated_album_id = validate_integer_id(album_id)
-        
+
         # Handle both JSON and form data
         notes_value = ""
         content_type = request.headers.get("content-type", "")
-        
+
         if "application/x-www-form-urlencoded" in content_type:
             form = await request.form()
             notes_value = form.get("notes", "")
@@ -417,7 +420,7 @@ async def update_album_notes(
                     notes_value = form.get("notes", "")
                 except:
                     notes_value = ""
-        
+
         # Create request object for validation
         try:
             notes_request = AlbumNotesRequest(notes=notes_value)
@@ -427,7 +430,9 @@ async def update_album_notes(
             # Fallback to empty notes if validation fails
             notes = ""
 
-        logger.info(f"Updating notes for album {validated_album_id} ({len(notes)} chars)")
+        logger.info(
+            f"Updating notes for album {validated_album_id} ({len(notes)} chars)"
+        )
 
         result = service.update_album_notes(album_id, notes, db)
 
@@ -573,8 +578,8 @@ async def get_album_artwork_url(
 
     Returns the cached URL if available, otherwise returns the external URL
     """
-    from ..template_utils import get_artwork_url as get_cached_url
     from ..models import Album
+    from ..template_utils import get_artwork_url as get_cached_url
 
     # Get album
     album = db.query(Album).filter(Album.id == album_id).first()
@@ -1055,12 +1060,12 @@ async def refresh_album_artwork(
         album_id: Album ID to refresh artwork for
     """
     try:
-        from ..services.user_rate_limiter import get_artwork_refresh_limiter
-        from ..services.artwork_memory_cache import get_artwork_memory_cache
+        from ..models import Album
         from ..services.artwork_cache_background import (
             get_artwork_cache_background_service,
         )
-        from ..models import Album
+        from ..services.artwork_memory_cache import get_artwork_memory_cache
+        from ..services.user_rate_limiter import get_artwork_refresh_limiter
 
         # Get session ID for rate limiting (use IP address as fallback)
         session_id = request.headers.get("X-Session-Id", request.client.host)
@@ -1301,10 +1306,10 @@ async def trigger_artwork_migration(
         limit: Optional limit on total albums to process
     """
     try:
+        from ..models import Album
         from ..services.artwork_cache_background import (
             get_artwork_cache_background_service,
         )
-        from ..models import Album
 
         db = SessionLocal()
 
@@ -1374,8 +1379,8 @@ async def get_integrity_status() -> Dict[str, Any]:
     Returns the latest integrity check results and quick check status
     """
     try:
-        from pathlib import Path
         import json
+        from pathlib import Path
 
         # Get latest integrity report
         reports_dir = Path("logs/scheduled_tasks")
@@ -1490,8 +1495,8 @@ async def get_migration_status() -> Dict[str, Any]:
     Returns information about ongoing or completed migration
     """
     try:
-        from pathlib import Path
         import json
+        from pathlib import Path
 
         progress_file = Path("logs/artwork_migration_progress.json")
         report_file = Path("logs/artwork_migration_report.json")
@@ -1590,8 +1595,8 @@ async def get_system_info() -> Dict[str, Any]:
     - Application configuration
     - System health
     """
-    import sys
     import os
+    import sys
 
     try:
         db_info = get_db_info()

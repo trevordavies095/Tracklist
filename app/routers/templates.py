@@ -2,16 +2,17 @@
 Template serving routes for the frontend UI
 """
 
-from fastapi import APIRouter, Request, Depends, HTTPException, Path, Query
-from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse
-from sqlalchemy.orm import Session
 import logging
 
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
+from sqlalchemy.orm import Session
+
 from ..database import get_db
-from ..rating_service import get_rating_service, RatingService
-from ..services.comparison_service import get_comparison_service, ComparisonService
 from ..exceptions import ServiceNotFoundError
+from ..rating_service import RatingService, get_rating_service
+from ..services.comparison_service import ComparisonService, get_comparison_service
 
 logger = logging.getLogger(__name__)
 
@@ -261,11 +262,11 @@ def setup_template_filters(template_env):
 
     # Import template utilities
     from ..template_utils import (
-        get_artwork_url,
-        get_lazy_image_html,
-        get_cache_stats,
-        format_file_size,
         format_cache_age,
+        format_file_size,
+        get_artwork_url,
+        get_cache_stats,
+        get_lazy_image_html,
     )
 
     def format_duration(milliseconds):

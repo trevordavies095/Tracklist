@@ -5,12 +5,13 @@ Import service for restoring database from JSON backup
 import json
 import logging
 from datetime import datetime
-from typing import Dict, Any, Optional, Tuple
-from sqlalchemy.orm import Session
-from sqlalchemy import text
+from typing import Any, Dict, Optional, Tuple
 
-from ..models import Album, Artist, Track, UserSettings
+from sqlalchemy import text
+from sqlalchemy.orm import Session
+
 from ..database import engine
+from ..models import Album, Artist, Track, UserSettings
 
 logger = logging.getLogger(__name__)
 

@@ -13,22 +13,22 @@
             Search for albums from the MusicBrainz database and start rating them track by track.
         </p>
     </div>
-    
+
     <!-- Search Form -->
     <div class="bg-surface rounded-lg shadow-sm border border-default p-6 mb-8">
         <form class="space-y-4"
               x-data="searchForm()"
               @submit.prevent="submitForm($el)">
-            
+
             <!-- General Search Input -->
             <div class="relative">
                 <label for="search-query" class="block text-sm font-medium text-primary mb-2">
                     General Search
                 </label>
                 <div class="relative">
-                    <input type="text" 
+                    <input type="text"
                            id="search-query"
-                           name="q" 
+                           name="q"
                            x-model="query"
                            @keyup.debounce.500ms="if (query && !usingAdvanced()) { submitForm($el.form) }"
                            class="search-input block w-full pl-10 pr-3 py-3 border border-default rounded-md leading-5 bg-surface text-primary placeholder-muted focus:outline-none focus:placeholder-secondary focus:ring-1 focus:ring-accent-blue focus:border-accent-blue sm:text-sm"
@@ -44,7 +44,7 @@
                     Search is powered by MusicBrainz - the open music encyclopedia
                 </p>
             </div>
-            
+
             <!-- Advanced Search Options -->
             <details class="cursor-pointer" x-data="{ open: false }" x-model="open">
                 <summary class="text-sm font-medium text-primary hover:text-primary py-2">
@@ -57,8 +57,8 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label for="artist" class="block text-sm font-medium text-primary mb-1">Artist Name</label>
-                                <input type="text" 
-                                       name="artist" 
+                                <input type="text"
+                                       name="artist"
                                        id="artist"
                                        x-model="artist"
                                        @input="clearGeneralIfAdvanced()"
@@ -67,8 +67,8 @@
                             </div>
                             <div>
                                 <label for="album" class="block text-sm font-medium text-primary mb-1">Album Title</label>
-                                <input type="text" 
-                                       name="album" 
+                                <input type="text"
+                                       name="album"
                                        id="album"
                                        x-model="album"
                                        @input="clearGeneralIfAdvanced()"
@@ -80,8 +80,8 @@
                                     Release Year
                                     <span class="text-xs text-muted font-normal">(optional)</span>
                                 </label>
-                                <input type="number" 
-                                       name="year" 
+                                <input type="number"
+                                       name="year"
                                        id="year"
                                        x-model="year"
                                        @input="clearGeneralIfAdvanced(); validateYear()"
@@ -95,7 +95,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Direct MusicBrainz ID Lookup -->
                     <div class="border-b border-default pb-4">
                         <h4 class="text-sm font-semibold text-primary mb-3">Direct Album Lookup</h4>
@@ -108,8 +108,8 @@
                                     </svg>
                                 </a>
                             </label>
-                            <input type="text" 
-                                   name="mbid" 
+                            <input type="text"
+                                   name="mbid"
                                    id="mbid"
                                    x-model="mbid"
                                    @input="clearOtherFields(); validateMBID()"
@@ -121,7 +121,7 @@
                             <p x-show="!mbidError" class="mt-1 text-xs text-muted">36-character UUID for direct album lookup</p>
                         </div>
                     </div>
-                    
+
                     <!-- Search Settings -->
                     <div>
                         <h4 class="text-sm font-semibold text-primary mb-3">Display Settings</h4>
@@ -143,10 +143,10 @@
                     </div>
                 </div>
             </details>
-            
+
             <!-- Search Button -->
             <div class="flex justify-center">
-                <button type="submit" 
+                <button type="submit"
                         :disabled="cannotSearch()"
                         class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-muted disabled:cursor-not-allowed transition-colors">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -157,7 +157,7 @@
             </div>
         </form>
     </div>
-    
+
     <!-- Search Loading -->
     <div id="search-loading" class="htmx-indicator">
         <div class="text-center py-8">
@@ -170,7 +170,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Search Results -->
     <div id="search-results">
         <!-- Results will be loaded here via HTMX -->
@@ -182,7 +182,7 @@
             <p class="text-sm mt-2">We'll search the MusicBrainz database for you</p>
         </div>
     </div>
-    
+
     <!-- Search Tips -->
     <div class="mt-12 bg-background rounded-lg p-6">
         <h3 class="text-lg font-semibold text-primary mb-4">💡 Search Tips</h3>
@@ -220,18 +220,18 @@ function searchForm() {
         mbid: '',
         yearError: '',
         mbidError: '',
-        
+
         init() {
             // Focus on search input when page loads
             this.$nextTick(() => {
                 document.getElementById('search-query').focus();
             });
         },
-        
+
         usingAdvanced() {
             return this.artist || this.album || this.year || this.mbid;
         },
-        
+
         clearGeneralIfAdvanced() {
             if (this.artist || this.album || this.year) {
                 this.query = '';
@@ -239,7 +239,7 @@ function searchForm() {
                 this.mbidError = '';
             }
         },
-        
+
         clearOtherFields() {
             if (this.mbid) {
                 this.query = '';
@@ -249,7 +249,7 @@ function searchForm() {
                 this.yearError = '';
             }
         },
-        
+
         validateYear() {
             this.yearError = ''; // Clear error first
             if (this.year && this.year !== '') {
@@ -264,7 +264,7 @@ function searchForm() {
                 }
             }
         },
-        
+
         validateMBID() {
             if (this.mbid) {
                 const mbidPattern = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
@@ -277,41 +277,41 @@ function searchForm() {
                 this.mbidError = '';
             }
         },
-        
+
         cannotSearch() {
             // Check if there are any validation errors
             if (this.yearError || this.mbidError) {
                 return true;
             }
-            
+
             // Check if at least one search field has a value
             const hasSearchValue = !!(
-                this.query || 
-                this.artist || 
-                this.album || 
+                this.query ||
+                this.artist ||
+                this.album ||
                 this.mbid ||
                 this.year
             );
-            
+
             return !hasSearchValue;
         },
-        
+
         submitForm(form) {
             // Build URL with only non-empty parameters
             const params = new URLSearchParams();
-            
+
             if (this.query.trim()) params.append('q', this.query.trim());
             if (this.artist.trim()) params.append('artist', this.artist.trim());
             if (this.album.trim()) params.append('album', this.album.trim());
             if (this.year) params.append('year', this.year);
             if (this.mbid.trim()) params.append('mbid', this.mbid.trim());
-            
+
             // Always include limit and offset
             const limit = form.querySelector('[name="limit"]').value;
             const offset = form.querySelector('[name="offset"]').value;
             params.append('limit', limit);
             params.append('offset', offset);
-            
+
             // Trigger HTMX request with clean parameters
             htmx.ajax('GET', `/api/v1/search/albums?${params.toString()}`, {
                 target: '#search-results',
@@ -325,11 +325,11 @@ function searchForm() {
 document.body.addEventListener('htmx:afterRequest', function(evt) {
     if (evt.detail.target.id === 'search-results') {
         // Scroll to results after search
-        document.getElementById('search-results').scrollIntoView({ 
-            behavior: 'smooth', 
-            block: 'start' 
+        document.getElementById('search-results').scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
         });
-        
+
         // Initialize true lazy loading after search results are displayed
         initializeArtworkLazyLoading();
     }
@@ -344,28 +344,28 @@ function initializeArtworkLazyLoading() {
     if (artworkObserver) {
         artworkObserver.disconnect();
     }
-    
+
     // Check for Intersection Observer support (fallback for older iOS)
     if (!('IntersectionObserver' in window)) {
         console.debug('IntersectionObserver not supported, falling back to immediate loading');
         loadArtworkLazily();
         return;
     }
-    
+
     // Create observer with iOS-friendly options
     artworkObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 const container = entry.target;
                 const mbid = container.dataset.mbid;
-                
+
                 // Avoid duplicate loading
                 if (loadingQueue.has(mbid)) return;
                 loadingQueue.add(mbid);
-                
+
                 // Stop observing this element
                 artworkObserver.unobserve(container);
-                
+
                 // Load the artwork
                 loadSingleArtwork(container, mbid);
             }
@@ -375,7 +375,7 @@ function initializeArtworkLazyLoading() {
         rootMargin: '50px 0px',
         threshold: 0.1
     });
-    
+
     // Observe all artwork containers
     const artworkContainers = document.querySelectorAll('.album-artwork[data-mbid]');
     artworkContainers.forEach(container => {
@@ -386,57 +386,57 @@ function initializeArtworkLazyLoading() {
 async function loadSingleArtwork(container, mbid) {
     const img = container.querySelector('img');
     const placeholder = container.querySelector('.artwork-placeholder');
-    
+
     try {
         console.debug(`Loading artwork for ${mbid}`);
-        
+
         const response = await fetch(`/api/v1/releases/${mbid}/artwork-url`);
         if (response.ok) {
             const data = await response.json();
             console.debug(`Artwork response for ${mbid}:`, data);
-            
+
             if (data.url && data.url !== null && data.url !== '') {
                 console.debug(`Loading artwork for ${mbid}: ${data.url}`);
-                
+
                 // Set up image loading with iOS-compatible error handling
                 const loadPromise = new Promise((resolve, reject) => {
                     img.onload = function() {
                         console.debug(`Image loaded successfully for ${mbid}`);
                         resolve();
                     };
-                    
+
                     img.onerror = function() {
                         console.debug(`Image failed to load for ${mbid}`);
                         reject(new Error('Image load failed'));
                     };
-                    
+
                     // Timeout for iOS network issues
                     setTimeout(() => {
                         reject(new Error('Image load timeout'));
                     }, 10000);
-                    
+
                     // Start loading
                     img.src = data.url;
                 });
-                
+
                 try {
                     await loadPromise;
                     // Success - show image with transition
                     img.style.opacity = '0';
                     img.style.transition = 'opacity 0.3s ease-in-out';
                     img.classList.remove('hidden');
-                    
+
                     // Use requestAnimationFrame for smoother iOS transitions
                     requestAnimationFrame(() => {
                         img.style.opacity = '1';
                         placeholder.style.display = 'none';
                     });
-                    
+
                 } catch (loadError) {
                     // Image failed to load - keep placeholder
                     handleArtworkError(img, placeholder);
                 }
-                
+
             } else {
                 console.debug(`No artwork URL for ${mbid}, keeping placeholder`);
                 handleArtworkError(img, placeholder);
@@ -460,7 +460,7 @@ function handleArtworkError(img, placeholder) {
     img.style.transition = '';
     img.style.opacity = '';
     img.classList.add('hidden');
-    
+
     // Show static placeholder (stop shimmer)
     placeholder.style.display = 'flex';
     placeholder.classList.remove('artwork-placeholder');
@@ -470,24 +470,24 @@ function handleArtworkError(img, placeholder) {
 // Fallback for browsers without Intersection Observer
 async function loadArtworkLazily() {
     const artworkContainers = document.querySelectorAll('.album-artwork[data-mbid]');
-    
+
     // Load artwork with delays, but only load visible items first
     const visibleContainers = Array.from(artworkContainers).filter(container => {
         const rect = container.getBoundingClientRect();
         return rect.top < window.innerHeight + 100; // Load if near viewport
     });
-    
+
     // Load visible items first
     for (let i = 0; i < visibleContainers.length; i++) {
         const container = visibleContainers[i];
         const mbid = container.dataset.mbid;
-        
+
         if (loadingQueue.has(mbid)) continue;
         loadingQueue.add(mbid);
-        
+
         // Stagger requests
         if (i > 0) await new Promise(resolve => setTimeout(resolve, 200));
-        
+
         await loadSingleArtwork(container, mbid);
     }
 }

@@ -12,12 +12,12 @@
         let bgColor = 'bg-success';
         if (type === 'error') bgColor = 'bg-accent-red';
         else if (type === 'info') bgColor = 'bg-accent-blue';
-        
+
         notification.className = `${bgColor} text-white px-4 py-3 rounded-lg shadow-lg transition-opacity duration-500 border border-default`;
         notification.textContent = message;
-        
+
         container.appendChild(notification);
-        
+
         setTimeout(() => {
             notification.style.opacity = '0';
             setTimeout(() => notification.remove(), 500);
@@ -28,7 +28,7 @@
         const form = document.getElementById(`${section}-form`);
         const formData = new FormData(form);
         const data = {};
-        
+
         // Convert form data to object
         for (let [key, value] of formData.entries()) {
             // Handle checkboxes
@@ -47,7 +47,7 @@
                 data[key] = value;
             }
         }
-        
+
         try {
             const response = await fetch('/api/v1/settings/', {
                 method: 'PUT',
@@ -56,10 +56,10 @@
                 },
                 body: JSON.stringify(data)
             });
-            
+
             if (response.ok) {
                 showNotification(`${section.charAt(0).toUpperCase() + section.slice(1)} settings saved successfully!`);
-                
+
                 // If theme was changed, apply it immediately
                 if (data.theme) {
                     document.documentElement.setAttribute('data-theme', data.theme);
@@ -79,7 +79,7 @@
         if (!confirm('Are you sure you want to reset all settings to default values?')) {
             return;
         }
-        
+
         try {
             const response = await fetch('/api/v1/settings/reset-defaults', {
                 method: 'POST',
@@ -87,7 +87,7 @@
                     'Content-Type': 'application/json',
                 }
             });
-            
+
             if (response.ok) {
                 showNotification('Settings reset to defaults successfully!');
                 // Reload page to show new values
@@ -105,16 +105,16 @@
         try {
             // Show loading notification
             showNotification('Preparing database backup...', 'info');
-            
+
             // Fetch the export from settings endpoint
             const response = await fetch('/api/v1/settings/export');
-            
+
             if (!response.ok) {
                 const error = await response.json();
                 showNotification(`Backup failed: ${error.detail?.message || 'Unknown error'}`, 'error');
                 return;
             }
-            
+
             // Get the filename from Content-Disposition header
             const contentDisposition = response.headers.get('Content-Disposition');
             let filename = 'tracklist_backup.json';
@@ -124,7 +124,7 @@
                     filename = match[1];
                 }
             }
-            
+
             // Create blob and download
             const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
@@ -135,9 +135,9 @@
             a.click();
             document.body.removeChild(a);
             window.URL.revokeObjectURL(url);
-            
+
             showNotification('Database backup completed successfully!', 'success');
-            
+
         } catch (error) {
             console.error('Backup error:', error);
             showNotification(`Backup failed: ${error.message}`, 'error');
@@ -166,7 +166,7 @@
 {% block content %}
 <div class="max-w-4xl mx-auto">
     <h1 class="text-3xl font-bold text-primary mb-8">Settings</h1>
-    
+
     <!-- General Settings -->
     <div class="bg-surface shadow rounded-lg mb-6">
         <div class="px-6 py-4 border-b border-default">
@@ -181,20 +181,20 @@
                     <span class="text-muted font-normal">(0.1 - 0.4)</span>
                 </label>
                 <div class="flex items-center space-x-4">
-                    <input type="range" id="album_bonus" name="album_bonus" 
+                    <input type="range" id="album_bonus" name="album_bonus"
                            min="0.1" max="0.4" step="0.01" value="{{ settings.album_bonus }}"
                            class="flex-1">
                     <span id="album-bonus-value" class="text-sm font-semibold text-primary w-12">{{ settings.album_bonus }}</span>
                 </div>
                 <p class="text-xs text-muted mt-1">Bonus points added to album scores for cohesiveness</p>
             </div>
-            
+
             <!-- Default Sort Order -->
             <div>
                 <label for="default_sort_order" class="block text-sm font-medium text-primary mb-2">
                     Default Sort Order
                 </label>
-                <select id="default_sort_order" name="default_sort_order" 
+                <select id="default_sort_order" name="default_sort_order"
                         class="w-full px-3 py-2 border border-default bg-surface text-primary rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="created_desc" {% if settings.default_sort_order == 'created_desc' %}selected{% endif %}>Recently Added</option>
                     <option value="created_asc" {% if settings.default_sort_order == 'created_asc' %}selected{% endif %}>Oldest First</option>
@@ -208,16 +208,16 @@
                     <option value="score_asc" {% if settings.default_sort_order == 'score_asc' %}selected{% endif %}>Score (Low to High)</option>
                 </select>
             </div>
-            
+
             <div class="flex justify-end">
-                <button type="button" onclick="updateSettings('general')" 
+                <button type="button" onclick="updateSettings('general')"
                         class="px-4 py-2 bg-accent-blue text-white rounded-md hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-accent-blue transition-colors">
                     Save General Settings
                 </button>
             </div>
         </form>
     </div>
-    
+
     <!-- Display Settings -->
     <div class="bg-surface shadow rounded-lg mb-6">
         <div class="px-6 py-4 border-b border-default">
@@ -237,29 +237,29 @@
                 </select>
                 <p class="text-xs text-muted mt-1">Choose between light and dark mode</p>
             </div>
-            
+
             <!-- Date Format -->
             <div>
                 <label for="date_format" class="block text-sm font-medium text-primary mb-2">
                     Date Format
                 </label>
-                <select id="date_format" name="date_format" 
+                <select id="date_format" name="date_format"
                         class="w-full px-3 py-2 border border-default bg-surface text-primary rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="YYYY-MM-DD" {% if settings.date_format == 'YYYY-MM-DD' %}selected{% endif %}>YYYY-MM-DD (2025-01-15)</option>
                     <option value="MM/DD/YYYY" {% if settings.date_format == 'MM/DD/YYYY' %}selected{% endif %}>MM/DD/YYYY (01/15/2025)</option>
                     <option value="DD/MM/YYYY" {% if settings.date_format == 'DD/MM/YYYY' %}selected{% endif %}>DD/MM/YYYY (15/01/2025)</option>
                 </select>
             </div>
-            
+
             <div class="flex justify-end">
-                <button type="button" onclick="updateSettings('display')" 
+                <button type="button" onclick="updateSettings('display')"
                         class="px-4 py-2 bg-accent-blue text-white rounded-md hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-accent-blue transition-colors">
                     Save Display Settings
                 </button>
             </div>
         </form>
     </div>
-    
+
     <!-- Automation Settings -->
     <div class="bg-surface shadow rounded-lg mb-6" x-data="{ open: false }">
         <div class="px-6 py-4 border-b border-default cursor-pointer hover:bg-surface-secondary transition-colors" @click="open = !open">
@@ -282,11 +282,11 @@
                     </label>
                     <p class="text-xs text-muted">Automatically download and cache album artwork</p>
                 </div>
-                <input type="checkbox" id="auto_cache_artwork" name="auto_cache_artwork" 
+                <input type="checkbox" id="auto_cache_artwork" name="auto_cache_artwork"
                        {% if settings.auto_cache_artwork %}checked{% endif %}
                        class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
             </div>
-            
+
             <!-- Auto Migrate Artwork -->
             <div class="flex items-center justify-between">
                 <div>
@@ -295,11 +295,11 @@
                     </label>
                     <p class="text-xs text-muted">Automatically migrate artwork on album creation</p>
                 </div>
-                <input type="checkbox" id="auto_migrate_artwork" name="auto_migrate_artwork" 
+                <input type="checkbox" id="auto_migrate_artwork" name="auto_migrate_artwork"
                        {% if settings.auto_migrate_artwork %}checked{% endif %}
                        class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
             </div>
-            
+
             <!-- Migration Batch Size -->
             <div>
                 <label for="migration_batch_size" class="block text-sm font-medium text-primary mb-2">
@@ -307,23 +307,23 @@
                     <span class="text-muted font-normal">(1 - 50)</span>
                 </label>
                 <div class="flex items-center space-x-4">
-                    <input type="range" id="migration_batch_size" name="migration_batch_size" 
+                    <input type="range" id="migration_batch_size" name="migration_batch_size"
                            min="1" max="50" step="1" value="{{ settings.migration_batch_size }}"
                            class="flex-1">
                     <span id="batch-size-value" class="text-sm font-semibold text-primary w-12">{{ settings.migration_batch_size }}</span>
                 </div>
                 <p class="text-xs text-muted mt-1">Number of albums to process in each batch</p>
             </div>
-            
+
             <div class="flex justify-end">
-                <button type="button" onclick="updateSettings('automation')" 
+                <button type="button" onclick="updateSettings('automation')"
                         class="px-4 py-2 bg-accent-blue text-white rounded-md hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-accent-blue transition-colors">
                     Save Automation Settings
                 </button>
             </div>
         </form>
     </div>
-    
+
     <!-- Storage & Cleanup Settings -->
     <div class="bg-surface shadow rounded-lg mb-6" x-data="{ open: false }">
         <div class="px-6 py-4 border-b border-default cursor-pointer hover:bg-surface-secondary transition-colors" @click="open = !open">
@@ -345,14 +345,14 @@
                     <span class="text-muted font-normal">(7 - 3650)</span>
                 </label>
                 <div class="flex items-center space-x-4">
-                    <input type="range" id="cache_retention_days" name="cache_retention_days" 
+                    <input type="range" id="cache_retention_days" name="cache_retention_days"
                            min="7" max="3650" step="1" value="{{ settings.cache_retention_days }}"
                            class="flex-1">
                     <span id="retention-days-value" class="text-sm font-semibold text-primary w-16">{{ settings.cache_retention_days }}</span>
                 </div>
                 <p class="text-xs text-muted mt-1">Days to keep cached artwork before cleanup</p>
             </div>
-            
+
             <!-- Max Cache Size -->
             <div>
                 <label for="cache_max_size_mb" class="block text-sm font-medium text-primary mb-2">
@@ -360,14 +360,14 @@
                     <span class="text-muted font-normal">(100 - 100000)</span>
                 </label>
                 <div class="flex items-center space-x-4">
-                    <input type="range" id="cache_max_size_mb" name="cache_max_size_mb" 
+                    <input type="range" id="cache_max_size_mb" name="cache_max_size_mb"
                            min="100" max="100000" step="100" value="{{ settings.cache_max_size_mb }}"
                            class="flex-1">
                     <span id="cache-size-value" class="text-sm font-semibold text-primary w-20">{{ settings.cache_max_size_mb }}</span>
                 </div>
                 <p class="text-xs text-muted mt-1">Maximum size of the artwork cache in megabytes</p>
             </div>
-            
+
             <!-- Cache Cleanup Enabled -->
             <div class="flex items-center justify-between">
                 <div>
@@ -376,46 +376,46 @@
                     </label>
                     <p class="text-xs text-muted">Run cache cleanup automatically on schedule</p>
                 </div>
-                <input type="checkbox" id="cache_cleanup_enabled" name="cache_cleanup_enabled" 
+                <input type="checkbox" id="cache_cleanup_enabled" name="cache_cleanup_enabled"
                        {% if settings.cache_cleanup_enabled %}checked{% endif %}
                        class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
             </div>
-            
+
             <!-- Cleanup Schedule -->
             <div>
                 <label for="cache_cleanup_schedule" class="block text-sm font-medium text-primary mb-2">
                     Cleanup Schedule
                 </label>
-                <select id="cache_cleanup_schedule" name="cache_cleanup_schedule" 
+                <select id="cache_cleanup_schedule" name="cache_cleanup_schedule"
                         class="w-full px-3 py-2 border border-default bg-surface text-primary rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="daily" {% if settings.cache_cleanup_schedule == 'daily' %}selected{% endif %}>Daily</option>
                     <option value="weekly" {% if settings.cache_cleanup_schedule == 'weekly' %}selected{% endif %}>Weekly</option>
                     <option value="monthly" {% if settings.cache_cleanup_schedule == 'monthly' %}selected{% endif %}>Monthly</option>
                 </select>
             </div>
-            
+
             <!-- Cleanup Time -->
             <div>
                 <label for="cache_cleanup_time" class="block text-sm font-medium text-primary mb-2">
                     Cleanup Time (24-hour format)
                 </label>
-                <input type="time" id="cache_cleanup_time" name="cache_cleanup_time" 
+                <input type="time" id="cache_cleanup_time" name="cache_cleanup_time"
                        value="{{ settings.cache_cleanup_time }}"
                        class="w-full px-3 py-2 border border-default bg-surface text-primary rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <p class="text-xs text-muted mt-1">Time of day to run cleanup (e.g., 03:00 for 3 AM)</p>
             </div>
-            
+
             <div class="flex justify-end">
-                <button type="button" onclick="updateSettings('storage')" 
+                <button type="button" onclick="updateSettings('storage')"
                         class="px-4 py-2 bg-accent-blue text-white rounded-md hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-accent-blue transition-colors">
                     Save Storage Settings
                 </button>
             </div>
         </form>
     </div>
-    
+
     <!-- Backup & Export -->
-    <div class="bg-surface shadow rounded-lg mb-6" x-data="{ 
+    <div class="bg-surface shadow rounded-lg mb-6" x-data="{
         open: false
     }">
         <div class="px-6 py-4 border-b border-default cursor-pointer hover:bg-surface-secondary transition-colors" @click="open = !open">
@@ -431,11 +431,11 @@
         </div>
         <div class="p-6" x-show="open" x-transition>
             <div class="space-y-6">
-                
+
                 <!-- Export Description -->
                 <div class="space-y-4">
                     <h3 class="text-sm font-medium text-primary">What's Included</h3>
-                    
+
                     <div class="text-sm text-secondary space-y-2">
                         <div class="flex items-start">
                             <svg class="w-5 h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -474,20 +474,20 @@
                             <span>Artwork cache metadata and URLs</span>
                         </div>
                     </div>
-                    
+
                     <!-- Export/Import Buttons -->
                     <div class="pt-4 space-y-4">
                         <!-- Export Button -->
-                        <button onclick="exportDatabase()" 
+                        <button onclick="exportDatabase()"
                                 class="w-full px-4 py-3 bg-accent-blue text-white rounded-md hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-accent-blue transition-colors flex items-center justify-center">
                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"></path>
                             </svg>
                             Export Database Backup
                         </button>
-                        
+
                         <!-- Import Button -->
-                        <button onclick="showImportDialog()" 
+                        <button onclick="showImportDialog()"
                                 class="w-full px-4 py-3 bg-surface-secondary text-primary border border-default rounded-md hover:bg-surface-hover focus:outline-none focus:ring-2 focus:ring-accent-blue transition-colors flex items-center justify-center">
                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
@@ -495,7 +495,7 @@
                             Import Database Backup
                         </button>
                     </div>
-                    
+
                     <div class="text-xs space-y-1 bg-info-light border border-accent-blue p-3 rounded-md">
                         <p class="font-semibold text-accent-blue">Use backup/restore to:</p>
                         <p class="text-primary">• Restore your collection after reinstalling Tracklist</p>
@@ -503,7 +503,7 @@
                         <p class="text-primary">• Share your music ratings with friends</p>
                         <p class="text-primary">• Keep as a safety backup of your collection</p>
                     </div>
-                    
+
                     <div class="text-xs space-y-1 bg-warning-light border border-accent-amber p-3 rounded-md">
                         <p class="font-semibold text-accent-amber">⚠️ Import Warning:</p>
                         <p class="text-primary">• Importing will DELETE all current data</p>
@@ -514,7 +514,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Advanced Actions -->
     <div class="bg-surface shadow rounded-lg" x-data="{ open: false }">
         <div class="px-6 py-4 border-b border-default cursor-pointer hover:bg-surface-secondary transition-colors" @click="open = !open">
@@ -533,7 +533,7 @@
                 <div>
                     <h3 class="text-sm font-medium text-primary mb-2">Reset to Defaults</h3>
                     <p class="text-xs text-muted mb-3">Reset all settings to their default values</p>
-                    <button type="button" onclick="resetToDefaults()" 
+                    <button type="button" onclick="resetToDefaults()"
                             class="px-4 py-2 bg-accent-red text-white rounded-md hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-accent-red transition-colors">
                         Reset All Settings
                     </button>
@@ -548,7 +548,7 @@
     <div class="flex items-center justify-center min-h-screen p-4">
         <!-- Background overlay -->
         <div class="fixed inset-0 bg-black/50 dark:bg-black/70 transition-opacity" onclick="hideImportDialog()"></div>
-        
+
         <!-- Modal panel -->
         <div class="relative bg-surface border border-default rounded-lg shadow-xl max-w-md w-full p-6 z-10">
             <!-- Warning Icon -->
@@ -557,23 +557,23 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
                 </svg>
             </div>
-            
+
             <!-- Title -->
             <h3 class="text-lg font-semibold text-primary text-center mb-4">Import Database Backup</h3>
-            
+
             <!-- File Input -->
             <div class="mb-4">
                 <label class="block text-sm font-medium text-primary mb-2">
                     Select backup file (.json)
                 </label>
-                <input type="file" 
-                       id="importFile" 
+                <input type="file"
+                       id="importFile"
                        accept=".json"
                        onchange="handleFileSelect(event)"
                        class="w-full px-3 py-2 border border-default rounded-md bg-surface text-primary file:mr-4 file:py-2 file:px-4 file:rounded-md file:border file:border-default file:bg-surface-secondary file:text-primary file:text-sm hover:file:bg-surface-hover transition-colors">
                 <p id="selectedFileName" class="text-sm text-secondary mt-2"></p>
             </div>
-            
+
             <!-- Warning Message -->
             <div class="bg-error-light border border-accent-red rounded-md p-4 mb-6">
                 <p class="text-sm font-semibold text-accent-red mb-2">⚠️ WARNING: This action will:</p>
@@ -583,12 +583,12 @@
                     <li>• This action cannot be undone</li>
                 </ul>
             </div>
-            
+
             <!-- Confirmation Checkbox -->
             <div class="mb-6">
                 <label class="flex items-center">
-                    <input type="checkbox" 
-                           id="importConfirmCheckbox" 
+                    <input type="checkbox"
+                           id="importConfirmCheckbox"
                            onchange="toggleImportButton()"
                            class="rounded border-default text-accent-blue focus:ring-accent-blue focus:ring-2">
                     <span class="ml-2 text-sm text-primary">
@@ -596,15 +596,15 @@
                     </span>
                 </label>
             </div>
-            
+
             <!-- Action Buttons -->
             <div class="flex space-x-3">
-                <button onclick="hideImportDialog()" 
+                <button onclick="hideImportDialog()"
                         class="flex-1 px-4 py-2 bg-surface-secondary text-primary border border-default rounded-md hover:bg-surface-hover transition-colors">
                     Cancel
                 </button>
                 <button id="confirmImportButton"
-                        onclick="performImport()" 
+                        onclick="performImport()"
                         disabled
                         class="flex-1 px-4 py-2 bg-surface-secondary text-muted rounded-md cursor-not-allowed transition-colors">
                     Yes, Import
@@ -632,7 +632,7 @@
 
 <script>
     let selectedFile = null;
-    
+
     function showImportDialog() {
         document.getElementById('importDialog').classList.remove('hidden');
         // Reset state
@@ -642,11 +642,11 @@
         document.getElementById('importConfirmCheckbox').checked = false;
         document.getElementById('confirmImportButton').disabled = true;
     }
-    
+
     function hideImportDialog() {
         document.getElementById('importDialog').classList.add('hidden');
     }
-    
+
     function handleFileSelect(event) {
         const file = event.target.files[0];
         if (file && file.name.endsWith('.json')) {
@@ -662,14 +662,14 @@
         }
         toggleImportButton();
     }
-    
+
     function toggleImportButton() {
         const checkbox = document.getElementById('importConfirmCheckbox');
         const button = document.getElementById('confirmImportButton');
         const isEnabled = checkbox.checked && selectedFile;
-        
+
         button.disabled = !isEnabled;
-        
+
         // Update button styling based on state
         if (isEnabled) {
             button.className = 'flex-1 px-4 py-2 bg-rating-skip text-white rounded-md hover:brightness-110 active:brightness-95 transition-colors cursor-pointer';
@@ -677,28 +677,28 @@
             button.className = 'flex-1 px-4 py-2 bg-surface-secondary text-muted rounded-md cursor-not-allowed transition-colors';
         }
     }
-    
+
     async function performImport() {
         if (!selectedFile) {
             showNotification('Please select a backup file', 'error');
             return;
         }
-        
+
         // Hide dialog and show progress
         hideImportDialog();
         document.getElementById('importProgress').classList.remove('hidden');
-        
+
         try {
             const formData = new FormData();
             formData.append('file', selectedFile);
-            
+
             const response = await fetch('/api/v1/settings/import', {
                 method: 'POST',
                 body: formData
             });
-            
+
             const result = await response.json();
-            
+
             if (response.ok) {
                 showNotification('Database imported successfully!', 'success');
                 // Reload page after short delay to show new data

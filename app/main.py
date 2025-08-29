@@ -1,15 +1,17 @@
-from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
-from fastapi.exceptions import RequestValidationError
-from fastapi.staticfiles import StaticFiles
+import asyncio
 import logging
 import os
-import asyncio
+
+from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
+
 from .database import create_tables, init_db
 from .exceptions import TracklistException
 from .logging_config import setup_logging
-from .routers import search, albums, templates, reports, settings, system
 from .middleware.rate_limit import RateLimitMiddleware
+from .routers import albums, reports, search, settings, system, templates
 
 # Setup logging
 log_level = os.getenv("LOG_LEVEL", "INFO")
@@ -233,11 +235,13 @@ async def fix_genre_country_codes():
 
         logger.info("Checking for albums with missing or incorrect genres...")
 
+        import re
+
+        from sqlalchemy import and_, or_
+
         from .database import SessionLocal
         from .models import Album
         from .musicbrainz_client import MusicBrainzClient
-        from sqlalchemy import or_, and_
-        import re
 
         db = SessionLocal()
 
@@ -347,10 +351,10 @@ async def fix_genre_country_codes():
 async def startup_event():
     """Initialize database, cache directories, and background tasks on startup"""
     logger.info("Starting Tracklist application...")
-    
+
     # Check if running in test mode
     is_testing = os.getenv("TESTING", "false").lower() == "true"
-    
+
     try:
         # Initialize database
         create_tables()
@@ -401,19 +405,19 @@ async def startup_event():
 
         # Fix genre country codes (can be removed in v2.0+)
         asyncio.create_task(fix_genre_country_codes())
-        
+
         # Start resource monitoring
         from .services.resource_monitor import get_resource_monitor
-        
+
         monitor = get_resource_monitor()
         asyncio.create_task(monitor.start_monitoring(300))  # 5 minute interval
         logger.info("Resource monitoring started (5 minute interval)")
 
         # Warm artwork memory cache with frequently accessed albums
         try:
-            from .services.artwork_memory_cache import get_artwork_memory_cache
             from .database import SessionLocal
             from .models import Album, ArtworkCache
+            from .services.artwork_memory_cache import get_artwork_memory_cache
 
             memory_cache = get_artwork_memory_cache()
             db = SessionLocal()
@@ -471,49 +475,57 @@ async def shutdown_event():
 
         await stop_background_tasks()
         logger.info("Background task manager stopped")
-        
+
         # Stop resource monitoring if running
         try:
             from .services.resource_monitor import _resource_monitor
+
             if _resource_monitor:
                 _resource_monitor.stop_monitoring()
                 logger.info("Resource monitoring stopped")
         except Exception as e:
             logger.warning(f"Error stopping resource monitor: {e}")
-        
+
         # Close HTTP clients to prevent connection leaks
         logger.info("Closing HTTP clients...")
-        
+
         # Close artwork cache service client
         try:
             from .services.artwork_cache_service import _artwork_cache_service
-            if _artwork_cache_service and hasattr(_artwork_cache_service, 'close'):
+
+            if _artwork_cache_service and hasattr(_artwork_cache_service, "close"):
                 await _artwork_cache_service.close()
                 logger.info("Artwork cache service HTTP client closed")
         except Exception as e:
             logger.warning(f"Error closing artwork cache service: {e}")
-        
+
         # Close cover art service client
         try:
             from .services.cover_art_service import _cover_art_service
-            if _cover_art_service and hasattr(_cover_art_service, 'close'):
+
+            if _cover_art_service and hasattr(_cover_art_service, "close"):
                 await _cover_art_service.close()
                 logger.info("Cover art service HTTP client closed")
         except Exception as e:
             logger.warning(f"Error closing cover art service: {e}")
-        
+
         # Close MusicBrainz client if needed
         try:
             from .musicbrainz_client import _musicbrainz_client
-            if _musicbrainz_client and hasattr(_musicbrainz_client, 'client') and _musicbrainz_client.client:
+
+            if (
+                _musicbrainz_client
+                and hasattr(_musicbrainz_client, "client")
+                and _musicbrainz_client.client
+            ):
                 await _musicbrainz_client.client.aclose()
                 _musicbrainz_client.client = None
                 logger.info("MusicBrainz HTTP client closed")
         except Exception as e:
             logger.warning(f"Error closing MusicBrainz client: {e}")
-            
+
         logger.info("All HTTP clients closed successfully")
-        
+
     except Exception as e:
         logger.error(f"Error during shutdown: {e}")
 
@@ -554,21 +566,20 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         for key, value in error.items():
             # Convert bytes to string if present
             if isinstance(value, bytes):
-                error_dict[key] = value.decode('utf-8', errors='ignore')
+                error_dict[key] = value.decode("utf-8", errors="ignore")
             elif isinstance(value, (list, tuple)):
                 # Handle nested structures
                 error_dict[key] = [
-                    v.decode('utf-8', errors='ignore') if isinstance(v, bytes) else v
+                    v.decode("utf-8", errors="ignore") if isinstance(v, bytes) else v
                     for v in value
                 ]
             else:
                 error_dict[key] = value
         errors.append(error_dict)
-    
+
     logger.warning(f"Validation error: {errors}")
     return JSONResponse(
-        status_code=422, 
-        content={"error": "Validation error", "details": errors}
+        status_code=422, content={"error": "Validation error", "details": errors}
     )
 
 

@@ -11,13 +11,13 @@
                 <!-- Album Artwork -->
                 <div class="flex-shrink-0">
                     <div class="w-48 h-48 rounded-lg overflow-hidden">
-                        <img src="{{ get_artwork_url(album, 'large') }}" 
-                             alt="{{ album.title }} cover" 
+                        <img src="{{ get_artwork_url(album, 'large') }}"
+                             alt="{{ album.title }} cover"
                              class="w-full h-full object-cover"
                              onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'w-48 h-48 bg-gradient-to-br from-surface-secondary to-surface-hover rounded-lg flex items-center justify-center\'><svg class=\'w-24 h-24 text-muted\' fill=\'none\' stroke=\'currentColor\' viewBox=\'0 0 24 24\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3\'></path></svg></div>';">
                     </div>
                 </div>
-                
+
                 <!-- Album Info & Score -->
                 <div class="flex-1">
                     <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between mb-2">
@@ -29,7 +29,7 @@
                         </h1>
                         <!-- Action Buttons - Hidden on mobile, shown on desktop -->
                         <div class="hidden lg:flex items-center space-x-2 ml-4">
-                            <button onclick="editRating()" 
+                            <button onclick="editRating()"
                                     title="Edit Rating"
                                     class="p-2 text-muted hover:text-accent-amber hover:bg-warning-light rounded-lg transition-all duration-200 group relative">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -37,7 +37,7 @@
                                 </svg>
                                 <span class="absolute -bottom-8 right-0 text-xs bg-surface-hover text-primary px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap border border-default">Edit Rating</span>
                             </button>
-                            <button onclick="openRetagModal()" 
+                            <button onclick="openRetagModal()"
                                     title="Change Release Version"
                                     class="p-2 text-muted hover:text-accent-purple hover:bg-accent-purple-light rounded-lg transition-all duration-200 group relative">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -45,7 +45,7 @@
                                 </svg>
                                 <span class="absolute -bottom-8 right-0 text-xs bg-surface-hover text-primary px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap border border-default">Change Release</span>
                             </button>
-                            <button onclick="refreshArtwork(event)" 
+                            <button onclick="refreshArtwork(event)"
                                     title="Refresh Artwork"
                                     class="p-2 text-muted hover:text-accent-blue hover:bg-info-light rounded-lg transition-all duration-200 group relative">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -53,7 +53,7 @@
                                 </svg>
                                 <span class="absolute -bottom-8 right-0 text-xs bg-surface-hover text-primary px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap border border-default">Refresh Artwork</span>
                             </button>
-                            <button onclick="openComparisonModal({{ album.id }})" 
+                            <button onclick="openComparisonModal({{ album.id }})"
                                     title="Compare Album"
                                     class="p-2 text-muted hover:text-accent-indigo hover:bg-accent-indigo-light rounded-lg transition-all duration-200 group relative">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -61,7 +61,7 @@
                                 </svg>
                                 <span class="absolute -bottom-8 right-0 text-xs bg-surface-hover text-primary px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap border border-default">Compare Album</span>
                             </button>
-                            <a href="https://musicbrainz.org/release/{{ album.musicbrainz_id }}" 
+                            <a href="https://musicbrainz.org/release/{{ album.musicbrainz_id }}"
                                target="_blank"
                                title="View on MusicBrainz"
                                class="p-2 text-muted hover:text-accent-blue hover:bg-info-light rounded-lg transition-all duration-200 group relative">
@@ -70,7 +70,7 @@
                                 </svg>
                                 <span class="absolute -bottom-8 right-0 text-xs bg-surface-hover text-primary px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap border border-default">MusicBrainz</span>
                             </a>
-                            <button onclick="confirmDeleteAlbum()" 
+                            <button onclick="confirmDeleteAlbum()"
                                     title="Delete Album"
                                     class="p-2 text-muted hover:text-accent-red hover:bg-error-light rounded-lg transition-all duration-200 group relative">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -81,7 +81,7 @@
                         </div>
                     </div>
                     <p class="text-xl text-secondary mb-6">by <a href="/artists/{{ album.artist.id }}/albums" class="hover:text-accent-blue hover:underline transition-colors">{{ album.artist.name }}</a></p>
-                    
+
                     <!-- Final Score Display -->
                     <div class="bg-info-light rounded-lg p-4 mb-6">
                         <div class="text-center">
@@ -113,38 +113,38 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Mobile Action Buttons - Shown only on mobile/tablet -->
                     <div class="lg:hidden grid grid-cols-3 sm:flex sm:flex-wrap gap-2 mb-6">
-                        <button onclick="editRating()" 
+                        <button onclick="editRating()"
                                 class="flex flex-col items-center justify-center p-3 text-secondary bg-surface border border-default hover:text-accent-amber hover:bg-warning-light rounded-lg transition-all duration-200">
                             <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                             </svg>
                             <span class="text-xs">Edit</span>
                         </button>
-                        <button onclick="openComparisonModal({{ album.id }})" 
+                        <button onclick="openComparisonModal({{ album.id }})"
                                 class="flex flex-col items-center justify-center p-3 text-secondary bg-surface border border-default hover:text-accent-indigo hover:bg-accent-indigo-light rounded-lg transition-all duration-200">
                             <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
                             </svg>
                             <span class="text-xs">Compare</span>
                         </button>
-                        <button onclick="openRetagModal()" 
+                        <button onclick="openRetagModal()"
                                 class="flex flex-col items-center justify-center p-3 text-secondary bg-surface border border-default hover:text-accent-purple hover:bg-accent-purple-light rounded-lg transition-all duration-200">
                             <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
                             </svg>
                             <span class="text-xs">Release</span>
                         </button>
-                        <button onclick="refreshArtwork(event)" 
+                        <button onclick="refreshArtwork(event)"
                                 class="flex flex-col items-center justify-center p-3 text-secondary bg-surface border border-default hover:text-accent-blue hover:bg-info-light rounded-lg transition-all duration-200">
                             <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                             </svg>
                             <span class="text-xs">Artwork</span>
                         </button>
-                        <a href="https://musicbrainz.org/release/{{ album.musicbrainz_id }}" 
+                        <a href="https://musicbrainz.org/release/{{ album.musicbrainz_id }}"
                            target="_blank"
                            class="flex flex-col items-center justify-center p-3 text-secondary bg-surface border border-default hover:text-accent-blue hover:bg-info-light rounded-lg transition-all duration-200">
                             <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -152,7 +152,7 @@
                             </svg>
                             <span class="text-xs">MusicBrainz</span>
                         </a>
-                        <button onclick="confirmDeleteAlbum()" 
+                        <button onclick="confirmDeleteAlbum()"
                                 class="flex flex-col items-center justify-center p-3 text-secondary bg-surface border border-default hover:text-accent-red hover:bg-error-light rounded-lg transition-all duration-200">
                             <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
@@ -160,12 +160,12 @@
                             <span class="text-xs">Delete</span>
                         </button>
                     </div>
-                    
+
                 </div>
             </div>
         </div>
     </div>
-    
+
     <!-- Album Notes (if present) -->
     {% if album.notes %}
     <div class="bg-surface rounded-lg shadow-sm border border-default mb-8">
@@ -189,7 +189,7 @@
         </div>
     </div>
     {% endif %}
-    
+
     <!-- Track Ratings Summary -->
     <div class="bg-surface rounded-lg shadow-sm border border-default mb-8">
         <div class="p-6">
@@ -197,7 +197,7 @@
                 <h3 class="text-xl font-semibold text-primary">Track Ratings</h3>
                 <span class="text-xs text-muted">Album Bonus: +{{ album.album_bonus }}</span>
             </div>
-            
+
             <!-- Rating Distribution -->
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                 {% set rating_counts = {'standout': 0, 'good': 0, 'filler': 0, 'skip': 0} %}
@@ -208,28 +208,28 @@
                     {% elif track.rating == 0.0 %}{% set _ = rating_counts.update({'skip': rating_counts.skip + 1}) %}
                     {% endif %}
                 {% endfor %}
-                
+
                 <div class="text-center p-4 bg-success-light rounded-lg">
                     <div class="text-2xl font-bold text-success">{{ rating_counts.standout }}</div>
                     <div class="text-sm text-success-secondary">Standout Tracks</div>
                 </div>
-                
+
                 <div class="text-center p-4 bg-success-secondary rounded-lg">
                     <div class="text-2xl font-bold text-success">{{ rating_counts.good }}</div>
                     <div class="text-sm text-success-secondary">Good Tracks</div>
                 </div>
-                
+
                 <div class="text-center p-4 bg-warning-light rounded-lg">
                     <div class="text-2xl font-bold text-warning">{{ rating_counts.filler }}</div>
                     <div class="text-sm text-accent-amber">Filler Tracks</div>
                 </div>
-                
+
                 <div class="text-center p-4 bg-error-light rounded-lg">
                     <div class="text-2xl font-bold text-error">{{ rating_counts.skip }}</div>
                     <div class="text-sm text-accent-red">Skip Tracks</div>
                 </div>
             </div>
-            
+
             <!-- Individual Track List -->
             <div class="space-y-3">
                 {% for track in tracks %}
@@ -245,7 +245,7 @@
                             {% endif %}
                         </div>
                     </div>
-                    
+
                     <div class="flex items-center space-x-3">
                         <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
                             {% if track.rating == 1.0 %}bg-rating-standout text-white
@@ -278,12 +278,12 @@ const retagModalHTML = `
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
             </svg>
         </button>
-        
+
         <div class="mb-4">
             <h3 class="text-lg font-bold text-primary">Retag MusicBrainz ID</h3>
             <p class="text-sm text-secondary mt-2">Select a different release from the same release group. Only releases with {{ album.total_tracks }} tracks are shown.</p>
         </div>
-        
+
         <div id="retagLoading" class="text-center py-8">
             <div class="inline-flex items-center">
                 <svg class="animate-spin h-5 w-5 mr-3 text-accent-blue" viewBox="0 0 24 24">
@@ -293,30 +293,30 @@ const retagModalHTML = `
                 <span class="text-secondary">Loading releases...</span>
             </div>
         </div>
-        
+
         <div id="retagContent" class="hidden">
             <div id="releasesList" class="max-h-96 overflow-y-auto space-y-2 mb-4">
                 <!-- Releases will be populated here -->
             </div>
-            
+
             <div class="flex justify-end space-x-3">
-                <button onclick="closeRetagModal()" 
+                <button onclick="closeRetagModal()"
                         class="px-4 py-2 bg-surface-secondary text-primary rounded-md hover:bg-surface-hover transition-colors">
                     Cancel
                 </button>
-                <button id="confirmRetagBtn" onclick="confirmRetag()" 
+                <button id="confirmRetagBtn" onclick="confirmRetag()"
                         disabled
                         class="px-4 py-2 bg-accent-blue text-white rounded-md hover:opacity-90 disabled:bg-surface-hover disabled:cursor-not-allowed transition-colors">
                     Confirm Change
                 </button>
             </div>
         </div>
-        
+
         <div id="retagError" class="hidden">
             <div class="bg-error-light border border-default rounded-md p-4 mb-4">
                 <p class="text-error" id="retagErrorMessage"></p>
             </div>
-            <button onclick="closeRetagModal()" 
+            <button onclick="closeRetagModal()"
                     class="w-full px-4 py-2 bg-surface-secondary text-primary rounded-md hover:bg-surface-hover transition-colors">
                 Close
             </button>
@@ -328,21 +328,21 @@ const retagModalHTML = `
 // Add modal to the page
 document.addEventListener('DOMContentLoaded', function() {
     document.body.insertAdjacentHTML('beforeend', retagModalHTML);
-    
+
     // Format the rated date
     const ratedAt = "{{ album.rated_at[:10] if album.rated_at else '' }}";
     if (ratedAt) {
         const date = new Date(ratedAt + 'T00:00:00');
         const options = { month: 'short', day: 'numeric', year: 'numeric' };
         let formattedDate = date.toLocaleDateString('en-US', options);
-        
+
         // Add ordinal suffix to day
         const day = date.getDate();
         const suffix = day % 10 === 1 && day !== 11 ? 'st' :
                       day % 10 === 2 && day !== 12 ? 'nd' :
                       day % 10 === 3 && day !== 13 ? 'rd' : 'th';
         formattedDate = formattedDate.replace(/\d+/, day + suffix);
-        
+
         document.getElementById('formatted-date').textContent = formattedDate;
     } else {
         document.getElementById('formatted-date').textContent = 'Today';
@@ -354,14 +354,14 @@ let selectedMbid = null;
 function openRetagModal() {
     const modal = document.getElementById('retagModal');
     modal.classList.remove('hidden');
-    
+
     // Reset state
     selectedMbid = null;
     document.getElementById('confirmRetagBtn').disabled = true;
     document.getElementById('retagLoading').classList.remove('hidden');
     document.getElementById('retagContent').classList.add('hidden');
     document.getElementById('retagError').classList.add('hidden');
-    
+
     // Fetch releases from the same release group
     fetchReleaseGroupReleases();
 }
@@ -373,15 +373,15 @@ function closeRetagModal() {
 async function fetchReleaseGroupReleases() {
     try {
         const response = await fetch(`/api/v1/albums/{{ album.id }}/release-group-releases`);
-        
+
         if (!response.ok) {
             throw new Error('Failed to fetch releases');
         }
-        
+
         const data = await response.json();
-        
+
         document.getElementById('retagLoading').classList.add('hidden');
-        
+
         if (data.releases && data.releases.length > 0) {
             displayReleases(data.releases);
             document.getElementById('retagContent').classList.remove('hidden');
@@ -390,7 +390,7 @@ async function fetchReleaseGroupReleases() {
         } else {
             showRetagError('No alternative releases found with the same track count.');
         }
-        
+
     } catch (error) {
         console.error('Error fetching releases:', error);
         showRetagError('Failed to load releases. Please try again.');
@@ -400,11 +400,11 @@ async function fetchReleaseGroupReleases() {
 function displayReleases(releases) {
     const container = document.getElementById('releasesList');
     const currentMbid = "{{ album.musicbrainz_id }}";
-    
+
     const releasesHTML = releases.map(release => `
         <label class="block p-4 border rounded-lg cursor-pointer hover:bg-surface-secondary transition-colors ${release.musicbrainz_id === currentMbid ? 'border-accent-blue bg-info-light' : 'border-default'}">
-            <input type="radio" 
-                   name="releaseSelection" 
+            <input type="radio"
+                   name="releaseSelection"
                    value="${release.musicbrainz_id}"
                    ${release.musicbrainz_id === currentMbid ? 'checked' : ''}
                    onchange="selectRelease('${release.musicbrainz_id}')"
@@ -414,8 +414,8 @@ function displayReleases(releases) {
                     <!-- Album Artwork (Lazy Loaded) -->
                     <div class="flex-shrink-0">
                         <div class="modal-artwork w-16 h-16 rounded-md overflow-hidden" data-mbid="${release.musicbrainz_id}">
-                            <img class="w-full h-full object-cover hidden" 
-                                 alt="${release.title} cover" 
+                            <img class="w-full h-full object-cover hidden"
+                                 alt="${release.title} cover"
                                  onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                             <div class="artwork-placeholder w-16 h-16 bg-gradient-to-br from-surface-secondary to-surface-hover rounded-md flex items-center justify-center">
                                 <svg class="w-8 h-8 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -424,7 +424,7 @@ function displayReleases(releases) {
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Release Info -->
                     <div class="flex-1 min-w-0">
                         <div class="font-medium text-primary">
@@ -443,7 +443,7 @@ function displayReleases(releases) {
                         ` : ''}
                     </div>
                 </div>
-                
+
                 <!-- Selection Indicator -->
                 <div class="ml-4 flex-shrink-0">
                     ${release.musicbrainz_id === currentMbid ? `
@@ -459,23 +459,23 @@ function displayReleases(releases) {
             </div>
         </label>
     `).join('');
-    
+
     container.innerHTML = releasesHTML;
 }
 
 function selectRelease(mbid) {
     selectedMbid = mbid;
     const currentMbid = "{{ album.musicbrainz_id }}";
-    
+
     // Enable confirm button only if a different release is selected
     document.getElementById('confirmRetagBtn').disabled = (mbid === currentMbid);
-    
+
     // Update visual selection
     const labels = document.querySelectorAll('#releasesList label');
     labels.forEach(label => {
         const input = label.querySelector('input');
         const svgContainer = label.querySelector('.ml-4');
-        
+
         if (input.value === mbid) {
             // Selected state
             label.classList.add('border-accent-blue', 'bg-info-light');
@@ -500,7 +500,7 @@ function selectRelease(mbid) {
 
 async function confirmRetag() {
     if (!selectedMbid) return;
-    
+
     const confirmBtn = document.getElementById('confirmRetagBtn');
     confirmBtn.disabled = true;
     confirmBtn.innerHTML = `
@@ -510,7 +510,7 @@ async function confirmRetag() {
         </svg>
         Updating...
     `;
-    
+
     try {
         const response = await fetch(`/api/v1/albums/{{ album.id }}/retag`, {
             method: 'PUT',
@@ -521,14 +521,14 @@ async function confirmRetag() {
                 new_musicbrainz_id: selectedMbid
             })
         });
-        
+
         if (!response.ok) {
             throw new Error('Failed to update album');
         }
-        
+
         // Reload the page to show updated information
         window.location.reload();
-        
+
     } catch (error) {
         console.error('Error updating album:', error);
         showRetagError('Failed to update album. Please try again.');
@@ -555,18 +555,18 @@ window.onclick = function(event) {
 // Lazy load artwork for retag modal
 async function loadModalArtworkLazily() {
     const artworkContainers = document.querySelectorAll('.modal-artwork[data-mbid]');
-    
+
     // Load artwork with a slight delay between each request to avoid overwhelming the server
     for (let i = 0; i < artworkContainers.length; i++) {
         const container = artworkContainers[i];
         const mbid = container.dataset.mbid;
         const img = container.querySelector('img');
         const placeholder = container.querySelector('.artwork-placeholder');
-        
+
         try {
             // Slight delay to stagger requests (shorter for modal since usually fewer items)
             if (i > 0) await new Promise(resolve => setTimeout(resolve, 50));
-            
+
             const response = await fetch(`/api/v1/releases/${mbid}/artwork-url`);
             if (response.ok) {
                 const data = await response.json();
@@ -583,7 +583,7 @@ async function loadModalArtworkLazily() {
                             placeholder.style.display = 'none';
                         }, 10); // Small delay to ensure transition applies
                     };
-                    
+
                     img.onerror = function() {
                         // Keep placeholder if image fails to load - no transition needed
                         this.classList.add('hidden');
@@ -591,7 +591,7 @@ async function loadModalArtworkLazily() {
                         this.style.opacity = '';
                         placeholder.style.display = 'flex';
                     };
-                    
+
                     // Start loading the image
                     img.src = data.url;
                 } else {
@@ -630,15 +630,15 @@ async function loadModalArtworkLazily() {
 
 async function refreshArtwork(event) {
     const albumId = {{ album.id }};
-    
+
     // Show confirmation dialog
     if (!confirm('This will clear the cached artwork and re-download fresh images. Continue?')) {
         return;
     }
-    
+
     // Show loading state
     const originalButton = event.currentTarget;
-    
+
     // Store original button content
     const originalContent = originalButton.innerHTML;
     originalButton.disabled = true;
@@ -648,7 +648,7 @@ async function refreshArtwork(event) {
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
         </svg>
     `;
-    
+
     try {
         const response = await fetch(`/api/v1/albums/${albumId}/refresh-artwork`, {
             method: 'POST',
@@ -657,9 +657,9 @@ async function refreshArtwork(event) {
                 'X-Session-Id': sessionStorage.getItem('sessionId') || generateUUID()
             }
         });
-        
+
         const data = await response.json();
-        
+
         if (!response.ok) {
             if (response.status === 429) {
                 // Rate limit exceeded
@@ -669,19 +669,19 @@ async function refreshArtwork(event) {
             }
             throw new Error(data.message || 'Failed to refresh artwork');
         }
-        
+
         // Show success notification
         showNotification('Artwork refresh initiated! The images will be updated shortly.', 'success');
-        
+
         // Reload the page after a short delay to show new artwork
         setTimeout(() => {
             window.location.reload();
         }, 3000);
-        
+
     } catch (error) {
         console.error('Error refreshing artwork:', error);
         showNotification(error.message || 'Failed to refresh artwork', 'error');
-        
+
         // Restore button
         originalButton.disabled = false;
         originalButton.innerHTML = originalContent;
@@ -690,12 +690,12 @@ async function refreshArtwork(event) {
 
 async function editRating() {
     const albumId = {{ album.id }};
-    
+
     // Show confirmation dialog
     if (!confirm('This will revert the album to "In Progress" status and allow you to re-rate all tracks. Are you sure you want to continue?')) {
         return;
     }
-    
+
     // Show loading state on button
     const button = event.target.closest('button');
     const originalHTML = button.innerHTML;
@@ -707,7 +707,7 @@ async function editRating() {
         </svg>
         Reverting...
     `;
-    
+
     try {
         const response = await fetch(`/api/v1/albums/${albumId}/revert`, {
             method: 'PUT',
@@ -715,19 +715,19 @@ async function editRating() {
                 'Content-Type': 'application/json',
             }
         });
-        
+
         if (!response.ok) {
             const error = await response.json();
             throw new Error(error.detail?.message || 'Failed to revert album');
         }
-        
+
         // Redirect to the rating page
         window.location.href = `/albums/${albumId}/rate`;
-        
+
     } catch (error) {
         console.error('Error reverting album:', error);
         alert('Failed to revert album to in-progress status. Please try again.');
-        
+
         // Restore button state
         button.disabled = false;
         button.innerHTML = originalHTML;
@@ -739,7 +739,7 @@ function confirmDeleteAlbum() {
     const albumId = {{ album.id }};
     const albumTitle = "{{ album.title }}";
     const artistName = "{{ album.artist.name }}";
-    
+
     // Create and show delete confirmation modal
     const modal = document.createElement('div');
     modal.id = 'delete-modal';
@@ -758,18 +758,18 @@ function confirmDeleteAlbum() {
                         <p class="text-sm text-muted">This action cannot be undone.</p>
                     </div>
                 </div>
-                
+
                 <div class="mb-6">
                     <p class="text-primary">Are you sure you want to permanently delete <strong>"${albumTitle}"</strong> by ${artistName}?</p>
                     <p class="text-sm text-muted mt-2">This will remove the album, all track ratings, and scores from your library.</p>
                 </div>
-                
+
                 <div class="flex flex-col sm:flex-row gap-3">
-                    <button onclick="closeDeleteModal()" 
+                    <button onclick="closeDeleteModal()"
                             class="flex-1 bg-surface-secondary hover:bg-surface-hover text-primary py-2 px-4 rounded-md text-sm font-medium transition-colors">
                         Cancel
                     </button>
-                    <button onclick="executeDelete(${albumId})" 
+                    <button onclick="executeDelete(${albumId})"
                             class="flex-1 bg-accent-red hover:opacity-90 text-white py-2 px-4 rounded-md text-sm font-medium transition-colors">
                         Delete Permanently
                     </button>
@@ -777,9 +777,9 @@ function confirmDeleteAlbum() {
             </div>
         </div>
     `;
-    
+
     document.body.appendChild(modal);
-    
+
     // Close modal when clicking outside
     modal.onclick = function(event) {
         if (event.target === modal) {
@@ -798,7 +798,7 @@ function closeDeleteModal() {
 async function executeDelete(albumId) {
     const deleteBtn = event.target;
     const originalText = deleteBtn.innerHTML;
-    
+
     // Show loading state
     deleteBtn.innerHTML = `
         <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-primary inline" fill="none" viewBox="0 0 24 24">
@@ -808,7 +808,7 @@ async function executeDelete(albumId) {
         Deleting...
     `;
     deleteBtn.disabled = true;
-    
+
     try {
         const response = await fetch(`/api/v1/albums/${albumId}`, {
             method: 'DELETE',
@@ -816,14 +816,14 @@ async function executeDelete(albumId) {
                 'Content-Type': 'application/json',
             }
         });
-        
+
         if (response.ok) {
             // Redirect to My Albums page after successful deletion
             window.location.href = '/albums';
         } else {
             const error = await response.json();
             alert(`Failed to delete album: ${error.message || 'Unknown error'}`);
-            
+
             // Restore button
             deleteBtn.innerHTML = originalText;
             deleteBtn.disabled = false;
@@ -831,7 +831,7 @@ async function executeDelete(albumId) {
     } catch (error) {
         console.error('Delete error:', error);
         alert('Network error deleting album');
-        
+
         // Restore button
         deleteBtn.innerHTML = originalText;
         deleteBtn.disabled = false;

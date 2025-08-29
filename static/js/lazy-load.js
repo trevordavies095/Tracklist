@@ -5,7 +5,7 @@
 
 (function() {
     'use strict';
-    
+
     // Configuration
     const config = {
         rootMargin: '50px 0px', // Start loading 50px before image enters viewport
@@ -18,10 +18,10 @@
         loadedClass: 'artwork-loaded',
         errorClass: 'artwork-error'
     };
-    
+
     // Cache for loaded images
     const imageCache = new Set();
-    
+
     /**
      * Initialize lazy loading for all images with data-src attribute
      */
@@ -32,34 +32,34 @@
             loadAllImages();
             return;
         }
-        
+
         // Create observer
         const imageObserver = new IntersectionObserver(handleIntersection, {
             rootMargin: config.rootMargin,
             threshold: config.threshold
         });
-        
+
         // Observe all lazy images
         const lazyImages = document.querySelectorAll('img[data-src]');
         lazyImages.forEach(img => {
             // Add placeholder class
             img.classList.add(config.placeholderClass);
-            
+
             // Set up placeholder if not already present
             if (!img.src) {
                 img.src = '/static/img/album-placeholder.svg';
             }
-            
+
             // Start observing
             imageObserver.observe(img);
         });
-        
+
         // Also handle images that might be added dynamically
         observeDynamicImages(imageObserver);
-        
+
         console.log(`Lazy loading initialized for ${lazyImages.length} images`);
     }
-    
+
     /**
      * Handle intersection events
      */
@@ -72,39 +72,39 @@
             }
         });
     }
-    
+
     /**
      * Load a single image
      */
     function loadImage(img, attemptNumber = 1) {
         const src = img.dataset.src;
-        
+
         if (!src) return;
-        
+
         // Check if already cached
         if (imageCache.has(src)) {
             applyImage(img, src);
             return;
         }
-        
+
         // Add loading state
         img.classList.add(config.loadingClass);
         img.classList.remove(config.errorClass);
-        
+
         // Create a new image element to load in background
         const tempImg = new Image();
-        
+
         tempImg.onload = function() {
             // Add to cache
             imageCache.add(src);
-            
+
             // Apply to actual image element
             applyImage(img, src);
         };
-        
+
         tempImg.onerror = function() {
             img.classList.remove(config.loadingClass);
-            
+
             if (attemptNumber < config.retryAttempts) {
                 // Retry after delay
                 setTimeout(() => {
@@ -115,18 +115,18 @@
                 // Max retries reached
                 img.classList.add(config.errorClass);
                 console.error(`Failed to load image after ${config.retryAttempts} attempts: ${src}`);
-                
+
                 // Dispatch custom event for error handling
                 img.dispatchEvent(new CustomEvent('lazyload:error', {
                     detail: { src, attempts: attemptNumber }
                 }));
             }
         };
-        
+
         // Start loading
         tempImg.src = src;
     }
-    
+
     /**
      * Apply loaded image with fade-in effect
      */
@@ -134,34 +134,34 @@
         // Remove loading state
         img.classList.remove(config.loadingClass);
         img.classList.remove(config.placeholderClass);
-        
+
         // Add fade-in transition
         img.style.opacity = '0';
         img.style.transition = `opacity ${config.fadeInDuration}ms ease-in-out`;
-        
+
         // Set source
         img.src = src;
-        
+
         // Remove data-src to mark as loaded
         delete img.dataset.src;
-        
+
         // Trigger fade-in
         requestAnimationFrame(() => {
             img.style.opacity = '1';
             img.classList.add(config.loadedClass);
-            
+
             // Clean up transition after animation
             setTimeout(() => {
                 img.style.transition = '';
             }, config.fadeInDuration);
         });
-        
+
         // Dispatch custom event
         img.dispatchEvent(new CustomEvent('lazyload:loaded', {
             detail: { src }
         }));
     }
-    
+
     /**
      * Fallback for browsers without Intersection Observer
      */
@@ -172,14 +172,14 @@
             delete img.dataset.src;
         });
     }
-    
+
     /**
      * Watch for dynamically added images
      */
     function observeDynamicImages(observer) {
         // Use MutationObserver to watch for new images
         if (!('MutationObserver' in window)) return;
-        
+
         const mutationObserver = new MutationObserver(mutations => {
             mutations.forEach(mutation => {
                 mutation.addedNodes.forEach(node => {
@@ -192,7 +192,7 @@
                             }
                             observer.observe(node);
                         }
-                        
+
                         // Also check children
                         const lazyImages = node.querySelectorAll?.('img[data-src]');
                         lazyImages?.forEach(img => {
@@ -206,13 +206,13 @@
                 });
             });
         });
-        
+
         mutationObserver.observe(document.body, {
             childList: true,
             subtree: true
         });
     }
-    
+
     /**
      * Preload images for improved performance
      */
@@ -225,7 +225,7 @@
             }
         });
     }
-    
+
     /**
      * Force load specific images (useful for priority content)
      */
@@ -237,7 +237,7 @@
             }
         });
     }
-    
+
     /**
      * Get loading statistics
      */
@@ -246,7 +246,7 @@
         const loaded = document.querySelectorAll('img.artwork-loaded').length;
         const loading = document.querySelectorAll('img.artwork-loading').length;
         const errors = document.querySelectorAll('img.artwork-error').length;
-        
+
         return {
             total,
             loaded,
@@ -256,7 +256,7 @@
             percentage: total > 0 ? Math.round((loaded / total) * 100) : 0
         };
     }
-    
+
     // Public API
     window.LazyLoad = {
         init: initLazyLoading,
@@ -265,12 +265,12 @@
         getStats: getStats,
         config: config
     };
-    
+
     // Auto-initialize when DOM is ready
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initLazyLoading);
     } else {
         initLazyLoading();
     }
-    
+
 })();
