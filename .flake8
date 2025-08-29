@@ -2,23 +2,19 @@
 # Flake8 configuration compatible with Black
 max-line-length = 88
 extend-ignore =
-    # Black compatibility
-    E203,  # Whitespace before ':'
-    E501,  # Line too long (handled by Black)
-    W503,  # Line break before binary operator
-    # Documentation (can be strict later)
-    D100,  # Missing docstring in public module
-    D101,  # Missing docstring in public class
-    D102,  # Missing docstring in public method
-    D103,  # Missing docstring in public function
-    D104,  # Missing docstring in public package
-    D105,  # Missing docstring in magic method
-    D107,  # Missing docstring in __init__
-    # Complexity
-    C901,  # Function is too complex (can enable later)
-    # Additional Bugbear warnings to ignore
-    B008,  # Do not perform function calls in argument defaults
-    B902  # Invalid first argument for method
+    E203,
+    E501,
+    W503,
+    D100,
+    D101,
+    D102,
+    D103,
+    D104,
+    D105,
+    D107,
+    C901,
+    B008,
+    B902
 
 # Exclude paths
 exclude =
